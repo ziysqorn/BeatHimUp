@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "../BaseCharacter/BaseCharacter.h"
 #include "../../ActorComponent/AttackComponent/AttackComponent.h"
+#include "../../ActorComponent/WeaponComponent/WeaponComponent.h"
 #include "../../StrategyPattern/Attack/SwordShieldAttack.h"
 #include "MainCharacter.generated.h"
 
@@ -29,6 +30,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components/AttackComponent")
 	UAttackComponent* AttackComponent = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components/WeaponComponent")
+	UWeaponComponent* WeaponComponent = nullptr;
 
 	//Editor Properties
 	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties/Input")

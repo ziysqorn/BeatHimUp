@@ -16,6 +16,16 @@ public:
 	AWeapon();
 
 protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Altenative Root Component")
+	USceneComponent* AltRootComp = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Box Collision")
+	UBoxComponent* BoxComp = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mesh")
+	UStaticMeshComponent* StaticMeshComp = nullptr;
+
+protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 

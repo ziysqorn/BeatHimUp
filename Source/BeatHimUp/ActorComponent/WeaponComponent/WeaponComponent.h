@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
+#include "../../Weapon/Weapon.h"
+#include "../../DataAsset/WeaponDataAsset.h"
 #include "WeaponComponent.generated.h"
 
 
@@ -12,10 +14,71 @@ class BEATHIMUP_API UWeaponComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
+protected:
+	AWeapon* LeftWeapon = nullptr;
+	AWeapon* RightWeapon = nullptr;
+
+public:
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Subclass Data Asset")
+	UWeaponDataAsset* WeaponDataAsset = nullptr;
+
 public:	
 	// Sets default values for this component's properties
 	UWeaponComponent();
 
+	void SetLeftWeapon(AWeapon* inWeapon, FName SocketName) {
+		LeftWeapon = inWeapon;
+		if (IsValid(LeftWeapon)) {
+			LeftWeapon->SetOwner(this->GetOwner());
+			if (ACharacter* character = Cast<ACharacter>(this->GetOwner())) {
+				LeftWeapon->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
+			}
+		}
+	}
+
+	void SetRightWeapon(AWeapon* inWeapon, FName SocketName) {
+		RightWeapon = inWeapon;
+		if (IsValid(RightWeapon)) {
+			RightWeapon->SetOwner(this->GetOwner());
+			if (ACharacter* character = Cast<ACharacter>(this->GetOwner())) {
+				RightWeapon->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
+			}
+		}
+
+	}
+
+
+	void SetupWeaponsOnHands(TSubclassOf<AWeapon> LeftWeaponType, TSubclassOf<AWeapon> RightWeaponType, FName LeftHandSocketName, FName RightHandSocketname) {
+		if (ACharacter* character = Cast<ACharacter>(this->GetOwner())) {
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = character;
+			if (IsValid(LeftWeaponType) && !LeftHandSocketName.IsNone()) {
+				if (AWeapon* spawnedLeftWeapon = GetWorld()->SpawnActor<AWeapon>(LeftWeaponType, character->GetMesh()->GetSocketLocation(LeftHandSocketName),
+					character->GetMesh()->GetSocketRotation(LeftHandSocketName),
+					SpawnParams
+				))
+				{
+					spawnedLeftWeapon->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, LeftHandSocketName);
+				}
+			}
+			if (IsValid(LeftWeaponType) && !RightHandSocketname.IsNone()) {
+				if (AWeapon* spawnedRightWeapon = GetWorld()->SpawnActor<AWeapon>(RightWeaponType, character->GetMesh()->GetSocketLocation(RightHandSocketname),
+					character->GetMesh()->GetSocketRotation(RightHandSocketname),
+					SpawnParams
+				))
+				{
+					spawnedRightWeapon->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, RightHandSocketname);
+				}
+			}
+		}
+	}
+
+	TSubclassOf<AWeapon>* GetWeaponSubclassByName(const FName& name) {
+		if (WeaponDataAsset) {
+			return WeaponDataAsset->WeaponSubclassMap.Find(name);
+		}
+		return nullptr;
+	}
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

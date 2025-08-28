@@ -9,6 +9,7 @@ AMainCharacter::AMainCharacter()
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(FName("SpringArmComponent"));
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(FName("CameraComponent"));
 	AttackComponent = CreateDefaultSubobject<UAttackComponent>(FName("AttackComponent"));
+	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(FName("WeaponComponent"));
 	if (SpringArmComp) {
 		SpringArmComp->SetupAttachment(this->RootComponent);
 		if (CameraComp) CameraComp->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepRelativeTransform);
@@ -22,6 +23,14 @@ void AMainCharacter::BeginPlay()
 	SetupMappingContext();
 
 	AttackComponent->SetAttackStrategy(NewObject<USwordShieldAttack>());
+
+
+	WeaponComponent->SetupWeaponsOnHands(
+		*WeaponComponent->GetWeaponSubclassByName(FName("Shield")),
+		*WeaponComponent->GetWeaponSubclassByName(FName("Sword")),
+		FName("LeftHand_Shield"), 
+		FName("RightHand_Weapon")
+	);
 }
 
 void AMainCharacter::Tick(float deltaTime)
