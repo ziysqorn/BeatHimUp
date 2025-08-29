@@ -5,6 +5,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/ActorComponent.h"
 #include "Components/BoxComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/DataAsset.h"
 #include "InputMappingContext.h"

@@ -3,6 +3,7 @@
 
 #include "MainCharacter.h"
 
+
 AMainCharacter::AMainCharacter()
 {
 	this->PrimaryActorTick.bCanEverTick = false;
