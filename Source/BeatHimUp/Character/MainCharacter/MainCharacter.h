@@ -7,6 +7,7 @@
 #include "../../ActorComponent/AttackComponent/AttackComponent.h"
 #include "../../ActorComponent/WeaponComponent/WeaponComponent.h"
 #include "../../StrategyPattern/Attack/SwordShieldAttack.h"
+#include "../../DataAsset/GameplayAbilityDataAsset.h"
 #include "MainCharacter.generated.h"
 
 /**
@@ -22,27 +23,37 @@ public:
 
 protected:
 	//Components
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components/Camera/SpringArmComponent")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Camera|SpringArmComponent")
 	USpringArmComponent* SpringArmComp = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components/Camera/CameraComponent")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Camera|CameraComponent")
 	UCameraComponent* CameraComp = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components/AttackComponent")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|AttackComponent")
 	UAttackComponent* AttackComponent = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components/WeaponComponent")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|WeaponComponent")
 	UWeaponComponent* WeaponComponent = nullptr;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components|AbilitySystemComponent")
+	UAbilitySystemComponent* AbilitySystemComp = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties|DataAssets|GameplayAbilityDataAsset")
+	UGameplayAbilityDataAsset* GADataAsset = nullptr;
+
 	//Editor Properties
-	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties/Input")
+	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input")
 	UInputMappingContext* PlayerMappingContext = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties/Input/Input Action");
+
+	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
 	UInputAction* IA_Move = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties/Input/Input Action");
+	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
 	UInputAction* IA_Look = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
+	UInputAction* IA_Attack = nullptr;
 
 protected:
 	// Called when the game starts or when spawned
@@ -55,6 +66,8 @@ protected:
 	void SetupMappingContext();
 
 	void MoveTriggered(const FInputActionValue& value);
+
+	void AttackTriggered();
 
 	void Look(const FInputActionValue& value);
 };

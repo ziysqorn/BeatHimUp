@@ -19,7 +19,7 @@ protected:
 	AWeapon* RightWeapon = nullptr;
 
 public:
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon Subclass Data Asset")
+	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Weapon Subclass Data Asset")
 	UWeaponDataAsset* WeaponDataAsset = nullptr;
 
 public:	

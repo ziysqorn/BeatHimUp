@@ -8,6 +8,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/DataAsset.h"
+#include "Abilities/GameplayAbility.h"
+#include "AbilitySystemComponent.h"
 #include "InputMappingContext.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"

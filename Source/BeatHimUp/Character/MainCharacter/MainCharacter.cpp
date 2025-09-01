@@ -11,6 +11,7 @@ AMainCharacter::AMainCharacter()
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(FName("CameraComponent"));
 	AttackComponent = CreateDefaultSubobject<UAttackComponent>(FName("AttackComponent"));
 	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(FName("WeaponComponent"));
+	AbilitySystemComp = CreateDefaultSubobject<UAbilitySystemComponent>(FName("AbilitySystemComponent"));
 	if (SpringArmComp) {
 		SpringArmComp->SetupAttachment(this->RootComponent);
 		if (CameraComp) CameraComp->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepRelativeTransform);
@@ -26,12 +27,18 @@ void AMainCharacter::BeginPlay()
 	AttackComponent->SetAttackStrategy(NewObject<USwordShieldAttack>());
 
 
-	WeaponComponent->SetupWeaponsOnHands(
-		*WeaponComponent->GetWeaponSubclassByName(FName("Shield")),
-		*WeaponComponent->GetWeaponSubclassByName(FName("Sword")),
-		FName("LeftHand_Shield"), 
-		FName("RightHand_Weapon")
-	);
+	if (WeaponComponent) {
+		WeaponComponent->SetupWeaponsOnHands(
+			*WeaponComponent->GetWeaponSubclassByName(FName("Shield")),
+			*WeaponComponent->GetWeaponSubclassByName(FName("Sword")),
+			FName("LeftHand_Shield"),
+			FName("RightHand_Weapon")
+		);
+	}
+	if (AbilitySystemComp && GADataAsset) {
+		AbilitySystemComp->InitAbilityActorInfo(this, this);
+		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Attack")), 1, -1, this));
+	}
 }
 
 void AMainCharacter::Tick(float deltaTime)
@@ -46,6 +53,7 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	if (UEnhancedInputComponent* EIComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 		if (IA_Move) EIComponent->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AMainCharacter::MoveTriggered);
 		if (IA_Look) EIComponent->BindAction(IA_Look, ETriggerEvent::Triggered, this, &AMainCharacter::Look);
+		if (IA_Attack) EIComponent->BindAction(IA_Attack, ETriggerEvent::Triggered, this, &AMainCharacter::AttackTriggered);
 	}
 }
 
@@ -69,6 +77,15 @@ void AMainCharacter::MoveTriggered(const FInputActionValue& value)
 
 	AddMovementInput(DirectionY, directionValue.Y);
 	AddMovementInput(DirectionX, directionValue.X);
+}
+
+void AMainCharacter::AttackTriggered()
+{
+	if (AbilitySystemComp) {
+		FGameplayTagContainer tagContainer;
+		tagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Attack")));
+		AbilitySystemComp->TryActivateAbilitiesByTag(tagContainer);
+	}
 }
 
 void AMainCharacter::Look(const FInputActionValue& value)
