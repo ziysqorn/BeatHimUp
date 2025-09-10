@@ -3,3 +3,25 @@
 
 #include "Sword.h"
 
+ASword::ASword()
+{
+	this->OnActorBeginOverlap.AddDynamic(this, &ASword::ActorBeginOverlapped);
+}
+
+void ASword::BeginPlay()
+{
+	Super::BeginPlay();
+
+
+}
+
+void ASword::ActorBeginOverlapped(AActor* OverlappedActor, AActor* OtherActor)
+{
+	if (ACharacter* OtherCharacter = Cast<ACharacter>(OtherActor)) {
+		FGameplayTag eventTag = FGameplayTag::RequestGameplayTag(FName("GameplayEvent.TargetAttacked"));
+		FGameplayEventData Payload;
+		Payload.EventTag = eventTag;
+		Payload.Instigator = this->GetOwner();
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this->GetOwner(), eventTag, Payload);
+	}
+}

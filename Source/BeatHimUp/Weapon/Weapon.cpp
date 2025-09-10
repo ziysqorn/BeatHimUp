@@ -13,6 +13,7 @@ AWeapon::AWeapon()
 	BoxComp = CreateDefaultSubobject<UBoxComponent>(FName("BoxComp"));
 	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(FName("StaticMeshComp"));
 	AltRootComp->SetupAttachment(RootComponent);
+	RootComponent = AltRootComp;
 	BoxComp->AttachToComponent(AltRootComp, FAttachmentTransformRules::KeepRelativeTransform);
 	StaticMeshComp->AttachToComponent(AltRootComp, FAttachmentTransformRules::KeepRelativeTransform);
 }

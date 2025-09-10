@@ -2,6 +2,7 @@
 
 
 #include "MainCharacter.h"
+#include "../../GameplayAbilities/GA_Move.h"
 
 
 AMainCharacter::AMainCharacter()
@@ -24,8 +25,6 @@ void AMainCharacter::BeginPlay()
 
 	SetupMappingContext();
 
-	AttackComponent->SetAttackStrategy(NewObject<USwordShieldAttack>());
-
 
 	if (WeaponComponent) {
 		WeaponComponent->SetupWeaponsOnHands(
@@ -37,7 +36,9 @@ void AMainCharacter::BeginPlay()
 	}
 	if (AbilitySystemComp && GADataAsset) {
 		AbilitySystemComp->InitAbilityActorInfo(this, this);
-		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Attack")), 1, -1, this));
+		AbilitySystemComp->AffectedAnimInstanceTag = NAME_None;
+		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_SwordAndShieldAttack")), 1, -1, this));
+		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_HumanoidMove")), 1, -1, this));
 	}
 }
 
@@ -68,15 +69,16 @@ void AMainCharacter::SetupMappingContext()
 
 void AMainCharacter::MoveTriggered(const FInputActionValue& value)
 {
-	FVector directionValue = value.Get<FVector>();
-	const FRotator Rotation = GetControlRotation();
-	const FRotator YawRotation(0, Rotation.Yaw, 0);
+	if (AbilitySystemComp) {
+		if (FGameplayAbilitySpec* GASpec = AbilitySystemComp->FindAbilitySpecFromClass(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_HumanoidMove")))) {
+			if (UGA_Move* GA_Move = Cast<UGA_Move>(GASpec->GetPrimaryInstance())) {
+				FVector directionValue = value.Get<FVector>();
+				GA_Move->SetInputDirectionValue(directionValue);
 
-	const FVector DirectionX = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	const FVector DirectionY = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-	AddMovementInput(DirectionY, directionValue.Y);
-	AddMovementInput(DirectionX, directionValue.X);
+				AbilitySystemComp->TryActivateAbility(GASpec->Handle);
+			}
+		}
+	}
 }
 
 void AMainCharacter::AttackTriggered()

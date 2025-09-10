@@ -13,5 +13,13 @@ UCLASS()
 class BEATHIMUP_API ASword : public AWeapon
 {
 	GENERATED_BODY()
-	
+
+public:
+	ASword();
+
+protected:
+	void BeginPlay() override;
+
+	UFUNCTION()
+	void ActorBeginOverlapped(AActor* OverlappedActor, AActor* OtherActor);
 };

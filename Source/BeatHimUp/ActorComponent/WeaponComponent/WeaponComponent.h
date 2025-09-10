@@ -32,6 +32,7 @@ public:
 			LeftWeapon->SetOwner(this->GetOwner());
 			if (ACharacter* character = Cast<ACharacter>(this->GetOwner())) {
 				LeftWeapon->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
+				LeftWeapon->SetActorEnableCollision(false);
 			}
 		}
 	}
@@ -42,6 +43,7 @@ public:
 			RightWeapon->SetOwner(this->GetOwner());
 			if (ACharacter* character = Cast<ACharacter>(this->GetOwner())) {
 				RightWeapon->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
+				RightWeapon->SetActorEnableCollision(false);
 			}
 		}
 
@@ -59,6 +61,8 @@ public:
 				))
 				{
 					spawnedLeftWeapon->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, LeftHandSocketName);
+					LeftWeapon = spawnedLeftWeapon;
+					LeftWeapon->SetActorEnableCollision(false);
 				}
 			}
 			if (IsValid(LeftWeaponType) && !RightHandSocketname.IsNone()) {
@@ -68,9 +72,19 @@ public:
 				))
 				{
 					spawnedRightWeapon->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, RightHandSocketname);
+					RightWeapon = spawnedRightWeapon;
+					RightWeapon->SetActorEnableCollision(false);
 				}
 			}
 		}
+	}
+
+	AWeapon* GetLeftWeapon() {
+		return LeftWeapon;
+	}
+
+	AWeapon* GetRightWeapon() {
+		return RightWeapon;
 	}
 
 	TSubclassOf<AWeapon>* GetWeaponSubclassByName(const FName& name) {

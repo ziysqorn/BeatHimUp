@@ -5,8 +5,6 @@
 #include "CoreMinimal.h"
 #include "../BaseCharacter/BaseCharacter.h"
 #include "../../ActorComponent/AttackComponent/AttackComponent.h"
-#include "../../ActorComponent/WeaponComponent/WeaponComponent.h"
-#include "../../StrategyPattern/Attack/SwordShieldAttack.h"
 #include "../../DataAsset/GameplayAbilityDataAsset.h"
 #include "MainCharacter.generated.h"
 
@@ -14,13 +12,16 @@
  * 
  */
 UCLASS()
-class BEATHIMUP_API AMainCharacter : public ABaseCharacter
+class BEATHIMUP_API AMainCharacter : public ABaseCharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 public:
 	// Sets default values for this character's properties
 	AMainCharacter();
 
+	UAbilitySystemComponent* GetAbilitySystemComponent() const override {
+		return AbilitySystemComp;
+	}
 protected:
 	//Components
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Camera|SpringArmComponent")
@@ -29,11 +30,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Camera|CameraComponent")
 	UCameraComponent* CameraComp = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|AttackComponent")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components|AttackComponent")
 	UAttackComponent* AttackComponent = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|WeaponComponent")
-	UWeaponComponent* WeaponComponent = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components|AbilitySystemComponent")
 	UAbilitySystemComponent* AbilitySystemComp = nullptr;
