@@ -13,6 +13,7 @@ AMainCharacter::AMainCharacter()
 	AttackComponent = CreateDefaultSubobject<UAttackComponent>(FName("AttackComponent"));
 	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(FName("WeaponComponent"));
 	AbilitySystemComp = CreateDefaultSubobject<UAbilitySystemComponent>(FName("AbilitySystemComponent"));
+	CharacterAttributeSet = CreateDefaultSubobject<UAttributeSet_PlayableCharacter>("GameplayAttributeSet");
 	if (SpringArmComp) {
 		SpringArmComp->SetupAttachment(this->RootComponent);
 		if (CameraComp) CameraComp->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepRelativeTransform);

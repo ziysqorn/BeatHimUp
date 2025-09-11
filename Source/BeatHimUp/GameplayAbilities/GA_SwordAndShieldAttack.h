@@ -6,6 +6,7 @@
 #include "../ProjectIncludes.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "../GameplayEffect/GE_ApplyDamage.h"
 #include "GA_SwordAndShieldAttack.generated.h"
 
 /**
@@ -19,6 +20,9 @@ class BEATHIMUP_API UGA_SwordAndShieldAttack : public UGameplayAbility
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | MontageToPlay")
 	UAnimMontage* SwordAndShieldAttackMontage = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | ApplyDamageGameplayEffect")
+	TSubclassOf<UGE_ApplyDamage> GE_ApplyDamageSubclass;
 
 	void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 

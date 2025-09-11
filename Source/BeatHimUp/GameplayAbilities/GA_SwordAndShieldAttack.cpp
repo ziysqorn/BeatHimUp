@@ -29,5 +29,14 @@ void UGA_SwordAndShieldAttack::AttackEnd()
 
 void UGA_SwordAndShieldAttack::TargetHit(FGameplayEventData eventData)
 {
-	GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Red, "Heyhey");
+	if (const ACharacter* TargetCharacter = Cast<ACharacter>(eventData.Target)) {
+		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(GE_ApplyDamageSubclass);
+		if (const IAbilitySystemInterface* AbilitySystemInterface = Cast<IAbilitySystemInterface>(TargetCharacter)) {
+			if (UAbilitySystemComponent* TargetAbilitySystemComp = AbilitySystemInterface->GetAbilitySystemComponent()) {
+				if (UAbilitySystemComponent* SelfAbilitySystemComp = this->GetAbilitySystemComponentFromActorInfo()) {
+					SelfAbilitySystemComp->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetAbilitySystemComp);
+				}
+			}
+		}
+	}
 }

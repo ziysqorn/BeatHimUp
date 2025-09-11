@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "../BaseCharacter/BaseCharacter.h"
 #include "../../ActorComponent/AttackComponent/AttackComponent.h"
+#include "../../AttributeSet/AttributeSet_PlayableCharacter.h"
 #include "../../DataAsset/GameplayAbilityDataAsset.h"
 #include "MainCharacter.generated.h"
 
@@ -35,6 +36,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components|AbilitySystemComponent")
 	UAbilitySystemComponent* AbilitySystemComp = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GameplayAttributeSet")
+	UAttributeSet_PlayableCharacter* CharacterAttributeSet = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties|DataAssets|GameplayAbilityDataAsset")
 	UGameplayAbilityDataAsset* GADataAsset = nullptr;
