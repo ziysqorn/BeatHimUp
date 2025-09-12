@@ -7,13 +7,14 @@
 #include "../../ActorComponent/AttackComponent/AttackComponent.h"
 #include "../../AttributeSet/AttributeSet_PlayableCharacter.h"
 #include "../../DataAsset/GameplayAbilityDataAsset.h"
+#include "../../DataAsset/HumanoidMontagesDataAsset.h"
 #include "MainCharacter.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class BEATHIMUP_API AMainCharacter : public ABaseCharacter, public IAbilitySystemInterface
+class BEATHIMUP_API AMainCharacter : public ABaseCharacter, public IAbilitySystemInterface, public IDamageable
 {
 	GENERATED_BODY()
 public:
@@ -42,6 +43,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties|DataAssets|GameplayAbilityDataAsset")
 	UGameplayAbilityDataAsset* GADataAsset = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties|DataAssets|HumanoidMontages")
+	UHumanoidMontagesDataAsset* HumanoidMontagesDataAsset = nullptr;
 
 	//Editor Properties
 	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input")
@@ -72,4 +76,9 @@ protected:
 	void AttackTriggered();
 
 	void Look(const FInputActionValue& value);
+
+	void Hurt(const float& remainHealth, const float& totalHealth) override;
+
+	UFUNCTION()
+	void HurtMontageEnded(UAnimMontage* Montage, bool isInterrupted);
 };

@@ -98,4 +98,34 @@ void AMainCharacter::Look(const FInputActionValue& value)
 	AddControllerPitchInput(lookDirectionVal.Y);
 }
 
+void AMainCharacter::Hurt(const float& remainHealth, const float& totalHealth)
+{
+	if (AbilitySystemComp) {
+		AbilitySystemComp->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Hurt")));
+		if (IsValid(HumanoidMontagesDataAsset)) {
+			if (USkeletalMeshComponent* mesh = GetMesh()) {
+				if (UAnimInstance* animInstance = mesh->GetAnimInstance()) {
+					if (FMath::IsNearlyEqual(remainHealth, 0.0f, 1.0E-4)) {
+						GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Red, "Character died");
+					}
+					else
+					{
+						UAnimMontage* montageToPlay = *HumanoidMontagesDataAsset->HumanoidMontagesMap.Find(FName("Hurt"));
+						animInstance->Montage_Play(montageToPlay);
+						FOnMontageEnded montageEndedDel = FOnMontageEnded::CreateUObject(this, &AMainCharacter::HurtMontageEnded);
+						animInstance->Montage_SetEndDelegate(montageEndedDel, montageToPlay);
+						GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Red, "Character hurt");
+					}
+				}
+			}
+		}
+	}
+}
+
+void AMainCharacter::HurtMontageEnded(UAnimMontage* Montage, bool isInterrupted)
+{
+	GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Blue, "HurtMontageEnded");
+	AbilitySystemComp->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Hurt")));
+}
+
 

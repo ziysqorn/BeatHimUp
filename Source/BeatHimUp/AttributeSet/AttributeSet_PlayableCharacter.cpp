@@ -2,6 +2,7 @@
 
 
 #include "AttributeSet_PlayableCharacter.h"
+#include "../Interface/Damageable.h"
 #include "GameplayEffectExtension.h"
 
 UAttributeSet_PlayableCharacter::UAttributeSet_PlayableCharacter()
@@ -27,8 +28,11 @@ void UAttributeSet_PlayableCharacter::PostGameplayEffectExecute(const FGameplayE
 	Super::PostGameplayEffectExecute(Data);
 
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute()) {
-		if (Health.GetCurrentValue() <= 0.0f) {
-			GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Red, "Character died");
+		
+		if (Data.EvaluatedData.ModifierOp == EGameplayModOp::AddBase && Data.EvaluatedData.Magnitude < 0.0f) {
+			if (IDamageable* damageable = Cast<IDamageable>(this->GetActorInfo()->OwnerActor)) {
+				damageable->Hurt(Health.GetCurrentValue(), MaxHealth.GetCurrentValue());
+			}
 		}
 	}
 }
