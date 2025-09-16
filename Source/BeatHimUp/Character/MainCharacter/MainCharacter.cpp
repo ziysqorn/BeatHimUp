@@ -100,6 +100,11 @@ void AMainCharacter::Look(const FInputActionValue& value)
 
 void AMainCharacter::Hurt(const float& remainHealth, const float& totalHealth)
 {
+	NetMulticast_Hurt(remainHealth, totalHealth);
+}
+
+void AMainCharacter::NetMulticast_Hurt_Implementation(const float& remainHealth, const float& totalHealth)
+{
 	if (AbilitySystemComp) {
 		if (IsValid(HumanoidMontagesDataAsset)) {
 			if (USkeletalMeshComponent* mesh = GetMesh()) {

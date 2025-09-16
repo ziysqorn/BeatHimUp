@@ -20,6 +20,6 @@ public:
 protected:
 	void BeginPlay() override;
 
-	UFUNCTION()
+	UFUNCTION(Client, Reliable)
 	void ActorBeginOverlapped(AActor* OverlappedActor, AActor* OtherActor);
 };

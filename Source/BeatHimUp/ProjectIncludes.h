@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/ActorComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/ProgressBar.h"
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/DataAsset.h"
@@ -23,3 +24,5 @@
 #include "EnhancedInputSubsystems.h"
 #include "AbilitySystemInterface.h"
 #include "Interface/Damageable.h"
+#include "Blueprint/UserWidget.h"
+#include "GameFramework/PlayerController.h"

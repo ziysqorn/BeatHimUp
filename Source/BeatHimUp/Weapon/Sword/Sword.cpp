@@ -5,7 +5,6 @@
 
 ASword::ASword()
 {
-	//this->OnActorBeginOverlap.AddDynamic(this, &ASword::ActorBeginOverlapped);
 }
 
 void ASword::BeginPlay()
@@ -13,16 +12,20 @@ void ASword::BeginPlay()
 	Super::BeginPlay();
 
 	this->OnActorBeginOverlap.AddDynamic(this, &ASword::ActorBeginOverlapped);
+
+	SetActorEnableCollision(false);
 }
 
-void ASword::ActorBeginOverlapped(AActor* OverlappedActor, AActor* OtherActor)
+void ASword::ActorBeginOverlapped_Implementation(AActor* OverlappedActor, AActor* OtherActor)
 {
-	if (ACharacter* OtherCharacter = Cast<ACharacter>(OtherActor)) {
-		FGameplayTag eventTag = FGameplayTag::RequestGameplayTag(FName("GameplayEvent.TargetAttacked"));
-		FGameplayEventData Payload;
-		Payload.EventTag = eventTag;
-		Payload.Instigator = this->GetOwner();
-		Payload.Target = OtherCharacter;
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this->GetOwner(), eventTag, Payload);
+	if (OtherActor != this->GetOwner()) {
+		if (ACharacter* OtherCharacter = Cast<ACharacter>(OtherActor)) {
+			FGameplayTag eventTag = FGameplayTag::RequestGameplayTag(FName("GameplayEvent.TargetAttacked"));
+			FGameplayEventData Payload;
+			Payload.EventTag = eventTag;
+			Payload.Instigator = this->GetOwner();
+			Payload.Target = OtherCharacter;
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this->GetOwner(), eventTag, Payload);
+		}
 	}
 }

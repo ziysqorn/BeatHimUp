@@ -24,6 +24,7 @@ public:
 	UAbilitySystemComponent* GetAbilitySystemComponent() const override {
 		return AbilitySystemComp;
 	}
+
 protected:
 	//Components
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Camera|SpringArmComponent")
@@ -78,6 +79,9 @@ protected:
 	void Look(const FInputActionValue& value);
 
 	void Hurt(const float& remainHealth, const float& totalHealth) override;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticast_Hurt(const float& remainHealth, const float& totalHealth);
 
 	UFUNCTION()
 	void HurtMontageEnded(UAnimMontage* Montage, bool isInterrupted);

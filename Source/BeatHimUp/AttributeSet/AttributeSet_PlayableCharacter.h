@@ -31,15 +31,15 @@ public:
 		return Health.GetCurrentValue();
 	}
 
-	float GetHealthPercentage() {
-		return Health.GetCurrentValue() / MaxHealth.GetCurrentValue();
+	float GetHealthPercentage() const {
+		return Health.GetBaseValue() / MaxHealth.GetBaseValue();
 	}
 protected:
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Health, Category = "Attributes")
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, Health)
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxHealth, Category = "Attributes")
 	FGameplayAttributeData MaxHealth;
 	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, MaxHealth)
 
@@ -54,4 +54,12 @@ protected:
 	void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 
 	void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION()
+	void OnRep_Health(const FGameplayAttributeData& OldHealth);
+
+	UFUNCTION()
+	void OnRep_MaxHealth(const FGameplayAttributeData& OldHealth);
 };

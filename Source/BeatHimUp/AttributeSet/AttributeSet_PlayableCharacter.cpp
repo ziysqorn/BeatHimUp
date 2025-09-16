@@ -36,3 +36,18 @@ void UAttributeSet_PlayableCharacter::PostGameplayEffectExecute(const FGameplayE
 		}
 	}
 }
+
+void UAttributeSet_PlayableCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+}
+
+void UAttributeSet_PlayableCharacter::OnRep_Health(const FGameplayAttributeData& OldHealth)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UAttributeSet_PlayableCharacter, Health, OldHealth);
+}
+
+void UAttributeSet_PlayableCharacter::OnRep_MaxHealth(const FGameplayAttributeData& OldHealth)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UAttributeSet_PlayableCharacter, MaxHealth, OldHealth);
+}

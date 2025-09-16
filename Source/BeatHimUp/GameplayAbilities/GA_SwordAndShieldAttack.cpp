@@ -27,7 +27,7 @@ void UGA_SwordAndShieldAttack::AttackEnd()
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
-void UGA_SwordAndShieldAttack::TargetHit(FGameplayEventData eventData)
+void UGA_SwordAndShieldAttack::TargetHit_Implementation(FGameplayEventData eventData)
 {
 	if (const ACharacter* TargetCharacter = Cast<ACharacter>(eventData.Target)) {
 		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(GE_ApplyDamageSubclass);

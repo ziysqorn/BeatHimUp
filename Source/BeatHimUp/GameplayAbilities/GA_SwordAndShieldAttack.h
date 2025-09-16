@@ -29,6 +29,6 @@ protected:
 	UFUNCTION()
 	void AttackEnd();
 
-	UFUNCTION()
+	UFUNCTION(Server, Reliable)
 	void TargetHit(FGameplayEventData eventData);
 };

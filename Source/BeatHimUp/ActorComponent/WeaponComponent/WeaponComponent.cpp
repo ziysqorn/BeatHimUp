@@ -20,8 +20,6 @@ void UWeaponComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	if (LeftWeapon) LeftWeapon->SetActorEnableCollision(false);
-	if (RightWeapon) RightWeapon->SetActorEnableCollision(false);
 }
 
 
