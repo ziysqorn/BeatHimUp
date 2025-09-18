@@ -4,6 +4,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/PlayerState.h"
+#include "GameFramework/Info.h"
 #include "Components/ActorComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/ProgressBar.h"

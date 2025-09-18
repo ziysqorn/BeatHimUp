@@ -35,7 +35,7 @@ public:
 		return Health.GetBaseValue() / MaxHealth.GetBaseValue();
 	}
 protected:
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Health, Category = "Attributes")
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Health, Category = "Attributes" )
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, Health)
 

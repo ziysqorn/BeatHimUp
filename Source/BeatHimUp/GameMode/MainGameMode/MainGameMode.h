@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
+#include "../../CustomInfo/TeamState/TeamState.h"
 #include "MainGameMode.generated.h"
 
 /**
@@ -14,4 +15,11 @@ class BEATHIMUP_API AMainGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+protected:
+	UPROPERTY(Replicated)
+	TArray<ATeamState*> Teams;
+
+	void BeginPlay() override;
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };
