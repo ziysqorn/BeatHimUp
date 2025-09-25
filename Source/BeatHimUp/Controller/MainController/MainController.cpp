@@ -10,6 +10,7 @@ AMainController::AMainController()
 void AMainController::BeginPlay()
 {
 	Super::BeginPlay();
+
 }
 
 void AMainController::OnPossess(APawn* aPawn)

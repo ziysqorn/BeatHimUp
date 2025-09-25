@@ -8,11 +8,15 @@ void AMainGameMode::BeginPlay()
 	Super::BeginPlay();
 
 	Teams.Init(NewObject<ATeamState>(this), 2);
-
-
 }
 
 void AMainGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+}
+
+void AMainGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+
 }

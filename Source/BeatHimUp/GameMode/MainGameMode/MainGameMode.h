@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
+#include "../../UI/ChoosingTeamUI/ChoosingTeamUI.h"
+#include "../../UI/PlayerTeamCard/PlayerTeamCard.h"
 #include "../../CustomInfo/TeamState/TeamState.h"
 #include "MainGameMode.generated.h"
 
@@ -22,4 +24,7 @@ protected:
 	void BeginPlay() override;
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	void PostLogin(APlayerController* NewPlayer) override;
+
 };
