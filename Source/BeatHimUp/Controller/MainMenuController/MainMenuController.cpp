@@ -22,5 +22,6 @@ void AMainMenuController::SetupLoginScreen_Implementation()
 	if (IsValid(LoginScreen)) {
 		LoginScreen->SetOwningPlayer(this);
 		LoginScreen->AddToViewport(0);
+		this->SetShowMouseCursor(true);
 	}
 }

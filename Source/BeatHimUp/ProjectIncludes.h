@@ -9,6 +9,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "Components/EditableTextBox.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
