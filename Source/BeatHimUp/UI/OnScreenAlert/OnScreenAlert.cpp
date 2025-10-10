@@ -3,3 +3,12 @@
 
 #include "OnScreenAlert.h"
 
+void UOnScreenAlert::NativeOnInitialized()
+{
+	Super::NativeOnInitialized();
+}
+
+void UOnScreenAlert::NativeConstruct()
+{
+	Super::NativeConstruct();
+}

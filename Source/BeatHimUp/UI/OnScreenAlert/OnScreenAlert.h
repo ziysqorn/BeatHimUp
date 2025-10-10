@@ -31,6 +31,9 @@ protected:
 	UPROPERTY(meta=(BindWidget))
 	UButton* Btn_Cancel = nullptr;
 
+	void NativeOnInitialized() override;
+	void NativeConstruct() override;
+
 public:
 	void SetMessage(const FText& inMessage) {
 		if (inMessage.IsEmptyOrWhitespace()) return;
@@ -47,11 +50,11 @@ public:
 		if (Txt_Cancel) Txt_Cancel->SetText(inMessage);
 	}
 
-	UButton* GetConfirmBtn() {
-		return Btn_Confirm;
+	void BindConfirmBtn(const FOnButtonClickedEvent& callback) {
+		if (IsValid(Btn_Confirm) && !Btn_Confirm->OnClicked.IsBound()) Btn_Confirm->OnClicked = callback;
 	}
 
-	UButton* GetCancelBtn() {
-		return Btn_Cancel;
+	void BindCancelBtn(const FOnButtonClickedEvent& callback) {
+		if (IsValid(Btn_Cancel) && !Btn_Cancel->OnClicked.IsBound()) Btn_Cancel->OnClicked = callback;
 	}
 };

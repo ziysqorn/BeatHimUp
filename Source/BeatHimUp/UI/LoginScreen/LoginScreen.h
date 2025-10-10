@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
+#include "../../UI/OnScreenAlert/OnScreenAlert.h"
 #include "LoginScreen.generated.h"
 
 /**
@@ -42,6 +43,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "EyeTextureArray")
 	TArray<UTexture2D*> EyeArr;
 
+	UPROPERTY(EditDefaultsOnly, Category = "ScreenAlertSubclass")
+	TSubclassOf<UOnScreenAlert> ScreenAlertSubclass;
+
+	UPROPERTY()
+	TObjectPtr<UOnScreenAlert> ScreenAlert;
+
 	void NativeOnInitialized() override;
 	void NativeConstruct() override;
 
@@ -49,11 +56,23 @@ protected:
 	void TogglePassword();
 
 	UFUNCTION()
-	void DisplaySignUp();
-
-	UFUNCTION()
 	void ClearInputs();
 
 	UFUNCTION(Client, Reliable)
 	void ExitGame();
+
+	UFUNCTION()
+	void Login();
+
+	UFUNCTION(Client, Reliable)
+	void DisplaySignUpAlert();
+
+	void LoginRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
+	bool CheckUsername();
+	
+	bool CheckPassword();
+
+	UFUNCTION(Client, Unreliable)
+	void CloseScreenAlert();
 };
