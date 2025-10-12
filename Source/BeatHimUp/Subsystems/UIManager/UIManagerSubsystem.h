@@ -23,4 +23,6 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void PopLastWidget();
+
+	TWeakObjectPtr<UUserWidget>& GetTopWidget();
 };

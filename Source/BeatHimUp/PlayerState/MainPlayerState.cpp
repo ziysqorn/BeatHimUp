@@ -5,10 +5,17 @@
 
 AMainPlayerState::AMainPlayerState()
 {
-	SetReplicates(true);
+}
+
+void AMainPlayerState::SetUsername_Implementation(const FName& inName)
+{
+	Username = inName;
 }
 
 void AMainPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AMainPlayerState, Username);
 }
+ 

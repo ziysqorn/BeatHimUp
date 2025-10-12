@@ -8,25 +8,33 @@ void AMainMenuController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetupLoginScreen();
-	SetupMainMenu();
+	Client_DisplayLoginScreen();
 	SetInputMode(FInputModeUIOnly());
 }
 
-void AMainMenuController::SetupMainMenu_Implementation()
+
+void AMainMenuController::Client_DisplayMainMenu_Implementation()
 {
 	if (!IsValid(MainMenu) && MainMenuSubclass) MainMenu = CreateWidget<UMainMenu>(this, MainMenuSubclass);
+	if (IsValid(MainMenu)) {
+		if (IsValid(LoginScreen)) {
+			LoginScreen->RemoveFromParent();
+		}
+		MainMenu->SetOwningPlayer(this);
+		MainMenu->AddToViewport(0);
+		this->SetShowMouseCursor(true);
+	}
 }
 
-void AMainMenuController::SetupLoginScreen_Implementation()
+void AMainMenuController::Client_DisplayLoginScreen_Implementation()
 {
 	if (!IsValid(LoginScreen) && LoginScreenSubclass) LoginScreen = CreateWidget<ULoginScreen>(this, LoginScreenSubclass);
 	if (IsValid(LoginScreen)) {
+		if (IsValid(MainMenu)) {
+			MainMenu->RemoveFromParent();
+		}
 		LoginScreen->SetOwningPlayer(this);
 		LoginScreen->AddToViewport(0);
 		this->SetShowMouseCursor(true);
-		if (UUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UUIManagerSubsystem>()) {
-			UIManager->AddWidget(LoginScreen);
-		}
 	}
 }

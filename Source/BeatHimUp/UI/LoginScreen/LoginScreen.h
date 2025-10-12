@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
 #include "../../UI/OnScreenAlert/OnScreenAlert.h"
+#include "../../UI/OnlyCloseAlert/OnlyCloseAlert.h"
 #include "LoginScreen.generated.h"
 
 /**
@@ -46,11 +47,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "ScreenAlertSubclass")
 	TSubclassOf<UOnScreenAlert> ScreenAlertSubclass;
 
-	UPROPERTY()
-	TObjectPtr<UOnScreenAlert> ScreenAlert;
+	UPROPERTY(EditDefaultsOnly, Category = "OnlyCloseAlertSubclass")
+	TSubclassOf<UOnlyCloseAlert> OnlyCloseAlertSubclass;
 
 	void NativeOnInitialized() override;
 	void NativeConstruct() override;
+	void NativeDestruct() override;
 
 	UFUNCTION()
 	void TogglePassword();
@@ -59,20 +61,28 @@ protected:
 	void ClearInputs();
 
 	UFUNCTION(Client, Reliable)
-	void ExitGame();
+	void Client_ExitGame();
 
 	UFUNCTION()
 	void Login();
 
 	UFUNCTION(Client, Reliable)
-	void DisplaySignUpAlert();
+	void Client_DisplaySignUpAlert();
+
+	UFUNCTION(Client, Reliable)
+	void Client_DisplayOnlyCloseAlert(const FString& Message);
 
 	void LoginRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
+	void SignupRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
 
 	bool CheckUsername();
 	
 	bool CheckPassword();
 
+	UFUNCTION()
+	void ConfirmSignup();
+
 	UFUNCTION(Client, Unreliable)
-	void CloseScreenAlert();
+	void Client_CloseScreenAlert();
 };

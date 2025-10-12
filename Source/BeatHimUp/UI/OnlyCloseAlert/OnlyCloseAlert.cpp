@@ -1,31 +1,37 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "OnScreenAlert.h"
+#include "OnlyCloseAlert.h"
 #include "../../Subsystems/UIManager/UIManagerSubsystem.h"
 
-void UOnScreenAlert::NativeOnInitialized()
+void UOnlyCloseAlert::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 }
 
-void UOnScreenAlert::NativeConstruct()
+void UOnlyCloseAlert::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+	if (IsValid(Btn_Confirm)) Btn_Confirm->OnClicked.AddDynamic(this, &UOnlyCloseAlert::CloseAlert);
 
 	if (UUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UUIManagerSubsystem>()) {
 		UIManager->AddWidget(this);
 	}
 }
 
-void UOnScreenAlert::NativeDestruct()
+void UOnlyCloseAlert::NativeDestruct()
 {
 	Super::NativeDestruct();
 
 	if (IsValid(Btn_Confirm)) Btn_Confirm->OnClicked.Clear();
-	if (IsValid(Btn_Cancel)) Btn_Cancel->OnClicked.Clear();
 
 	if (UUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UUIManagerSubsystem>()) {
 		UIManager->PopLastWidget();
 	}
+}
+
+void UOnlyCloseAlert::CloseAlert_Implementation()
+{
+	RemoveFromParent();
 }

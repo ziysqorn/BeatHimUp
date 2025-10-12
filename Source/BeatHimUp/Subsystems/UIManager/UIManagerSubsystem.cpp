@@ -20,7 +20,7 @@ void UUIManagerSubsystem::AddWidget_Implementation(UUserWidget* inWidget)
 
 void UUIManagerSubsystem::PopLastWidget_Implementation() {
 	if (!stk_Widgets.IsEmpty()) {
-		stk_Widgets.Pop(false);
+		stk_Widgets.Pop(EAllowShrinking::No);
 		if (!stk_Widgets.IsEmpty()) {
 			TWeakObjectPtr<UUserWidget> topWidget = stk_Widgets.Top();
 			if (topWidget.IsValid()) {
@@ -28,5 +28,9 @@ void UUIManagerSubsystem::PopLastWidget_Implementation() {
 			}
 		}
 	}
+}
+
+TWeakObjectPtr<UUserWidget>& UUIManagerSubsystem::GetTopWidget() {
+	return stk_Widgets.Top();
 }
 

@@ -33,6 +33,7 @@ protected:
 
 	void NativeOnInitialized() override;
 	void NativeConstruct() override;
+	void NativeDestruct() override;
 
 public:
 	void SetMessage(const FText& inMessage) {

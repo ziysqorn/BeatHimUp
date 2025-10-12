@@ -3,21 +3,22 @@
 
 #include "LoginScreen.h"
 #include "../../Subsystems/UIManager/UIManagerSubsystem.h"
-#include "../../Helpers/HTTPHelper/HTTPHelper.h"
+#include "../../Subsystems/ServiceControllerSubsystem/ServiceControllerSubsystem.h"
+#include "../../Controller/MainMenuController/MainMenuController.h"
+#include "../../PlayerState/MainPlayerState.h"
 
 void ULoginScreen::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
 	if (IsValid(Btn_ShowPassword)) {
-		Btn_ShowPassword->SetCursor(EMouseCursor::Hand);
 		Btn_ShowPassword->OnClicked.AddDynamic(this, &ULoginScreen::TogglePassword);
 	}
 	if (IsValid(Btn_Clear)) {
 		Btn_Clear->OnClicked.AddDynamic(this, &ULoginScreen::ClearInputs);
 	}
 	if (IsValid(Btn_QuitGame)) {
-		Btn_QuitGame->OnClicked.AddDynamic(this, &ULoginScreen::ExitGame);
+		Btn_QuitGame->OnClicked.AddDynamic(this, &ULoginScreen::Client_ExitGame);
 	}
 	if (IsValid(Btn_Login)) {
 		Btn_Login->OnClicked.AddDynamic(this, &ULoginScreen::Login);
@@ -38,6 +39,19 @@ void ULoginScreen::NativeConstruct()
 			style.SetPressed(brush);
 			Btn_ShowPassword->SetStyle(style);
 		}
+	}
+
+	if (UUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UUIManagerSubsystem>()) {
+		UIManager->AddWidget(this);
+	}
+}
+
+void ULoginScreen::NativeDestruct()
+{
+	Super::NativeDestruct();
+
+	if (UUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UUIManagerSubsystem>()) {
+		UIManager->PopLastWidget();
 	}
 }
 
@@ -67,7 +81,7 @@ void ULoginScreen::ClearInputs() {
 	}
 }
 
-void ULoginScreen::ExitGame_Implementation()
+void ULoginScreen::Client_ExitGame_Implementation()
 {
 	UKismetSystemLibrary::QuitGame(this, this->GetOwningPlayer(), EQuitPreference::Quit, false);
 }
@@ -82,9 +96,10 @@ void ULoginScreen::Login() {
 		FString contentString;
 		TSharedRef<TJsonWriter<>> JsonWriter = TJsonWriterFactory<>::Create(&contentString);
 		if (FJsonSerializer::Serialize(JsonObj.ToSharedRef(), JsonWriter)) {
-			if (UHTTPHelper* HTTPHelper = NewObject<UHTTPHelper>()) {
-				HTTPHelper->AddHeader(TEXT("Content-Type"), TEXT("application/json"));
-				if(!HTTPHelper->IsHeaderEmpty()) HTTPHelper->SendRequest("/user/login", "POST", contentString, FHttpRequestCompleteDelegate::CreateUObject(this, &ULoginScreen::LoginRequestComplete));
+			if (UServiceControllerSubsystem* ServiceController = GetGameInstance()->GetSubsystem<UServiceControllerSubsystem>()) {
+				if (ServiceController->UserAccountController) {
+					ServiceController->UserAccountController->LoginUser(contentString, FHttpRequestCompleteDelegate::CreateUObject(this, &ULoginScreen::LoginRequestComplete));
+				}
 			}
 		}
 	}
@@ -112,50 +127,99 @@ bool ULoginScreen::CheckPassword()
 	return true;
 }
 
+void ULoginScreen::ConfirmSignup()
+{
+	TSharedPtr<FJsonObject> JsonObj = MakeShareable(new FJsonObject());
+	JsonObj->SetStringField(TEXT("username"), TxtBox_Username->GetText().ToString());
+	JsonObj->SetStringField(TEXT("user_password"), TxtBox_Password->GetText().ToString());
+	FString contentString;
+	TSharedRef<TJsonWriter<>> JsonWriter = TJsonWriterFactory<>::Create(&contentString);
+	if (FJsonSerializer::Serialize(JsonObj.ToSharedRef(), JsonWriter)) {
+		if (UServiceControllerSubsystem* ServiceController = GetGameInstance()->GetSubsystem<UServiceControllerSubsystem>()) {
+			if (ServiceController->UserAccountController) {
+				ServiceController->UserAccountController->CreateUser(contentString, FHttpRequestCompleteDelegate::CreateUObject(this, &ULoginScreen::SignupRequestComplete));
+			}
+		}
+	}
+}
+
+void ULoginScreen::Client_DisplayOnlyCloseAlert_Implementation(const FString& Message)
+{
+	if (OnlyCloseAlertSubclass) {
+		if (UOnlyCloseAlert* OnlyCloseAlert = CreateWidget<UOnlyCloseAlert>(this->GetOwningPlayer(), OnlyCloseAlertSubclass)) {
+			OnlyCloseAlert->SetOwningPlayer(this->GetOwningPlayer());
+			OnlyCloseAlert->SetMessage(FText::FromString(Message));
+			OnlyCloseAlert->AddToViewport(2);
+		}
+	}
+}
+
 void ULoginScreen::LoginRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully)
 {
 	if (connectedSuccessfully && pResponse.IsValid()) {
 		switch (pResponse->GetResponseCode()) {
 		case 401:
-			GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Green, TEXT("Wrong password !"));
+			Client_DisplayOnlyCloseAlert("Wrong password !");
 			break;
 		case EHttpResponseCodes::NotFound:
-			GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Green, TEXT("User not found !"));
-			DisplaySignUpAlert();
+			Client_DisplaySignUpAlert();
 			break;
 		default:
-			GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Green, TEXT("User found !"));
+			if (AMainMenuController* MainMenuController = this->GetOwningPlayer<AMainMenuController>()) {
+				TSharedPtr<FJsonObject> JsonObj = MakeShareable(new FJsonObject());
+				TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(pResponse->GetContentAsString());
+				if (FJsonSerializer::Deserialize(Reader, JsonObj)) {
+					if (AMainPlayerState* MainPlayerState = MainMenuController->GetPlayerState<AMainPlayerState>()) {
+						MainPlayerState->SetUsername(FName(JsonObj->GetStringField("username")));
+					}
+				}
+				MainMenuController->Client_DisplayMainMenu();
+			}
 			break;
 		}
 	}
 }
 
-void ULoginScreen::DisplaySignUpAlert_Implementation()
+void ULoginScreen::SignupRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully)
 {
-	if (!IsValid(ScreenAlert) && ScreenAlertSubclass) {
-		ScreenAlert = CreateWidget<UOnScreenAlert>(this->GetOwningPlayer(), ScreenAlertSubclass);
-		if (IsValid(ScreenAlert)) {
+	if (connectedSuccessfully && pResponse.IsValid()) {
+		switch (pResponse->GetResponseCode()) {
+		case EHttpResponseCodes::Created:
+			Client_CloseScreenAlert();
+			Login();
+			break;
+		case EHttpResponseCodes::Conflict:
+			Client_DisplayOnlyCloseAlert(pResponse->GetContentAsString());
+			break;
+		default:
+			Client_DisplayOnlyCloseAlert("Invalid inputs !");
+			break;
+		}
+	}
+}
+
+void ULoginScreen::Client_DisplaySignUpAlert_Implementation()
+{
+	if (ScreenAlertSubclass) {
+		if (UOnScreenAlert* ScreenAlert = CreateWidget<UOnScreenAlert>(this->GetOwningPlayer(), ScreenAlertSubclass)) {
 			ScreenAlert->SetOwningPlayer(this->GetOwningPlayer());
 			ScreenAlert->SetMessage(FText::FromString("User doesn't exist !\nDo you wish to create a new user using the existing information ?"));
 			FOnButtonClickedEvent cancelClicked;
 			FOnButtonClickedEvent confirmClicked;
-			cancelClicked.AddDynamic(this, &ULoginScreen::CloseScreenAlert);
+			confirmClicked.AddDynamic(this, &ULoginScreen::ConfirmSignup);
+			cancelClicked.AddDynamic(this, &ULoginScreen::Client_CloseScreenAlert);
+			ScreenAlert->BindConfirmBtn(confirmClicked);
 			ScreenAlert->BindCancelBtn(cancelClicked);
-			if (UUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UUIManagerSubsystem>()) {
-				UIManager->AddWidget(ScreenAlert);
-			}
 			ScreenAlert->AddToViewport(1);
 		}
 	}
 }
 
-void ULoginScreen::CloseScreenAlert_Implementation()
+void ULoginScreen::Client_CloseScreenAlert_Implementation()
 {
-	if (IsValid(ScreenAlert)) {
-		ScreenAlert->RemoveFromParent();
-		if (UUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UUIManagerSubsystem>()) {
-			UIManager->PopLastWidget();
-		}
+	if (UUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UUIManagerSubsystem>()) {
+		TWeakObjectPtr<UUserWidget> ScreenAlert = UIManager->GetTopWidget();
+		if (ScreenAlert.IsValid()) ScreenAlert->RemoveFromParent();
 	}
 }
 

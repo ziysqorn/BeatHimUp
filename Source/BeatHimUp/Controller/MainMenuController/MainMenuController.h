@@ -32,8 +32,9 @@ protected:
 	void BeginPlay() override;
 
 	UFUNCTION(Client, Reliable)
-	void SetupLoginScreen();
+	void Client_DisplayLoginScreen();
 
+public:
 	UFUNCTION(Client, Reliable)
-	void SetupMainMenu();
+	void Client_DisplayMainMenu();
 };
