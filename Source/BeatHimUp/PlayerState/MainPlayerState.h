@@ -23,8 +23,6 @@ protected:
 
 	UFUNCTION()
 	virtual void OnRep_Username() {
-		FString _Role = HasAuthority() ? TEXT("Server") : TEXT("Client");
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("[%s] Username replicated: %s"), *_Role, *Username.ToString()));
 	}
 
 public:

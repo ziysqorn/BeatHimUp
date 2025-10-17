@@ -18,10 +18,37 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
 	TObjectPtr<UTextBlock> Txt_Username;
 
+	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
+	TObjectPtr<UWidgetSwitcher> WSwitcher_FriendList;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	TObjectPtr<UWidgetSwitcher> WSwitcher_MainScreen;
+
+	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
+	TObjectPtr<UButton> Btn_HideFriendList;
+
+	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
+	TObjectPtr<UButton> Btn_ShowFriendList;
+
+	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
+	TObjectPtr<UButton> Btn_ToLobby;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	TObjectPtr<UButton> Btn_Home;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	TObjectPtr<UButton> Btn_Play;
+
+
 	void NativeOnInitialized() override;
 	void NativeConstruct() override;
 	void NativeDestruct() override;
 
+	UFUNCTION()
+	void ToggleFriendlistVisible();
+
+	UFUNCTION()
+	void ToggleMainScreenAndHome();
 public:
 	void SetUsernameText(const FText& inText) {
 		if (IsValid(Txt_Username)) Txt_Username->SetText(inText);

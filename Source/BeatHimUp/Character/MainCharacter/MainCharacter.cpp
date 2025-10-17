@@ -96,6 +96,7 @@ void AMainCharacter::Look(const FInputActionValue& value)
 	FVector lookDirectionVal = value.Get<FVector>();
 	AddControllerYawInput(lookDirectionVal.X);
 	AddControllerPitchInput(lookDirectionVal.Y);
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, GetControlRotation().ToString());
 }
 
 void AMainCharacter::Hurt(const float& remainHealth, const float& totalHealth)

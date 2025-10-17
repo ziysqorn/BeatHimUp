@@ -156,6 +156,7 @@ void ULoginScreen::Client_DisplayOnlyCloseAlert_Implementation(const FString& Me
 
 void ULoginScreen::LoginRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully)
 {
+	check(IsInGameThread());
 	if (connectedSuccessfully && pResponse.IsValid()) {
 		switch (pResponse->GetResponseCode()) {
 		case 401:
@@ -170,10 +171,11 @@ void ULoginScreen::LoginRequestComplete(FHttpRequestPtr pRequest, FHttpResponseP
 				TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(pResponse->GetContentAsString());
 				if (FJsonSerializer::Deserialize(Reader, JsonObj)) {
 					if (AMainPlayerState* MainPlayerState = MainMenuController->GetPlayerState<AMainPlayerState>()) {
-						MainPlayerState->SetUsername(FName(JsonObj->GetStringField("username")));
+						MainPlayerState->SetUsername(FName(JsonObj->GetStringField(TEXT("username"))));
+						MainMenuController->Client_CreateMainMenu();
+						MainMenuController->SetupAndDisplayMainMenu(JsonObj);
 					}
 				}
-				MainMenuController->Client_DisplayMainMenu();
 			}
 			break;
 		}
@@ -182,6 +184,7 @@ void ULoginScreen::LoginRequestComplete(FHttpRequestPtr pRequest, FHttpResponseP
 
 void ULoginScreen::SignupRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully)
 {
+	check(IsInGameThread());
 	if (connectedSuccessfully && pResponse.IsValid()) {
 		switch (pResponse->GetResponseCode()) {
 		case EHttpResponseCodes::Created:

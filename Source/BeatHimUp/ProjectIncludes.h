@@ -11,8 +11,11 @@
 #include "Components/TextBlock.h"
 #include "Components/EditableTextBox.h"
 #include "Components/Button.h"
+#include "Components/WidgetSwitcher.h"
+#include "Components/Border.h"
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
+#include "CineCameraActor.h"
 #include "Engine/DataAsset.h"
 #include "Abilities/GameplayAbility.h"
 #include "GameplayEffect.h"
@@ -37,3 +40,5 @@
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
 #include "Net/UnrealNetwork.h"
+#include "Engine/LevelScriptActor.h"
+

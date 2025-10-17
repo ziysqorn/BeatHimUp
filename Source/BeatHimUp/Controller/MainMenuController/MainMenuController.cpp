@@ -8,21 +8,55 @@ void AMainMenuController::BeginPlay()
 {
 	Super::BeginPlay();
 
+	SetupMappingContext();
 	Client_DisplayLoginScreen();
-	SetInputMode(FInputModeUIOnly());
+}
+
+void AMainMenuController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+}
+
+void AMainMenuController::SetupMappingContext() 
+{
+	if (UEnhancedInputLocalPlayerSubsystem* EISubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer())) {
+		EISubsystem->AddMappingContext(InputMappingContext, 0);
+	}
 }
 
 
-void AMainMenuController::Client_DisplayMainMenu_Implementation()
+void AMainMenuController::Client_CreateMainMenu_Implementation()
 {
+	bEnableClickEvents = true;
 	if (!IsValid(MainMenu) && MainMenuSubclass) MainMenu = CreateWidget<UMainMenu>(this, MainMenuSubclass);
 	if (IsValid(MainMenu)) {
 		if (IsValid(LoginScreen)) {
 			LoginScreen->RemoveFromParent();
 		}
 		MainMenu->SetOwningPlayer(this);
-		MainMenu->AddToViewport(0);
 		this->SetShowMouseCursor(true);
+	}
+}
+
+void AMainMenuController::SetupAndDisplayMainMenu(const TSharedPtr<FJsonObject>& infoJsonObj)
+{
+	if (IsValid(MainMenu) && infoJsonObj.IsValid()) {
+		MainMenu->SetUsernameText(FText::FromString(infoJsonObj->GetStringField(TEXT("username"))));
+		MainMenu->AddToViewport(0);
+	}
+}
+
+void AMainMenuController::BindLeftMouseRelease(UObject* userObj, FName FuncName)
+{
+	if (UEnhancedInputComponent* EIComponent = Cast<UEnhancedInputComponent>(InputComponent)) {
+		EIComponent->BindAction(IA_LeftMouse, ETriggerEvent::Triggered, userObj, FuncName);
+	}
+}
+
+void AMainMenuController::BindLeftMouseClicked(UObject* userObj, FName FuncName)
+{
+	if (UEnhancedInputComponent* EIComponent = Cast<UEnhancedInputComponent>(InputComponent)) {
+		EIComponent->BindAction(IA_LeftMouseClicked, ETriggerEvent::Triggered, userObj, FuncName);
 	}
 }
 
