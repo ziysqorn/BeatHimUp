@@ -44,6 +44,8 @@ void ULoginScreen::NativeConstruct()
 	if (UUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UUIManagerSubsystem>()) {
 		UIManager->AddWidget(this);
 	}
+
+	InitLoginScreen();
 }
 
 void ULoginScreen::NativeDestruct()
@@ -53,6 +55,14 @@ void ULoginScreen::NativeDestruct()
 	if (UUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UUIManagerSubsystem>()) {
 		UIManager->PopLastWidget();
 	}
+}
+
+void ULoginScreen::InitLoginScreen() 
+{
+	if (AMainMenuController* PlayerController = this->GetOwningPlayer<AMainMenuController>()) {
+		PlayerController->SetInputMode(FInputModeUIOnly());
+	}
+	ClearInputs();
 }
 
 void ULoginScreen::TogglePassword()

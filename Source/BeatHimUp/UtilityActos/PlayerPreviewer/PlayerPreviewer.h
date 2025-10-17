@@ -15,6 +15,8 @@ public:
 	// Sets default values for this actor's properties
 	APlayerPreviewer();
 
+	UFUNCTION(Client, Unreliable)
+	void ResetModelRotation();
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "AltRootComponent")
 	TObjectPtr<USceneComponent> AltRootComponent = nullptr;

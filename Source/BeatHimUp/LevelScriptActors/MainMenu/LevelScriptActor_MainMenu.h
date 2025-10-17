@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
+#include "../../UtilityActos/PlayerPreviewer/PlayerPreviewer.h"
 #include "LevelScriptActor_MainMenu.generated.h"
 
 /**
@@ -18,8 +19,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "CineCameraActor")
 	ACineCameraActor* CineCamera = nullptr;
 
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerPreviewerList")
+	TArray<TObjectPtr<APlayerPreviewer>> PlayerPreviewerList;
+
 	void BeginPlay() override;
 
 	UFUNCTION(Client, Reliable)
 	void SetupView();
+
+public:
+	UFUNCTION(Client, Unreliable)
+	void ResetPlayerPreviewerList();
 };

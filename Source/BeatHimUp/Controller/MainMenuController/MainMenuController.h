@@ -44,10 +44,10 @@ protected:
 
 	void SetupMappingContext();
 
+public:
 	UFUNCTION(Client, Reliable)
 	void Client_DisplayLoginScreen();
 
-public:
 	UFUNCTION(Client, Reliable)
 	void Client_CreateMainMenu();
 

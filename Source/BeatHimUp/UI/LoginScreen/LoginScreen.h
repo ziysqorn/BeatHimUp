@@ -54,6 +54,8 @@ protected:
 	void NativeConstruct() override;
 	void NativeDestruct() override;
 
+	void InitLoginScreen();
+
 	UFUNCTION()
 	void TogglePassword();
 

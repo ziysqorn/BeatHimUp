@@ -11,6 +11,13 @@ void ALevelScriptActor_MainMenu::BeginPlay()
 	SetupView();
 }
 
+void ALevelScriptActor_MainMenu::ResetPlayerPreviewerList_Implementation()
+{
+	for (auto PlayerPreviewer : PlayerPreviewerList) {
+		if (IsValid(PlayerPreviewer)) PlayerPreviewer->ResetModelRotation();
+	}
+}
+
 void ALevelScriptActor_MainMenu::SetupView_Implementation()
 {
 	if (CineCamera) {

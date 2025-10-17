@@ -17,6 +17,11 @@ APlayerPreviewer::APlayerPreviewer()
 	ModelComponent->AttachToComponent(AltRootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 }
 
+void APlayerPreviewer::ResetModelRotation_Implementation()
+{
+	if (IsValid(ModelComponent)) ModelComponent->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
+}
+
 // Called when the game starts or when spawned
 void APlayerPreviewer::BeginPlay()
 {

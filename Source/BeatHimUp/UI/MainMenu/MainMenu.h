@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
+#include "../OnScreenAlert/OnScreenAlert.h"
 #include "MainMenu.generated.h"
 
 /**
@@ -39,6 +40,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	TObjectPtr<UButton> Btn_Play;
 
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	TObjectPtr<UButton> Btn_Logout;
+
+	UPROPERTY(EditDefaultsOnly, Category = "ScreenAlertSubclass")
+	TSubclassOf<UOnScreenAlert> ScreenAlertSubclass;
+
 
 	void NativeOnInitialized() override;
 	void NativeConstruct() override;
@@ -48,7 +55,18 @@ protected:
 	void ToggleFriendlistVisible();
 
 	UFUNCTION()
-	void ToggleMainScreenAndHome();
+	void ToggleLobbyAndHome();
+
+	UFUNCTION(Client, Unreliable)
+	void DisplayLogoutAlert();
+
+	UFUNCTION()
+	void SetCustomInputMode();
+
+	UFUNCTION()
+	void ConfirmLogout();
+
+	void InitMainMenu();
 public:
 	void SetUsernameText(const FText& inText) {
 		if (IsValid(Txt_Username)) Txt_Username->SetText(inText);
