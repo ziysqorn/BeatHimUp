@@ -6,6 +6,9 @@
 #include "../../Controller/MainMenuController/MainMenuController.h"
 #include "../../PlayerState/MainPlayerState.h"
 #include "../../LevelScriptActors/MainMenu/LevelScriptActor_MainMenu.h"
+#include "../../ServiceController/UserAccountController/UserAccountController.h"
+#include "../../CustomGameInstance/MyGameInstance.h"
+#include "../../Subsystems/ServiceControllerSubsystem/ServiceControllerSubsystem.h"
 
 void UMainMenu::NativeOnInitialized()
 {
@@ -26,15 +29,24 @@ void UMainMenu::NativeConstruct()
 		UIManager->AddWidget(this);
 	}
 
-	if (ALevelScriptActor_MainMenu* MainMenuLevelScript = Cast<ALevelScriptActor_MainMenu>(GetWorld()->GetLevelScriptActor())) {
-		MainMenuLevelScript->ResetPlayerPreviewerList();
+	if (UServiceControllerSubsystem* ServiceController = GetGameInstance()->GetSubsystem<UServiceControllerSubsystem>()) {
+		if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()){
+			ServiceController->WSMessageRecieveDel.AddUObject(this, &UMainMenu::FriendlistMessageRecvCallback);
+			GetWorld()->GetTimerManager().SetTimer(GetFriendlistTimerHandle, FTimerDelegate::CreateUObject(ServiceController->FriendlistController,
+				&UFriendlistController::SendFriendlistMessage, Cast<UObject>(this), FName("FriendlistMessageRecvCallback"), MyGameInstance->PlayerInfo.Username), 5.0f, true);
+		}
 	}
+
 	InitMainMenu();
 }
 
 void UMainMenu::NativeDestruct()
 {
 	Super::NativeDestruct();
+
+	if (GetWorld()->GetTimerManager().IsTimerActive(GetFriendlistTimerHandle)) {
+		GetWorld()->GetTimerManager().ClearTimer(GetFriendlistTimerHandle);
+	}
 
 	if (UUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UUIManagerSubsystem>()) {
 		UIManager->PopLastWidget();
@@ -72,6 +84,15 @@ void UMainMenu::ToggleLobbyAndHome()
 	}
 }
 
+void UMainMenu::DisplayOnlyCloseAlert_Implementation()
+{
+	if (UOnlyCloseAlert* OnlyCloseAlert = CreateWidget<UOnlyCloseAlert>(this->GetOwningPlayer(), OnlyCloseAlertSubclass)) {
+		OnlyCloseAlert->SetOwningPlayer(this->GetOwningPlayer());
+		OnlyCloseAlert->SetMessage(FText::FromString("Unable to start this process yet !"));
+		OnlyCloseAlert->AddToViewport(2);
+	}
+}
+
 void UMainMenu::SetCustomInputMode()
 {
 	if (AMainMenuController* PlayerController = this->GetOwningPlayer<AMainMenuController>()) {
@@ -85,9 +106,26 @@ void UMainMenu::SetCustomInputMode()
 void UMainMenu::ConfirmLogout()
 {
 	if (AMainMenuController* MainMenuController = this->GetOwningPlayer<AMainMenuController>()) {
-		MainMenuController->Client_DisplayLoginScreen();
-		if (AMainPlayerState* MainPlayerState = MainMenuController->GetPlayerState<AMainPlayerState>()) {
-			MainPlayerState->SetUsername(NAME_None);
+		UGameplayStatics::OpenLevel(this, FName("Level_Login"));
+	}
+
+}
+
+void UMainMenu::FriendlistMessageRecvCallback_Implementation(const FString& Message)
+{
+	if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+		TArray<TSharedPtr<FJsonValue>> jsonObjArr;
+		TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(Message);
+		if (FJsonSerializer::Deserialize(reader, jsonObjArr)) {
+			for (const TSharedPtr<FJsonValue>& Value : jsonObjArr) {
+				TSharedPtr<FJsonObject> friendJsonObj = Value->AsObject();
+				if (friendJsonObj.IsValid()) {
+					FPlayerInfo newPlayerInfo;
+					newPlayerInfo.Username = FName(friendJsonObj->GetStringField(TEXT("username")));
+					newPlayerInfo.isOnline = friendJsonObj->GetBoolField(TEXT("status"));
+					MyGameInstance->Friendlist.Add(newPlayerInfo);
+				}
+			}
 		}
 	}
 }
@@ -102,6 +140,9 @@ void UMainMenu::InitMainMenu()
 		if (IsValid(WSwitcher_FriendList)) {
 			WSwitcher_FriendList->SetActiveWidgetIndex(0);
 		}
+	}
+	if (UMyGameInstance* MyGameInstance = this->GetGameInstance<UMyGameInstance>()) {
+		SetUsernameText(FText::FromName(MyGameInstance->PlayerInfo.Username));
 	}
 }
 

@@ -7,6 +7,11 @@ AMainPlayerState::AMainPlayerState()
 {
 }
 
+void AMainPlayerState::SetOnlineStatus_Implementation(bool inStatus)
+{
+	OnlineStatus = inStatus;
+}
+
 void AMainPlayerState::SetUsername_Implementation(const FName& inName)
 {
 	Username = inName;

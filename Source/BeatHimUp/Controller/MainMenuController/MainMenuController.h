@@ -17,14 +17,8 @@ class BEATHIMUP_API AMainMenuController : public APlayerController
 	GENERATED_BODY()
 	
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "LoginScreenSubclass")
-	TSubclassOf<ULoginScreen> LoginScreenSubclass;
-
 	UPROPERTY(EditDefaultsOnly, Category = "MainMenuSubclass")
 	TSubclassOf<UMainMenu> MainMenuSubclass;
-
-	UPROPERTY()
-	TObjectPtr<ULoginScreen> LoginScreen;
 
 	UPROPERTY()
 	TObjectPtr<UMainMenu> MainMenu;
@@ -40,18 +34,18 @@ protected:
 
 	void BeginPlay() override;
 
+	void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	void SetupInputComponent() override;
 
 	void SetupMappingContext();
 
+	void LogoutRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
 public:
-	UFUNCTION(Client, Reliable)
-	void Client_DisplayLoginScreen();
 
 	UFUNCTION(Client, Reliable)
 	void Client_CreateMainMenu();
-
-	void SetupAndDisplayMainMenu(const TSharedPtr<FJsonObject>& infoJsonObj);
 
 	void BindLeftMouseRelease(UObject* userObj, FName FuncName);
 

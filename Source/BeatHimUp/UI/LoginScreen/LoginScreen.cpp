@@ -4,8 +4,8 @@
 #include "LoginScreen.h"
 #include "../../Subsystems/UIManager/UIManagerSubsystem.h"
 #include "../../Subsystems/ServiceControllerSubsystem/ServiceControllerSubsystem.h"
-#include "../../Controller/MainMenuController/MainMenuController.h"
-#include "../../PlayerState/MainPlayerState.h"
+#include "../../Controller/LoginPlayerController/LoginPlayerController.h"
+#include "../../CustomGameInstance/MyGameInstance.h"
 
 void ULoginScreen::NativeOnInitialized()
 {
@@ -59,10 +59,9 @@ void ULoginScreen::NativeDestruct()
 
 void ULoginScreen::InitLoginScreen() 
 {
-	if (AMainMenuController* PlayerController = this->GetOwningPlayer<AMainMenuController>()) {
+	if (ALoginPlayerController* PlayerController = this->GetOwningPlayer<ALoginPlayerController>()) {
 		PlayerController->SetInputMode(FInputModeUIOnly());
 	}
-	ClearInputs();
 }
 
 void ULoginScreen::TogglePassword()
@@ -142,6 +141,7 @@ void ULoginScreen::ConfirmSignup()
 	TSharedPtr<FJsonObject> JsonObj = MakeShareable(new FJsonObject());
 	JsonObj->SetStringField(TEXT("username"), TxtBox_Username->GetText().ToString());
 	JsonObj->SetStringField(TEXT("user_password"), TxtBox_Password->GetText().ToString());
+	JsonObj->SetBoolField(TEXT("status"), false);
 	FString contentString;
 	TSharedRef<TJsonWriter<>> JsonWriter = TJsonWriterFactory<>::Create(&contentString);
 	if (FJsonSerializer::Serialize(JsonObj.ToSharedRef(), JsonWriter)) {
@@ -169,24 +169,22 @@ void ULoginScreen::LoginRequestComplete(FHttpRequestPtr pRequest, FHttpResponseP
 	check(IsInGameThread());
 	if (connectedSuccessfully && pResponse.IsValid()) {
 		switch (pResponse->GetResponseCode()) {
-		case 401:
-			Client_DisplayOnlyCloseAlert("Wrong password !");
-			break;
 		case EHttpResponseCodes::NotFound:
 			Client_DisplaySignUpAlert();
 			break;
-		default:
-			if (AMainMenuController* MainMenuController = this->GetOwningPlayer<AMainMenuController>()) {
+		case EHttpResponseCodes::Ok:
+			if (UMyGameInstance* MyGameInstance = this->GetGameInstance<UMyGameInstance>()) {
 				TSharedPtr<FJsonObject> JsonObj = MakeShareable(new FJsonObject());
 				TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(pResponse->GetContentAsString());
 				if (FJsonSerializer::Deserialize(Reader, JsonObj)) {
-					if (AMainPlayerState* MainPlayerState = MainMenuController->GetPlayerState<AMainPlayerState>()) {
-						MainPlayerState->SetUsername(FName(JsonObj->GetStringField(TEXT("username"))));
-						MainMenuController->Client_CreateMainMenu();
-						MainMenuController->SetupAndDisplayMainMenu(JsonObj);
-					}
+					MyGameInstance->PlayerInfo.Username = FName(JsonObj->GetStringField(TEXT("username")));
+					MyGameInstance->PlayerInfo.isOnline = true;
+					UGameplayStatics::OpenLevel(this, FName("Level_MainMenu"));
 				}
 			}
+			break;
+		default:
+			Client_DisplayOnlyCloseAlert(pResponse->GetContentAsString());
 			break;
 		}
 	}

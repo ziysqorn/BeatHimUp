@@ -3,13 +3,48 @@
 
 #include "MainMenuController.h"
 #include "../../Subsystems/UIManager/UIManagerSubsystem.h"
+#include "../../Subsystems/ServiceControllerSubsystem/ServiceControllerSubsystem.h"
+#include "../../CustomGameInstance/MyGameInstance.h"
 
 void AMainMenuController::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (UServiceControllerSubsystem* ServiceController = GetGameInstance()->GetSubsystem<UServiceControllerSubsystem>()) {
+		ServiceController->OpenWSConnection();
+	}
 	SetupMappingContext();
-	Client_DisplayLoginScreen();
+	Client_CreateMainMenu();
+}
+
+void AMainMenuController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	
+	if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+		if (UServiceControllerSubsystem* ServiceController = MyGameInstance->GetSubsystem<UServiceControllerSubsystem>()) {
+			if (IsValid(ServiceController->UserAccountController)) {
+				FHttpRequestCompleteDelegate LogoutRequestCompleteDel;
+				LogoutRequestCompleteDel.BindUObject(this, &AMainMenuController::LogoutRequestComplete);
+				ServiceController->UserAccountController->LogoutUser(MyGameInstance->PlayerInfo.Username.ToString(), LogoutRequestCompleteDel);
+			}
+		}
+	}
+}
+
+void AMainMenuController::LogoutRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully) {
+	check(IsInGameThread());
+	if (connectedSuccessfully && pResponse.IsValid()) {
+		switch (pResponse->GetResponseCode()) {
+		case EHttpResponseCodes::Ok:
+			if (UMyGameInstance* MyGameInstance = this->GetGameInstance<UMyGameInstance>()) {
+				MyGameInstance->PlayerInfo.Username = NAME_None;
+				MyGameInstance->PlayerInfo.isOnline = false;
+				MyGameInstance->Friendlist.Empty();
+			}
+			break;
+		}
+	}
 }
 
 void AMainMenuController::SetupInputComponent()
@@ -29,17 +64,9 @@ void AMainMenuController::Client_CreateMainMenu_Implementation()
 {
 	bEnableClickEvents = true;
 	if (!IsValid(MainMenu) && MainMenuSubclass) MainMenu = CreateWidget<UMainMenu>(this, MainMenuSubclass);
-}
-
-void AMainMenuController::SetupAndDisplayMainMenu(const TSharedPtr<FJsonObject>& infoJsonObj)
-{
-	if (IsValid(MainMenu) && infoJsonObj.IsValid()) {
-		if (IsValid(LoginScreen)) {
-			LoginScreen->RemoveFromParent();
-		}
+	if (IsValid(MainMenu)) {
 		MainMenu->SetOwningPlayer(this);
 		this->SetShowMouseCursor(true);
-		MainMenu->SetUsernameText(FText::FromString(infoJsonObj->GetStringField(TEXT("username"))));
 		MainMenu->AddToViewport(0);
 	}
 }
@@ -55,18 +82,5 @@ void AMainMenuController::BindLeftMouseClicked(UObject* userObj, FName FuncName)
 {
 	if (UEnhancedInputComponent* EIComponent = Cast<UEnhancedInputComponent>(InputComponent)) {
 		EIComponent->BindAction(IA_LeftMouseClicked, ETriggerEvent::Triggered, userObj, FuncName);
-	}
-}
-
-void AMainMenuController::Client_DisplayLoginScreen_Implementation()
-{
-	if (!IsValid(LoginScreen) && LoginScreenSubclass) LoginScreen = CreateWidget<ULoginScreen>(this, LoginScreenSubclass);
-	if (IsValid(LoginScreen)) {
-		if (IsValid(MainMenu)) {
-			MainMenu->RemoveFromParent();
-		}
-		LoginScreen->SetOwningPlayer(this);
-		this->SetShowMouseCursor(true);
-		LoginScreen->AddToViewport(0);
 	}
 }

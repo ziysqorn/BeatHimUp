@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
 #include "../OnScreenAlert/OnScreenAlert.h"
+#include "../OnlyCloseAlert/OnlyCloseAlert.h"
 #include "MainMenu.generated.h"
 
 /**
@@ -46,6 +47,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "ScreenAlertSubclass")
 	TSubclassOf<UOnScreenAlert> ScreenAlertSubclass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "OnlyCloseAlertSubclass")
+	TSubclassOf<UOnlyCloseAlert> OnlyCloseAlertSubclass;
+
+	FTimerHandle GetFriendlistTimerHandle;
+
 
 	void NativeOnInitialized() override;
 	void NativeConstruct() override;
@@ -60,11 +66,17 @@ protected:
 	UFUNCTION(Client, Unreliable)
 	void DisplayLogoutAlert();
 
+	UFUNCTION(Client, Unreliable)
+	void DisplayOnlyCloseAlert();
+
 	UFUNCTION()
 	void SetCustomInputMode();
 
 	UFUNCTION()
 	void ConfirmLogout();
+
+	UFUNCTION(Client, Unreliable)
+	void FriendlistMessageRecvCallback(const FString& Message);
 
 	void InitMainMenu();
 public:

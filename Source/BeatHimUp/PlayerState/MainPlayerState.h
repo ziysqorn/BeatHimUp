@@ -16,13 +16,22 @@ class BEATHIMUP_API AMainPlayerState : public APlayerState
 	GENERATED_BODY()
 	
 protected:
-	UPROPERTY(Replicated, ReplicatedUsing=OnRep_Username)
+	UPROPERTY(ReplicatedUsing=OnRep_Username)
 	FName Username;
+
+	UPROPERTY(ReplicatedUsing=OnRep_OnlineStatus)
+	bool OnlineStatus = false;
+
+	TArray<FName> Friends;
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION()
 	virtual void OnRep_Username() {
+	}
+
+	UFUNCTION()
+	virtual void OnRep_OnlineStatus() {
 	}
 
 public:
@@ -34,4 +43,7 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void SetUsername(const FName& inName);
+
+	UFUNCTION(Server, Reliable)
+	void SetOnlineStatus(bool inStatus);
 };
