@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
-#include "../OnScreenAlert/OnScreenAlert.h"
-#include "../OnlyCloseAlert/OnlyCloseAlert.h"
+#include "../../DataAsset/UIDataAsset.h"
+#include "../../MyStructs/MyStructs.h"
 #include "MainMenu.generated.h"
 
 /**
@@ -19,6 +19,9 @@ class BEATHIMUP_API UMainMenu : public UUserWidget
 protected:
 	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
 	TObjectPtr<UTextBlock> Txt_Username;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	TObjectPtr<UTextBlock> Txt_FriendNum;
 
 	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
 	TObjectPtr<UWidgetSwitcher> WSwitcher_FriendList;
@@ -44,11 +47,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	TObjectPtr<UButton> Btn_Logout;
 
-	UPROPERTY(EditDefaultsOnly, Category = "ScreenAlertSubclass")
-	TSubclassOf<UOnScreenAlert> ScreenAlertSubclass;
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	TObjectPtr<UScrollBox> ScrollBox_Friendlist;
 
-	UPROPERTY(EditDefaultsOnly, Category = "OnlyCloseAlertSubclass")
-	TSubclassOf<UOnlyCloseAlert> OnlyCloseAlertSubclass;
+	UPROPERTY(EditDefaultsOnly, Category = "DA_UI")
+	TObjectPtr<UUIDataAsset> DA_UI;
 
 	FTimerHandle GetFriendlistTimerHandle;
 
@@ -83,4 +86,14 @@ public:
 	void SetUsernameText(const FText& inText) {
 		if (IsValid(Txt_Username)) Txt_Username->SetText(inText);
 	}
+
+	void SetFriendNumText(int onlineNum, int totalNum) {
+		FString result = TEXT("Friends ");
+		result.Append(FString::FromInt(onlineNum));
+		result.Append(FString("/"));
+		result.Append(FString::FromInt(totalNum));
+		if (IsValid(Txt_FriendNum)) Txt_FriendNum->SetText(FText::FromString(result));
+	}
+
+	void SetupFriendlist(const TArray<FPlayerInfo>& Friendlist);
 };

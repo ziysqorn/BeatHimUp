@@ -13,6 +13,7 @@
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
 #include "Components/Border.h"
+#include "Components/ScrollBox.h"
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
 #include "CineCameraActor.h"

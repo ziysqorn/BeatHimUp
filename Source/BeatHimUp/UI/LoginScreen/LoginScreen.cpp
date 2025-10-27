@@ -155,8 +155,8 @@ void ULoginScreen::ConfirmSignup()
 
 void ULoginScreen::Client_DisplayOnlyCloseAlert_Implementation(const FString& Message)
 {
-	if (OnlyCloseAlertSubclass) {
-		if (UOnlyCloseAlert* OnlyCloseAlert = CreateWidget<UOnlyCloseAlert>(this->GetOwningPlayer(), OnlyCloseAlertSubclass)) {
+	if (IsValid(DA_UI)) {
+		if (UOnlyCloseAlert* OnlyCloseAlert = CreateWidget<UOnlyCloseAlert>(this->GetOwningPlayer(), *DA_UI->UISubclassMap.Find(FName("OnlyCloseAlert")))) {
 			OnlyCloseAlert->SetOwningPlayer(this->GetOwningPlayer());
 			OnlyCloseAlert->SetMessage(FText::FromString(Message));
 			OnlyCloseAlert->AddToViewport(2);
@@ -211,8 +211,8 @@ void ULoginScreen::SignupRequestComplete(FHttpRequestPtr pRequest, FHttpResponse
 
 void ULoginScreen::Client_DisplaySignUpAlert_Implementation()
 {
-	if (ScreenAlertSubclass) {
-		if (UOnScreenAlert* ScreenAlert = CreateWidget<UOnScreenAlert>(this->GetOwningPlayer(), ScreenAlertSubclass)) {
+	if (IsValid(DA_UI)) {
+		if (UOnScreenAlert* ScreenAlert = CreateWidget<UOnScreenAlert>(this->GetOwningPlayer(), *DA_UI->UISubclassMap.Find(FName("OnScreenAlert")))) {
 			ScreenAlert->SetOwningPlayer(this->GetOwningPlayer());
 			ScreenAlert->SetMessage(FText::FromString("User doesn't exist !\nDo you wish to create a new user using the existing information ?"));
 			FOnButtonClickedEvent cancelClicked;

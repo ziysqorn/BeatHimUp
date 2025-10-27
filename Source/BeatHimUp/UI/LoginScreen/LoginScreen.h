@@ -4,8 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
-#include "../../UI/OnScreenAlert/OnScreenAlert.h"
-#include "../../UI/OnlyCloseAlert/OnlyCloseAlert.h"
+#include "../../DataAsset/UIDataAsset.h"
 #include "LoginScreen.generated.h"
 
 /**
@@ -44,11 +43,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "EyeTextureArray")
 	TArray<UTexture2D*> EyeArr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "ScreenAlertSubclass")
-	TSubclassOf<UOnScreenAlert> ScreenAlertSubclass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "OnlyCloseAlertSubclass")
-	TSubclassOf<UOnlyCloseAlert> OnlyCloseAlertSubclass;
+	UPROPERTY(EditDefaultsOnly, Category = "DA_UI")
+	TObjectPtr<UUIDataAsset> DA_UI;
 
 	void NativeOnInitialized() override;
 	void NativeConstruct() override;
