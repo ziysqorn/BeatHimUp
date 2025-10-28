@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
+#include "../../DataAsset/UIDataAsset.h"
 #include "FriendTag.generated.h"
 
 /**
@@ -21,6 +22,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	TObjectPtr<UTextBlock> Txt_OnlineStatus;
 
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	TObjectPtr<UButton> Btn_Tag;
+
+	UPROPERTY(EditDefaultsOnly, Category = "DA_UI")
+	TObjectPtr<UUIDataAsset> DA_UI;
+
+	FReply NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 public:
 	void SetUsernameText(FText inText) {
 		if (IsValid(Txt_Username)) Txt_Username->SetText(inText);

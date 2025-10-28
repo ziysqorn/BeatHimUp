@@ -7,6 +7,7 @@
 #include "../../ServiceController/UserAccountController/UserAccountController.h"
 #include "../../CustomGameInstance/MyGameInstance.h"
 #include "../../Subsystems/ServiceControllerSubsystem/ServiceControllerSubsystem.h"
+#include "../../UI/FriendTag/FriendTag.h"
 
 void UMainMenu::NativeOnInitialized()
 {
@@ -150,7 +151,7 @@ void UMainMenu::InitMainMenu()
 		if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
 			ServiceController->WSMessageRecieveDel.AddUObject(this, &UMainMenu::FriendlistMessageRecvCallback);
 			GetWorld()->GetTimerManager().SetTimer(GetFriendlistTimerHandle, FTimerDelegate::CreateUObject(ServiceController->FriendlistController,
-				&UFriendlistController::SendFriendlistMessage, Cast<UObject>(this), FName("FriendlistMessageRecvCallback"), MyGameInstance->PlayerInfo.Username), 5.0f, true, 0.0f);
+				&UFriendlistController::SendFriendlistMessage, MyGameInstance->PlayerInfo.Username), 5.0f, true, 0.0f);
 		}
 	}
 }

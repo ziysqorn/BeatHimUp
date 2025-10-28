@@ -18,5 +18,5 @@ class BEATHIMUP_API UFriendlistController : public UObject
 public:
 	UFriendlistController();
 
-	void SendFriendlistMessage(UObject* userObj, FName recvMessageHandle, FName Username);
+	void SendFriendlistMessage(FName Username);
 };

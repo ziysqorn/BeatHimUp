@@ -9,7 +9,7 @@ UFriendlistController::UFriendlistController()
 {
 }
 
-void UFriendlistController::SendFriendlistMessage(UObject* userObj, FName recvMessageHandle, FName Username)
+void UFriendlistController::SendFriendlistMessage(FName Username)
 {
 	if (UServiceControllerSubsystem* ServiceControllerSubsystem = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
 		TSharedPtr<FJsonObject> JsonObj = MakeShareable(new FJsonObject());
