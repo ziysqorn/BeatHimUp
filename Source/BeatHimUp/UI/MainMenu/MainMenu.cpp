@@ -156,6 +156,14 @@ void UMainMenu::InitMainMenu()
 	}
 }
 
+FReply UMainMenu::NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	if (UUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UUIManagerSubsystem>()) {
+		UIManager->HideCtxMenu();
+	}
+	return FReply::Unhandled();
+}
+
 void UMainMenu::SetupFriendlist(const TArray<FPlayerInfo>& Friendlist)
 {
 	if (IsValid(ScrollBox_Friendlist) && IsValid(DA_UI)) {

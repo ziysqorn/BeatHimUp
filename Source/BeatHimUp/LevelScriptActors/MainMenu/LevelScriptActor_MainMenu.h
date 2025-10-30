@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
-#include "../../UtilityActos/PlayerPreviewer/PlayerPreviewer.h"
+#include "../../UtilityActors/PlayerPreviewer/PlayerPreviewer.h"
 #include "LevelScriptActor_MainMenu.generated.h"
 
 /**

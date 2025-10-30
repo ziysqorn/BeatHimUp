@@ -40,8 +40,6 @@ protected:
 
 	void SetupMappingContext();
 
-	void LogoutRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
-
 public:
 
 	UFUNCTION(Client, Reliable)

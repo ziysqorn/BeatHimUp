@@ -25,24 +25,9 @@ void AMainMenuController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		if (UServiceControllerSubsystem* ServiceController = MyGameInstance->GetSubsystem<UServiceControllerSubsystem>()) {
 			if (IsValid(ServiceController->UserAccountController)) {
 				FHttpRequestCompleteDelegate LogoutRequestCompleteDel;
-				LogoutRequestCompleteDel.BindUObject(this, &AMainMenuController::LogoutRequestComplete);
+				LogoutRequestCompleteDel.BindUObject(MyGameInstance, &UMyGameInstance::LogoutRequestComplete);
 				ServiceController->UserAccountController->LogoutUser(MyGameInstance->PlayerInfo.Username.ToString(), LogoutRequestCompleteDel);
 			}
-		}
-	}
-}
-
-void AMainMenuController::LogoutRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully) {
-	check(IsInGameThread());
-	if (connectedSuccessfully && pResponse.IsValid()) {
-		switch (pResponse->GetResponseCode()) {
-		case EHttpResponseCodes::Ok:
-			if (UMyGameInstance* MyGameInstance = this->GetGameInstance<UMyGameInstance>()) {
-				MyGameInstance->PlayerInfo.Username = NAME_None;
-				MyGameInstance->PlayerInfo.isOnline = false;
-				MyGameInstance->Friendlist.Empty();
-			}
-			break;
 		}
 	}
 }

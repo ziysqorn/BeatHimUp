@@ -82,6 +82,8 @@ protected:
 	void FriendlistMessageRecvCallback(const FString& Message);
 
 	void InitMainMenu();
+
+	FReply NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 public:
 	void SetUsernameText(const FText& inText) {
 		if (IsValid(Txt_Username)) Txt_Username->SetText(inText);

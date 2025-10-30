@@ -29,4 +29,14 @@ protected:
 	void NativeDestruct() override;
 public:
 	void AddMenuOption(UButton* inButton, UTextBlock* inTextBlock);
+	void ChangeMenuOption(int32 idx, FText newOptionText, FOnButtonClickedEvent& ClickedEvent);
+	void PopMenuOption() {
+		VerBox_Menu->RemoveChildAt(VerBox_Menu->GetChildrenCount() - 1);
+	}
+	int GetOptionButtonCount() {
+		return VerBox_Menu->GetChildrenCount();
+	}
+	UWidget* operator[](int idx) {
+		return VerBox_Menu->GetChildAt(idx);
+	}
 };

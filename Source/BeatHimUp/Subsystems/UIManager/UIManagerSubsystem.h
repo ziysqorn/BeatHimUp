@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
+#include "../../UI/ContextMenu/ContextMenu.h"
 #include "UIManagerSubsystem.generated.h"
 
 /**
@@ -17,6 +18,10 @@ class BEATHIMUP_API UUIManagerSubsystem : public UGameInstanceSubsystem
 private:
 	TArray<TWeakObjectPtr<UUserWidget>> stk_Widgets;
 
+protected:
+	UPROPERTY()
+	TObjectPtr<UContextMenu> CtxMenu_FriendTag;
+
 public:
 	UFUNCTION(Client, Reliable)
 	void AddWidget(UUserWidget* inWidget);
@@ -25,4 +30,12 @@ public:
 	void PopLastWidget();
 
 	TWeakObjectPtr<UUserWidget>& GetTopWidget();
+
+	void HideCtxMenu() {
+		if (IsValid(CtxMenu_FriendTag)) {
+			CtxMenu_FriendTag->RemoveFromParent();
+		}
+	}
+
+	void InitFriendTagCxtMenu(const TArray<TPair<FText, FOnButtonClickedEvent&>>& Options, TSubclassOf<UUserWidget> CxtMenuSubclass, FVector2D MenuPosition);
 };
