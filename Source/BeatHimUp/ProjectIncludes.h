@@ -35,7 +35,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "AbilitySystemInterface.h"
-#include "Interface/Damageable.h"
+#include "UObject/Interface.h"
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/WidgetTree.h"
 #include "GameFramework/PlayerController.h"
