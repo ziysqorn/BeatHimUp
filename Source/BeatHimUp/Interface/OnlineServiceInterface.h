@@ -4,23 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "../ProjectIncludes.h"
-#include "Damageable.generated.h"
+#include "OnlineServiceInterface.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UDamageable : public UInterface
+class UOnlineService : public UInterface
 {
 	GENERATED_BODY()
 };
 
 /**
- * 
+ *
  */
-class BEATHIMUP_API IDamageable
+class BEATHIMUP_API IOnlineService
 {
 	GENERATED_BODY()
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
-public:
-	virtual void Hurt(const float& remainHealth, const float& totalHealth) = 0;
 };
