@@ -26,6 +26,7 @@ void AMainController::AddHUD_Implementation()
 		MainHUD = CreateWidget<UCustomHUD>(this, MainHUDSubclass);
 		if (MainHUD) {
 			MainHUD->BindHealthProgress(this, FName("GetPawnHealthPercentage"));
+			MainHUD->BindStaminaProgress(this, FName("GetPawnStaminaPercentage"));
 			MainHUD->AddToViewport(0);
 		}
 	}

@@ -8,6 +8,7 @@
 #include "../../AttributeSet/AttributeSet_PlayableCharacter.h"
 #include "../../DataAsset/GameplayAbilityDataAsset.h"
 #include "../../DataAsset/HumanoidMontagesDataAsset.h"
+#include "../../Interface/Damageable.h"
 #include "MainCharacter.generated.h"
 
 /**

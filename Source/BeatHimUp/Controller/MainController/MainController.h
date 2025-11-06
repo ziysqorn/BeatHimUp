@@ -40,6 +40,18 @@ protected:
 		return 0.0f;
 	}
 
+	UFUNCTION()
+	float GetPawnStaminaPercentage() {
+		if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(GetPawn())) {
+			if (UAbilitySystemComponent* ASComp = ASI->GetAbilitySystemComponent()) {
+				if (const UAttributeSet_PlayableCharacter* AS_PlayerableChar = Cast<UAttributeSet_PlayableCharacter>(ASComp->GetSet<UAttributeSet_PlayableCharacter>())) {
+					return AS_PlayerableChar->GetStaminaPercentage();
+				}
+			}
+		}
+		return 0.0f;
+	}
+
 	UFUNCTION(Client, Reliable)
 	void AddHUD();
 };

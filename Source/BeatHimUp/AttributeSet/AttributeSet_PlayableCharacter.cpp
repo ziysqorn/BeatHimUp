@@ -51,3 +51,13 @@ void UAttributeSet_PlayableCharacter::OnRep_MaxHealth(const FGameplayAttributeDa
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UAttributeSet_PlayableCharacter, MaxHealth, OldHealth);
 }
+
+void UAttributeSet_PlayableCharacter::OnRep_Stamina(const FGameplayAttributeData& OldStamina)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UAttributeSet_PlayableCharacter, Stamina, OldStamina);
+}
+
+void UAttributeSet_PlayableCharacter::OnRep_MaxStamina(const FGameplayAttributeData& OldStamina)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UAttributeSet_PlayableCharacter, MaxStamina, OldStamina);
+}

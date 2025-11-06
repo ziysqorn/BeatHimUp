@@ -34,6 +34,10 @@ public:
 	float GetHealthPercentage() const {
 		return Health.GetBaseValue() / MaxHealth.GetBaseValue();
 	}
+
+	float GetStaminaPercentage() const {
+		return Stamina.GetBaseValue() / MaxStamina.GetBaseValue();
+	}
 protected:
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Health, Category = "Attributes" )
 	FGameplayAttributeData Health;
@@ -42,6 +46,14 @@ protected:
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxHealth, Category = "Attributes")
 	FGameplayAttributeData MaxHealth;
 	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, MaxHealth)
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Stamina, Category = "Attributes")
+	FGameplayAttributeData Stamina;
+	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, Stamina)
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxStamina, Category = "Attributes")
+	FGameplayAttributeData MaxStamina;
+	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, MaxStamina)
 
 	UPROPERTY()
 	FGameplayAttributeData Damage;
@@ -62,4 +74,10 @@ protected:
 
 	UFUNCTION()
 	void OnRep_MaxHealth(const FGameplayAttributeData& OldHealth);
+
+	UFUNCTION()
+	void OnRep_Stamina(const FGameplayAttributeData& OldStamina);
+
+	UFUNCTION()
+	void OnRep_MaxStamina(const FGameplayAttributeData& OldStamina);
 };

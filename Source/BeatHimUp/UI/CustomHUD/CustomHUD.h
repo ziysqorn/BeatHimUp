@@ -16,12 +16,18 @@ class BEATHIMUP_API UCustomHUD : public UUserWidget
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Health", meta = (BindWidget))
-	UProgressBar* ProgressBar_Health = nullptr;
+	TObjectPtr<UProgressBar> ProgressBar_Health = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Stamina", meta = (BindWidget))
+	TObjectPtr<UProgressBar> ProgressBar_Stamina = nullptr;
 
 	void NativeOnInitialized() override;
 
 public:
 	void BindHealthProgress(UObject* inObject, const FName& funcName) {
 		if (IsValid(ProgressBar_Health)) ProgressBar_Health->PercentDelegate.BindUFunction(inObject, funcName);
+	}
+	void BindStaminaProgress(UObject* inObject, const FName& funcName) {
+		if (IsValid(ProgressBar_Stamina)) ProgressBar_Stamina->PercentDelegate.BindUFunction(inObject, funcName);
 	}
 };
