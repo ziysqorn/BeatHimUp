@@ -7,6 +7,7 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "../GameplayEffect/GE_ApplyDamage.h"
+#include "../AttributeSet/AttributeSet_PlayableCharacter.h"
 #include "GA_SwordAndShieldAttack.generated.h"
 
 /**
@@ -25,6 +26,8 @@ protected:
 	TSubclassOf<UGE_ApplyDamage> GE_ApplyDamageSubclass;
 
 	void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
+	bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
 	UFUNCTION()
 	void AttackEnd();

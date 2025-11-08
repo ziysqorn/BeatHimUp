@@ -111,7 +111,7 @@ void AMainCharacter::NetMulticast_Hurt_Implementation(const float& remainHealth,
 				if (UAnimInstance* animInstance = mesh->GetAnimInstance()) {
 					if (FMath::IsNearlyEqual(remainHealth, 0.0f, 1.0E-4)) {
 						AbilitySystemComp->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Dead")));
-						GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Red, "Character died");
+						//GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Red, "Character died");
 					}
 					else
 					{
@@ -120,7 +120,7 @@ void AMainCharacter::NetMulticast_Hurt_Implementation(const float& remainHealth,
 						animInstance->Montage_Play(montageToPlay);
 						FOnMontageEnded montageEndedDel = FOnMontageEnded::CreateUObject(this, &AMainCharacter::HurtMontageEnded);
 						animInstance->Montage_SetEndDelegate(montageEndedDel, montageToPlay);
-						GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Red, "Character hurt");
+						//GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Red, "Character hurt");
 					}
 				}
 			}
@@ -130,7 +130,7 @@ void AMainCharacter::NetMulticast_Hurt_Implementation(const float& remainHealth,
 
 void AMainCharacter::HurtMontageEnded(UAnimMontage* Montage, bool isInterrupted)
 {
-	GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Blue, "HurtMontageEnded");
+	//GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Blue, "HurtMontageEnded");
 	AbilitySystemComp->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Hurt")));
 }
 

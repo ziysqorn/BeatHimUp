@@ -23,20 +23,12 @@ class BEATHIMUP_API UAttributeSet_PlayableCharacter : public UAttributeSet
 public:
 	UAttributeSet_PlayableCharacter();
 
-	float GetMaxHealthCurrentValue() {
-		return MaxHealth.GetCurrentValue();
-	}
-
-	float GetHealthCurrentValue() {
-		return Health.GetCurrentValue();
-	}
-
 	float GetHealthPercentage() const {
-		return Health.GetBaseValue() / MaxHealth.GetBaseValue();
+		return Health.GetCurrentValue() / MaxHealth.GetCurrentValue();
 	}
 
 	float GetStaminaPercentage() const {
-		return Stamina.GetBaseValue() / MaxStamina.GetBaseValue();
+		return Stamina.GetCurrentValue() / MaxStamina.GetCurrentValue();
 	}
 protected:
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Health, Category = "Attributes" )
@@ -55,6 +47,10 @@ protected:
 	FGameplayAttributeData MaxStamina;
 	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, MaxStamina)
 
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_StaminaRecoveryAmount, Category = "Attributes")
+	FGameplayAttributeData StaminaRecoveryAmount;
+	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, StaminaRecoveryAmount)
+
 	UPROPERTY()
 	FGameplayAttributeData Damage;
 	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, Damage)
@@ -64,6 +60,8 @@ protected:
 	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, MaxDamage)
 
 	void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+
+	void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 
 	void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 
@@ -80,4 +78,7 @@ protected:
 
 	UFUNCTION()
 	void OnRep_MaxStamina(const FGameplayAttributeData& OldStamina);
+
+	UFUNCTION()
+	void OnRep_StaminaRecoveryAmount(const FGameplayAttributeData& OldAmount);
 };
