@@ -34,6 +34,8 @@ void UAttributeSet_PlayableCharacter::PostAttributeChange(const FGameplayAttribu
 	Super::PostAttributeChange(Attribute, OldValue, NewValue);
 
 	if (Attribute == GetStaminaAttribute()) {
+		Stamina.SetBaseValue(FMath::Clamp(Stamina.GetBaseValue(), 0.0f, MaxStamina.GetCurrentValue()));
+		//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, FString::Format(TEXT("CurrentValue: {0}, BaseValue: {1}"), { Stamina.GetCurrentValue(), Stamina.GetBaseValue()}));
 	}
 }
 

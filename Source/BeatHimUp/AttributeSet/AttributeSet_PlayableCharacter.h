@@ -59,6 +59,9 @@ protected:
 	FGameplayAttributeData MaxDamage;
 	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, MaxDamage)
 
+	UPROPERTY()
+	FTimerHandle StaminaRecoverHandle;
+
 	void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 
 	void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;

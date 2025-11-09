@@ -24,6 +24,7 @@
 #include "Engine/TimerHandle.h"
 #include "Abilities/GameplayAbility.h"
 #include "GameplayEffect.h"
+#include "GameplayEffectComponent.h"
 #include "Abilities/Tasks/AbilityTask.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AttributeSet.h"
