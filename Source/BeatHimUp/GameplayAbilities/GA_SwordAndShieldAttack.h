@@ -25,6 +25,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | ApplyDamageGameplayEffect")
 	TSubclassOf<UGE_ApplyDamage> GE_ApplyDamageSubclass;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | HitStopDuration")
+	float HitStopDuration;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | HitStopDilation")
+	float HitStopDilation;
+
 	void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
 	bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;

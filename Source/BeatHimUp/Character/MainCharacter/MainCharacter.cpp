@@ -12,6 +12,7 @@ AMainCharacter::AMainCharacter()
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(FName("CameraComponent"));
 	AttackComponent = CreateDefaultSubobject<UAttackComponent>(FName("AttackComponent"));
 	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(FName("WeaponComponent"));
+	HitStopComp = CreateDefaultSubobject<UHitStopComponent>(FName("HitStopComponent"));
 	AbilitySystemComp = CreateDefaultSubobject<UAbilitySystemComponent>(FName("AbilitySystemComponent"));
 	CharacterAttributeSet = CreateDefaultSubobject<UAttributeSet_PlayableCharacter>("GameplayAttributeSet");
 	if (SpringArmComp) {
@@ -35,7 +36,7 @@ void AMainCharacter::BeginPlay()
 			FName("RightHand_Weapon")
 		);
 	}
-	if (AbilitySystemComp && GADataAsset) {
+	if (HasAuthority() && AbilitySystemComp && GADataAsset) {
 		AbilitySystemComp->InitAbilityActorInfo(this, this);
 		AbilitySystemComp->AffectedAnimInstanceTag = NAME_None;
 		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_SwordAndShieldAttack")), 1, -1, this));
