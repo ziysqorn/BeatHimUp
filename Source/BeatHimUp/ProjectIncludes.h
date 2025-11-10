@@ -18,6 +18,7 @@
 #include "Components/Image.h"
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
+#include "Camera/CameraShakeBase.h"
 #include "CineCameraActor.h"
 #include "Engine/DataAsset.h"
 #include "Engine/GameInstance.h"

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
 #include "../../ActorComponent/WeaponComponent/WeaponComponent.h"
+#include "../../ActorComponent/HitStopComponent/HitStopComponent.h"
 #include "BaseCharacter.generated.h"
 
 UCLASS()
@@ -13,8 +14,11 @@ class BEATHIMUP_API ABaseCharacter : public ACharacter
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|WeaponComponent")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components | WeaponComponent")
 	UWeaponComponent* WeaponComponent = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components | HitStopComponent")
+	UHitStopComponent* HitStopComp = nullptr;
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 

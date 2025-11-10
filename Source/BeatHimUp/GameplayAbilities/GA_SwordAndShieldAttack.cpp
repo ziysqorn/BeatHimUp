@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GA_SwordAndShieldAttack.h"
+#include "../ActorComponent/HitStopComponent/HitStopComponent.h"
 
 void UGA_SwordAndShieldAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
@@ -47,6 +48,20 @@ void UGA_SwordAndShieldAttack::TargetHit_Implementation(FGameplayEventData event
 			if (UAbilitySystemComponent* TargetAbilitySystemComp = AbilitySystemInterface->GetAbilitySystemComponent()) {
 				if (UAbilitySystemComponent* SelfAbilitySystemComp = this->GetAbilitySystemComponentFromActorInfo()) {
 					SelfAbilitySystemComp->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetAbilitySystemComp);
+					if (CurrentActorInfo) {
+						if (AActor* OwnerActor = CurrentActorInfo->OwnerActor.Get()) {
+							if (UHitStopComponent* HitStopComp = OwnerActor->FindComponentByClass<UHitStopComponent>()) {
+								HitStopComp->NetMulticast_HitStop(HitStopDuration, HitStopDilation);
+								HitStopComp->Client_ShakeCameraOnHit();
+							}
+						}
+						if (AActor* TargetActor = TargetAbilitySystemComp->GetOwnerActor()) {
+							if (UHitStopComponent* HitStopComp = TargetActor->FindComponentByClass<UHitStopComponent>()) {
+								HitStopComp->NetMulticast_HitStop(HitStopDuration, HitStopDilation);
+								HitStopComp->Client_ShakeCameraOnHit();
+							}
+						}
+					}
 				}
 			}
 		}
