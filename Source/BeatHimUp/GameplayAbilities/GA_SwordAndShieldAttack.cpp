@@ -17,9 +17,21 @@ void UGA_SwordAndShieldAttack::ActivateAbility(const FGameplayAbilitySpecHandle 
 				CurrentActivationInfo = ActivationInfo;
 				PlayerAttackMontageAndWaitTask->OnCompleted.AddDynamic(this, &UGA_SwordAndShieldAttack::AttackEnd);
 				PlayerAttackMontageAndWaitTask->ReadyForActivation();
+				CommitAbility(Handle, ActorInfo, ActivationInfo);
 			}
 		}
 	}
+}
+
+bool UGA_SwordAndShieldAttack::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, OUT FGameplayTagContainer* OptionalRelevantTags) const
+{
+	/*if (ActorInfo) {
+		if (ActorInfo->AbilitySystemComponent.IsValid()) {
+			if (const UAttributeSet_PlayableCharacter* AS_PlayerableChar = Cast<UAttributeSet_PlayableCharacter>(ActorInfo->AbilitySystemComponent->GetSet<UAttributeSet_PlayableCharacter>())) {
+			}
+		}
+	}*/
+	return CheckCost(Handle, ActorInfo);;
 }
 
 void UGA_SwordAndShieldAttack::AttackEnd()
