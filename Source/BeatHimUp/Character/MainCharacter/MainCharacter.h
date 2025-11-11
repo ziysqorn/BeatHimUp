@@ -63,6 +63,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
 	UInputAction* IA_Attack = nullptr;
 
+	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
+	UInputAction* IA_Dodge = nullptr;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -76,6 +79,8 @@ protected:
 	void MoveTriggered(const FInputActionValue& value);
 
 	void AttackTriggered();
+
+	void DodgeTriggered();
 
 	void Look(const FInputActionValue& value);
 

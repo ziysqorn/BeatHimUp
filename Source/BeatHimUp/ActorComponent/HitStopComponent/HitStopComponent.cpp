@@ -27,11 +27,11 @@ void UHitStopComponent::NetMulticast_HitStop_Implementation(float HitStopDuratio
 {
 	if (GetOwner()) {
 		GetOwner()->CustomTimeDilation = HitStopDilation;
-		GetOwner()->GetWorld()->GetTimerManager().SetTimer(HitStopTimerHandle, FTimerDelegate::CreateUObject(this, &UHitStopComponent::NetMulticast_EndHitStop), HitStopDuration, false);
+		GetOwner()->GetWorld()->GetTimerManager().SetTimer(HitStopTimerHandle, FTimerDelegate::CreateUObject(this, &UHitStopComponent::EndHitStop), HitStopDuration, false);
 	}
 }
 
-void UHitStopComponent::NetMulticast_EndHitStop()
+void UHitStopComponent::EndHitStop()
 {
 	GetOwner()->CustomTimeDilation = 1.0f;
 }

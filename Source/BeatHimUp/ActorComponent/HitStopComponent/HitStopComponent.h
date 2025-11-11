@@ -23,7 +23,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "CameraShakeSubclass")
 	TSubclassOf<UCameraShakeBase> CameraShakeSubclass;
 
-	void NetMulticast_EndHitStop();
+	void EndHitStop();
 
 	// Called when the game starts
 	virtual void BeginPlay() override;
