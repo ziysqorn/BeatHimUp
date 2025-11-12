@@ -24,5 +24,11 @@ protected:
 	UFUNCTION()
 	void DodgeEnd();
 
+	UFUNCTION(Server, Reliable)
+	void Server_RotateOwnerByMovementInput(FVector LastInputMovementVector);
+
+	UFUNCTION(Client, Reliable)
+	void Client_RequestRotateOwner();
+
 	bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 };
