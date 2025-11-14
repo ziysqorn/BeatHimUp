@@ -22,11 +22,18 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UPROPERTY(BlueprintReadOnly)
+	TWeakObjectPtr<AActor> LockedOnTarget;
+
 public:
 	// Sets default values for this character's properties
 	ABaseCharacter();
 
 	UWeaponComponent* GetWeaponComponent() {
 		return WeaponComponent;
+	}
+
+	TWeakObjectPtr<AActor>& GetLockedOnTarget() {
+		return LockedOnTarget;
 	}
 };

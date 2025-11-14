@@ -31,8 +31,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Camera|SpringArmComponent")
 	USpringArmComponent* SpringArmComp = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Camera|CameraComponent")
-	UCameraComponent* CameraComp = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Camera|CineCameraComponent")
+	UCineCameraComponent* CineCameraComp = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components|AttackComponent")
 	UAttackComponent* AttackComponent = nullptr;
@@ -54,7 +54,7 @@ protected:
 	UInputMappingContext* PlayerMappingContext = nullptr;
 
 
-	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties|Input|Input Action");
 	UInputAction* IA_Move = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
@@ -65,6 +65,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
 	UInputAction* IA_Dodge = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
+	UInputAction* IA_LockTarget = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | Detect Box Extent")
+	FVector DetectBoxExtent;
 
 protected:
 	// Called when the game starts or when spawned
@@ -81,6 +87,14 @@ protected:
 	void AttackTriggered();
 
 	void DodgeTriggered();
+
+	UFUNCTION(Server, Unreliable)
+	void Server_LockTargetTriggered();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void NetMulticast_LockTargetTriggered();
+
+	void RotateToLockTarget(float DeltaTime);
 
 	void Look(const FInputActionValue& value);
 

@@ -7,9 +7,9 @@
 
 AMainCharacter::AMainCharacter()
 {
-	this->PrimaryActorTick.bCanEverTick = false;
+	this->PrimaryActorTick.bCanEverTick = true;
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(FName("SpringArmComponent"));
-	CameraComp = CreateDefaultSubobject<UCameraComponent>(FName("CameraComponent"));
+	CineCameraComp = CreateDefaultSubobject<UCineCameraComponent>(FName("CineCameraComponent"));
 	AttackComponent = CreateDefaultSubobject<UAttackComponent>(FName("AttackComponent"));
 	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(FName("WeaponComponent"));
 	HitStopComp = CreateDefaultSubobject<UHitStopComponent>(FName("HitStopComponent"));
@@ -17,7 +17,7 @@ AMainCharacter::AMainCharacter()
 	CharacterAttributeSet = CreateDefaultSubobject<UAttributeSet_PlayableCharacter>("GameplayAttributeSet");
 	if (SpringArmComp) {
 		SpringArmComp->SetupAttachment(this->RootComponent);
-		if (CameraComp) CameraComp->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepRelativeTransform);
+		if (CineCameraComp) CineCameraComp->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 }
 
@@ -48,6 +48,8 @@ void AMainCharacter::BeginPlay()
 void AMainCharacter::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
+
+	RotateToLockTarget(deltaTime);
 }
 
 void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -59,6 +61,7 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		if (IsValid(IA_Look)) EIComponent->BindAction(IA_Look, ETriggerEvent::Triggered, this, &AMainCharacter::Look);
 		if (IsValid(IA_Attack)) EIComponent->BindAction(IA_Attack, ETriggerEvent::Triggered, this, &AMainCharacter::AttackTriggered);
 		if (IsValid(IA_Dodge)) EIComponent->BindAction(IA_Dodge, ETriggerEvent::Triggered, this, &AMainCharacter::DodgeTriggered);
+		if (IsValid(IA_LockTarget)) EIComponent->BindAction(IA_LockTarget, ETriggerEvent::Triggered, this, &AMainCharacter::Server_LockTargetTriggered);
 	}
 }
 
@@ -103,11 +106,66 @@ void AMainCharacter::DodgeTriggered()
 	}
 }
 
+void AMainCharacter::Server_LockTargetTriggered_Implementation()
+{
+	NetMulticast_LockTargetTriggered();
+}
+
+void AMainCharacter::NetMulticast_LockTargetTriggered_Implementation()
+{
+	GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Red, "MADA");
+	if (UCharacterMovementComponent* CharMovementComponent = GetCharacterMovement()) {
+		if (LockedOnTarget.IsValid()) {
+			LockedOnTarget = nullptr;
+			CharMovementComponent->MaxWalkSpeed = 400.0f;
+			CharMovementComponent->bOrientRotationToMovement = true;
+			CharMovementComponent->bUseControllerDesiredRotation = false;
+			this->bUseControllerRotationYaw = false;
+		}
+		else {
+			FHitResult Hit;
+			FCollisionObjectQueryParams ObjectFilter;
+			FCollisionQueryParams AdditionParams;
+			ObjectFilter.AddObjectTypesToQuery(ECollisionChannel::ECC_Pawn);
+			AdditionParams.AddIgnoredActor(this);
+			FVector CameraForwardDir = CineCameraComp->GetForwardVector();
+			if (GetWorld()->SweepSingleByObjectType(Hit, CineCameraComp->GetComponentLocation() + CameraForwardDir * 1200.0f, CineCameraComp->GetComponentLocation() + CameraForwardDir * 5000.0f, FQuat(0, 0, 45.0, 0), ObjectFilter, FCollisionShape::MakeBox(DetectBoxExtent), AdditionParams)) {
+				if (IsValid(Hit.GetActor())) {
+					LockedOnTarget = Hit.GetActor();
+					CharMovementComponent->MaxWalkSpeed = 250.0f;
+					CharMovementComponent->bOrientRotationToMovement = false;
+					CharMovementComponent->bUseControllerDesiredRotation = true;
+					this->bUseControllerRotationYaw = true;
+				}
+			}
+		}
+	}
+}
+
+void AMainCharacter::RotateToLockTarget(float DeltaTime)
+{
+	if (LockedOnTarget.IsValid()) {
+		FVector TargetLocation = LockedOnTarget->GetActorLocation();
+		FRotator TargetRotation = (TargetLocation - this->GetActorLocation()).Rotation();
+		float TargetSocketOffsetY = 100.0f;
+		if (APlayerController* PC = this->GetController<APlayerController>()) {
+			FRotator NewRot = FMath::RInterpTo(GetControlRotation(), TargetRotation, DeltaTime, 10.0f);
+			PC->SetControlRotation(NewRot);
+			if (IsValid(SpringArmComp)) SpringArmComp->SocketOffset.Y = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, TargetSocketOffsetY, DeltaTime, 10.0f);
+		}
+	}
+	else {
+		if (IsValid(SpringArmComp)) SpringArmComp->SocketOffset.Y = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, 0.0f, DeltaTime, 1.0f);
+	}
+}
+
 void AMainCharacter::Look(const FInputActionValue& value)
 {
-	FVector lookDirectionVal = value.Get<FVector>();
-	AddControllerYawInput(lookDirectionVal.X);
-	AddControllerPitchInput(lookDirectionVal.Y);
+	if (!LockedOnTarget.IsValid()) {
+		FVector lookDirectionVal = value.Get<FVector>();
+		AddControllerYawInput(lookDirectionVal.X);
+		AddControllerPitchInput(lookDirectionVal.Y);
+	}
 }
 
 void AMainCharacter::Hurt(const float& remainHealth, const float& totalHealth)
