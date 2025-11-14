@@ -113,7 +113,6 @@ void AMainCharacter::Server_LockTargetTriggered_Implementation()
 
 void AMainCharacter::NetMulticast_LockTargetTriggered_Implementation()
 {
-	GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Red, "MADA");
 	if (UCharacterMovementComponent* CharMovementComponent = GetCharacterMovement()) {
 		if (LockedOnTarget.IsValid()) {
 			LockedOnTarget = nullptr;
