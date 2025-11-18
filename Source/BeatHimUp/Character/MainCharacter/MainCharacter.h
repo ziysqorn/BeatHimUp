@@ -6,7 +6,6 @@
 #include "../BaseCharacter/BaseCharacter.h"
 #include "../../ActorComponent/AttackComponent/AttackComponent.h"
 #include "../../AttributeSet/AttributeSet_PlayableCharacter.h"
-#include "../../DataAsset/GameplayAbilityDataAsset.h"
 #include "../../DataAsset/HumanoidMontagesDataAsset.h"
 #include "../../Interface/Damageable.h"
 #include "MainCharacter.generated.h"
@@ -61,7 +60,10 @@ protected:
 	UInputAction* IA_Look = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
-	UInputAction* IA_Attack = nullptr;
+	UInputAction* IA_RightWeapon = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
+	UInputAction* IA_LeftWeapon = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
 	UInputAction* IA_Dodge = nullptr;
@@ -84,9 +86,17 @@ protected:
 
 	void MoveTriggered(const FInputActionValue& value);
 
-	void AttackTriggered();
+	void RightWeaponTriggered();
+
+	UFUNCTION(Server, Reliable)
+	void Server_RightWeaponCompleted();
 
 	void DodgeTriggered();
+
+	void LeftWeaponTriggered();
+
+	UFUNCTION(Server, Reliable)
+	void Server_LeftWeaponCompleted();
 
 	UFUNCTION(Server, Unreliable)
 	void Server_LockTargetTriggered();

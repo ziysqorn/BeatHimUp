@@ -29,6 +29,9 @@ public:
 	// Sets default values for this character's properties
 	ABaseCharacter();
 
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticast_SetCapsuleCollisionProfile(FName profileName);
+
 	UWeaponComponent* GetWeaponComponent() {
 		return WeaponComponent;
 	}

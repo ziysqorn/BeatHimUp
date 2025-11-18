@@ -10,7 +10,8 @@ void UANS_RightWeaponAttack::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnim
 		if (ABaseCharacter* character = Cast<ABaseCharacter>(MeshComp->GetOwner())) {
 			if (UWeaponComponent* WeaponComponent = character->GetWeaponComponent()) {
 				if (AWeapon* weapon = WeaponComponent->GetRightWeapon()) {
-					weapon->SetActorEnableCollision(true);
+					if (weapon->GetBoxComp())
+						weapon->GetBoxComp()->SetCollisionProfileName(FName("WeaponActivePreset"));
 				}
 			}
 		}
@@ -23,7 +24,8 @@ void UANS_RightWeaponAttack::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSe
 		if (ABaseCharacter* character = Cast<ABaseCharacter>(MeshComp->GetOwner())) {
 			if (UWeaponComponent* WeaponComponent = character->GetWeaponComponent()) {
 				if (AWeapon* weapon = WeaponComponent->GetRightWeapon()) {
-					weapon->SetActorEnableCollision(false);
+					if (weapon->GetBoxComp())
+						weapon->GetBoxComp()->SetCollisionProfileName(FName("WeaponOfflinePreset"));
 				}
 			}
 		}

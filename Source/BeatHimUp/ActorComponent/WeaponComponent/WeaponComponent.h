@@ -15,7 +15,10 @@ class BEATHIMUP_API UWeaponComponent : public UActorComponent
 	GENERATED_BODY()
 
 protected:
+	UPROPERTY(Replicated)
 	AWeapon* LeftWeapon = nullptr;
+
+	UPROPERTY(Replicated)
 	AWeapon* RightWeapon = nullptr;
 
 public:
@@ -92,5 +95,6 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-		
+	
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

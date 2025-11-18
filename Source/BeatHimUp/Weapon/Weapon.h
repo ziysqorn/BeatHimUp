@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../ProjectIncludes.h"
+#include "../DataAsset/GameplayAbilityDataAsset.h"
 #include "Weapon.generated.h"
 
 UCLASS()
@@ -15,7 +16,36 @@ public:
 	// Sets default values for this actor's properties
 	AWeapon();
 
+	FName GetAbilitySubclass() {
+		return AbilitySubclassName;
+	}
+
+	UAnimMontage* GetMontage() {
+		return MontageToPlay;
+	}
+
+	UBoxComponent* GetBoxComp() {
+		return BoxComp;
+	}
+
+	UFUNCTION(NetMulticast, Reliable)
+	void AddWeaponStateTag(FGameplayTag inTag);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void RemoveWeaponStateTag(FGameplayTag inTag);
+
+	bool HasWeaponStateTag(FGameplayTag inTag) {
+		return WeaponStateTags.HasTag(inTag);
+	}
+
+	virtual void CancelWeaponAbility() {}
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "AbilitySubclassName")
+	FName AbilitySubclassName;
+
+	UPROPERTY()
+	FGameplayTagContainer WeaponStateTags;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Altenative Root Component")
 	USceneComponent* AltRootComp = nullptr;
 
@@ -25,8 +55,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mesh")
 	UStaticMeshComponent* StaticMeshComp = nullptr;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MontageToPlay")
+	UAnimMontage* MontageToPlay = nullptr;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
 };

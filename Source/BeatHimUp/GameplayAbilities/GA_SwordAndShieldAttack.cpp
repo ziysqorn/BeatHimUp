@@ -2,23 +2,32 @@
 
 #include "GA_SwordAndShieldAttack.h"
 #include "../ActorComponent/HitStopComponent/HitStopComponent.h"
+#include "../Weapon/Weapon.h"
+#include "../Character/BaseCharacter/BaseCharacter.h"
 
 void UGA_SwordAndShieldAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	if (ActorInfo) {
+		CurrentSpecHandle = Handle;
+		CurrentActorInfo = ActorInfo;
+		CurrentActivationInfo = ActivationInfo;
 		FGameplayTag targetHitTag = FGameplayTag::RequestGameplayTag(FName("GameplayEvent.TargetAttacked"));
 		if (UAbilityTask_WaitGameplayEvent* WaitForTargetHitTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, targetHitTag, nullptr, true, false)) {
 			WaitForTargetHitTask->EventReceived.AddDynamic(this, &UGA_SwordAndShieldAttack::TargetHit);
 			WaitForTargetHitTask->ReadyForActivation();
 		}
-		if (IsValid(SwordAndShieldAttackMontage)) {
-			if (UAbilityTask_PlayMontageAndWait* PlayerAttackMontageAndWaitTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, FName("PlayAttackMontageAndWait"), SwordAndShieldAttackMontage)) {
-				CurrentSpecHandle = Handle;
-				CurrentActorInfo = ActorInfo;
-				CurrentActivationInfo = ActivationInfo;
-				PlayerAttackMontageAndWaitTask->OnCompleted.AddDynamic(this, &UGA_SwordAndShieldAttack::AttackEnd);
-				PlayerAttackMontageAndWaitTask->ReadyForActivation();
-				CommitAbility(Handle, ActorInfo, ActivationInfo);
+		if (AWeapon* Weapon = Cast<AWeapon>(GetSourceObject(Handle, ActorInfo)))
+		{
+			UAnimMontage* Montage = Weapon->GetMontage();
+			if (Montage)
+			{
+				if (UAbilityTask_PlayMontageAndWait* Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this,FName("PlayAttackMontageAndWait"), Montage)) {
+					Weapon->AddWeaponStateTag(FGameplayTag::RequestGameplayTag(FName("WeaponState.Attack")));
+					Task->OnCompleted.AddDynamic(this, &UGA_SwordAndShieldAttack::AttackEnd);
+					Task->ReadyForActivation();
+					CommitAbility(Handle, ActorInfo, ActivationInfo);
+				}
+
 			}
 		}
 	}
@@ -29,10 +38,16 @@ bool UGA_SwordAndShieldAttack::CanActivateAbility(const FGameplayAbilitySpecHand
 	return CheckCost(Handle, ActorInfo);
 }
 
+
 void UGA_SwordAndShieldAttack::AttackEnd()
 {
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	if (AWeapon* Weapon = Cast<AWeapon>(GetSourceObject(CurrentSpecHandle, CurrentActorInfo)))
+	{
+		Weapon->RemoveWeaponStateTag(FGameplayTag::RequestGameplayTag(FName("WeaponState.Attack")));
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
 }
+
 
 void UGA_SwordAndShieldAttack::TargetHit_Implementation(FGameplayEventData eventData)
 {

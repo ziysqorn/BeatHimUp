@@ -10,15 +10,13 @@ ASword::ASword()
 void ASword::BeginPlay()
 {
 	Super::BeginPlay();
-
-	this->OnActorBeginOverlap.AddDynamic(this, &ASword::ActorBeginOverlapped);
-
-	SetActorEnableCollision(false);
+	
+	this->BoxComp->OnComponentBeginOverlap.AddDynamic(this, &ASword::BoxCompBeginOverlapped);
 }
 
-void ASword::ActorBeginOverlapped_Implementation(AActor* OverlappedActor, AActor* OtherActor)
+void ASword::BoxCompBeginOverlapped(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor != this->GetOwner()) {
+	if (OtherActor != this && OtherActor != this->GetOwner()) {
 		if (ACharacter* OtherCharacter = Cast<ACharacter>(OtherActor)) {
 			FGameplayTag eventTag = FGameplayTag::RequestGameplayTag(FName("GameplayEvent.TargetAttacked"));
 			FGameplayEventData Payload;

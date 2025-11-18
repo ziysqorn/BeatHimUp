@@ -18,5 +18,10 @@ public:
 	ABaseEnemy();
 
 protected:
+	FTimerHandle AttackHandle;
+
 	virtual void BeginPlay() override;
+
+	UFUNCTION(Client, Reliable)
+	void AttackTriggered();
 };

@@ -43,7 +43,7 @@ protected:
 	void Client_RequestRotateOwnerAndDodge();
 
 	UFUNCTION(Client, Unreliable)
-	void Client_RequestDirectionalDodgeMontageAndPlay();
+	void Client_RequestDirectionalDodgeMontage();
 
 	UFUNCTION(Server, Unreliable)
 	void Server_PlayDodgeTask(FName DodgeMontageName);

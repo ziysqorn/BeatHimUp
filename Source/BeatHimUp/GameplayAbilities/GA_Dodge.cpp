@@ -29,7 +29,7 @@ void UGA_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 				Client_RequestRotateOwnerAndDodge();
 			}
 			else {
-				Client_RequestDirectionalDodgeMontageAndPlay();
+				Client_RequestDirectionalDodgeMontage();
 			}
 		}
 	}
@@ -37,6 +37,11 @@ void UGA_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 
 void UGA_Dodge::DodgeEnd()
 {
+	if (CurrentActorInfo) {
+		if (ABaseCharacter* character = Cast<ABaseCharacter>(CurrentActorInfo->OwnerActor)) {
+			character->NetMulticast_SetCapsuleCollisionProfile(FName("Pawn"));
+		}
+	}
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
@@ -81,7 +86,7 @@ void UGA_Dodge::Client_RequestRotateOwnerAndDodge_Implementation()
 	}
 }
 
-void UGA_Dodge::Client_RequestDirectionalDodgeMontageAndPlay_Implementation()
+void UGA_Dodge::Client_RequestDirectionalDodgeMontage_Implementation()
 {
 	if (CurrentActorInfo) {
 		if (ACharacter* character = Cast<ACharacter>(CurrentActorInfo->OwnerActor)) {
@@ -118,6 +123,11 @@ void UGA_Dodge::Server_PlayDodgeTask_Implementation(FName DodgeMontageName)
 		TObjectPtr<UAnimMontage> DodgeMontage = *DA_DodgeMontage->DodgeMontagesMap.Find(DodgeMontageName);
 		if (IsValid(DodgeMontage)) {
 			if (UAbilityTask_PlayMontageAndWait* PlayDodgeMontageAndWait = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, FName("PlayDodgeMontageAndWait"), DodgeMontage)) {
+				if (CurrentActorInfo) {
+					if (ABaseCharacter* character = Cast<ABaseCharacter>(CurrentActorInfo->OwnerActor)) {
+						character->NetMulticast_SetCapsuleCollisionProfile(FName("CharacterDodge"));
+					}
+				}
 				PlayDodgeMontageAndWait->OnCompleted.AddDynamic(this, &UGA_Dodge::DodgeEnd);
 				PlayDodgeMontageAndWait->ReadyForActivation();
 			}

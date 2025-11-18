@@ -9,6 +9,7 @@ AWeapon::AWeapon()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
+	bReplicates = true;
 	AltRootComp = CreateDefaultSubobject<USceneComponent>(FName("AltenativeRootComp"));
 	BoxComp = CreateDefaultSubobject<UBoxComponent>(FName("BoxComp"));
 	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(FName("StaticMeshComp"));
@@ -18,10 +19,21 @@ AWeapon::AWeapon()
 	StaticMeshComp->AttachToComponent(AltRootComp, FAttachmentTransformRules::KeepRelativeTransform);
 }
 
+void AWeapon::RemoveWeaponStateTag_Implementation(FGameplayTag inTag)
+{
+	WeaponStateTags.RemoveTag(inTag);
+}
+
+void AWeapon::AddWeaponStateTag_Implementation(FGameplayTag inTag)
+{
+	WeaponStateTags.AddTag(inTag);
+}
+
 // Called when the game starts or when spawned
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	this->BoxComp->SetCollisionProfileName(FName("WeaponOfflinePreset"));
 }
 

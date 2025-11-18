@@ -14,4 +14,8 @@ class BEATHIMUP_API AShield : public AWeapon
 {
 	GENERATED_BODY()
 	
+public:
+	AShield();
+
+	void CancelWeaponAbility() override;
 };

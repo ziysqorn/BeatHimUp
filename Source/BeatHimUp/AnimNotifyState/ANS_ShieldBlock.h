@@ -1,0 +1,22 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "../ProjectIncludes.h"
+#include "../Character/BaseCharacter/BaseCharacter.h"
+#include "ANS_ShieldBlock.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class BEATHIMUP_API UANS_ShieldBlock : public UAnimNotifyState
+{
+	GENERATED_BODY()
+
+protected:
+	void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
+	void NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference) override;
+	void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
+};

@@ -11,8 +11,6 @@ AMainCharacter::AMainCharacter()
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(FName("SpringArmComponent"));
 	CineCameraComp = CreateDefaultSubobject<UCineCameraComponent>(FName("CineCameraComponent"));
 	AttackComponent = CreateDefaultSubobject<UAttackComponent>(FName("AttackComponent"));
-	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(FName("WeaponComponent"));
-	HitStopComp = CreateDefaultSubobject<UHitStopComponent>(FName("HitStopComponent"));
 	AbilitySystemComp = CreateDefaultSubobject<UAbilitySystemComponent>(FName("AbilitySystemComponent"));
 	CharacterAttributeSet = CreateDefaultSubobject<UAttributeSet_PlayableCharacter>("GameplayAttributeSet");
 	if (SpringArmComp) {
@@ -27,21 +25,36 @@ void AMainCharacter::BeginPlay()
 
 	SetupMappingContext();
 
+	if (HasAuthority()) {
+		if (WeaponComponent) {
+			WeaponComponent->SetupWeaponsOnHands(
+				*WeaponComponent->GetWeaponSubclassByName(FName("Shield")),
+				*WeaponComponent->GetWeaponSubclassByName(FName("Sword")),
+				FName("LeftHand_Shield"),
+				FName("RightHand_Weapon")
+			);
+		}
+		if (HasAuthority() && AbilitySystemComp && GADataAsset) {
+			AbilitySystemComp->InitAbilityActorInfo(this, this);
+			AbilitySystemComp->AffectedAnimInstanceTag = NAME_None;
+			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_HumanoidMove")))
+				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_HumanoidMove")), 1, -1, this));
 
-	if (WeaponComponent) {
-		WeaponComponent->SetupWeaponsOnHands(
-			*WeaponComponent->GetWeaponSubclassByName(FName("Shield")),
-			*WeaponComponent->GetWeaponSubclassByName(FName("Sword")),
-			FName("LeftHand_Shield"),
-			FName("RightHand_Weapon")
-		);
-	}
-	if (HasAuthority() && AbilitySystemComp && GADataAsset) {
-		AbilitySystemComp->InitAbilityActorInfo(this, this);
-		AbilitySystemComp->AffectedAnimInstanceTag = NAME_None;
-		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_SwordAndShieldAttack")), 1, -1, this));
-		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_HumanoidMove")), 1, -1, this));
-		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dodge")), 1, -1, this));
+			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dodge")))
+				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dodge")), 1, -1, this));
+
+			if (AWeapon* RightWeapon = WeaponComponent->GetRightWeapon()) {
+				if (GADataAsset->GameplayAbilitySubclassMap.Find(RightWeapon->GetAbilitySubclass())) {
+					AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(RightWeapon->GetAbilitySubclass()), 1, -1, RightWeapon));
+				}
+			}
+
+			if (AWeapon* LeftWeapon = WeaponComponent->GetLeftWeapon()) {
+				if (GADataAsset->GameplayAbilitySubclassMap.Find(LeftWeapon->GetAbilitySubclass())) {
+					AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(LeftWeapon->GetAbilitySubclass()), 1, -1, LeftWeapon));
+				}
+			}
+		}
 	}
 }
 
@@ -59,7 +72,10 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	if (UEnhancedInputComponent* EIComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 		if (IsValid(IA_Move)) EIComponent->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AMainCharacter::MoveTriggered);
 		if (IsValid(IA_Look)) EIComponent->BindAction(IA_Look, ETriggerEvent::Triggered, this, &AMainCharacter::Look);
-		if (IsValid(IA_Attack)) EIComponent->BindAction(IA_Attack, ETriggerEvent::Triggered, this, &AMainCharacter::AttackTriggered);
+		if (IsValid(IA_RightWeapon)) EIComponent->BindAction(IA_RightWeapon, ETriggerEvent::Triggered, this, &AMainCharacter::RightWeaponTriggered);
+		if (IsValid(IA_RightWeapon)) EIComponent->BindAction(IA_RightWeapon, ETriggerEvent::Completed, this, &AMainCharacter::Server_RightWeaponCompleted);
+		if (IsValid(IA_LeftWeapon)) EIComponent->BindAction(IA_LeftWeapon, ETriggerEvent::Triggered, this, &AMainCharacter::LeftWeaponTriggered);
+		if (IsValid(IA_LeftWeapon)) EIComponent->BindAction(IA_LeftWeapon, ETriggerEvent::Completed, this, &AMainCharacter::Server_LeftWeaponCompleted);
 		if (IsValid(IA_Dodge)) EIComponent->BindAction(IA_Dodge, ETriggerEvent::Triggered, this, &AMainCharacter::DodgeTriggered);
 		if (IsValid(IA_LockTarget)) EIComponent->BindAction(IA_LockTarget, ETriggerEvent::Triggered, this, &AMainCharacter::Server_LockTargetTriggered);
 	}
@@ -77,23 +93,52 @@ void AMainCharacter::SetupMappingContext()
 void AMainCharacter::MoveTriggered(const FInputActionValue& value)
 {
 	if (AbilitySystemComp) {
-		if (FGameplayAbilitySpec* GASpec = AbilitySystemComp->FindAbilitySpecFromClass(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_HumanoidMove")))) {
-			if (UGA_Move* GA_Move = Cast<UGA_Move>(GASpec->GetPrimaryInstance())) {
-				FVector directionValue = value.Get<FVector>();
-				GA_Move->SetInputDirectionValue(directionValue);
+		if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_HumanoidMove"))) {
+			if (FGameplayAbilitySpec* GASpec = AbilitySystemComp->FindAbilitySpecFromClass(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_HumanoidMove")))) {
+				if (UGA_Move* GA_Move = Cast<UGA_Move>(GASpec->GetPrimaryInstance())) {
+					FVector directionValue = value.Get<FVector>();
+					GA_Move->SetInputDirectionValue(directionValue);
 
-				AbilitySystemComp->TryActivateAbility(GASpec->Handle);
+					AbilitySystemComp->TryActivateAbility(GASpec->Handle);
+				}
 			}
 		}
 	}
 }
 
-void AMainCharacter::AttackTriggered()
+void AMainCharacter::RightWeaponTriggered()
 {
-	if (AbilitySystemComp) {
-		FGameplayTagContainer tagContainer;
-		tagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Attack")));
-		AbilitySystemComp->TryActivateAbilitiesByTag(tagContainer);
+	if (WeaponComponent && AbilitySystemComp) {
+		if (AWeapon* RightWeapon = WeaponComponent->GetRightWeapon()) {
+			if (GADataAsset->GameplayAbilitySubclassMap.Find(RightWeapon->GetAbilitySubclass())) {
+				AbilitySystemComp->TryActivateAbilityByClass(*GADataAsset->GameplayAbilitySubclassMap.Find(RightWeapon->GetAbilitySubclass()));
+			}
+		}
+	}
+}
+
+
+void AMainCharacter::Server_RightWeaponCompleted_Implementation()
+{
+}
+
+void AMainCharacter::LeftWeaponTriggered()
+{
+	if (WeaponComponent && AbilitySystemComp) {
+		if (AWeapon* LeftWeapon = WeaponComponent->GetLeftWeapon()) {
+			if (GADataAsset->GameplayAbilitySubclassMap.Find(LeftWeapon->GetAbilitySubclass())) {
+				AbilitySystemComp->TryActivateAbilityByClass(*GADataAsset->GameplayAbilitySubclassMap.Find(LeftWeapon->GetAbilitySubclass()));
+			}
+		}
+	}
+}
+
+void AMainCharacter::Server_LeftWeaponCompleted_Implementation()
+{
+	if (WeaponComponent && AbilitySystemComp) {
+		if (AWeapon* LeftWeapon = WeaponComponent->GetLeftWeapon()) {
+			LeftWeapon->CancelWeaponAbility();
+		}
 	}
 }
 
@@ -105,6 +150,7 @@ void AMainCharacter::DodgeTriggered()
 		AbilitySystemComp->TryActivateAbilitiesByTag(tagContainer);
 	}
 }
+
 
 void AMainCharacter::Server_LockTargetTriggered_Implementation()
 {

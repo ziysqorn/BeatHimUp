@@ -11,6 +11,7 @@ UWeaponComponent::UWeaponComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	// ...
+	SetIsReplicatedByDefault(true);
 }
 
 
@@ -20,6 +21,17 @@ void UWeaponComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
+}
+
+void UWeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	// Call the Super
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// Add properties to replicated for the derived class
+	DOREPLIFETIME(UWeaponComponent, LeftWeapon);
+
+	DOREPLIFETIME(UWeaponComponent, RightWeapon);
 }
 
 

@@ -19,9 +19,6 @@ class BEATHIMUP_API UGA_SwordAndShieldAttack : public UGameplayAbility
 	GENERATED_BODY()
 	
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | MontageToPlay")
-	UAnimMontage* SwordAndShieldAttackMontage = nullptr;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | ApplyDamageGameplayEffect")
 	TSubclassOf<UGE_ApplyDamage> GE_ApplyDamageSubclass;
 

@@ -5,9 +5,16 @@
 
 AAICharacter::AAICharacter()
 {
+	this->PrimaryActorTick.bCanEverTick = true;
+	AbilitySystemComp = CreateDefaultSubobject<UAbilitySystemComponent>(FName("AbilitySystemComponent"));
 }
 
 void AAICharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (HasAuthority() && AbilitySystemComp) {
+		AbilitySystemComp->InitAbilityActorInfo(this, this);
+		AbilitySystemComp->AffectedAnimInstanceTag = NAME_None;
+	}
 }
