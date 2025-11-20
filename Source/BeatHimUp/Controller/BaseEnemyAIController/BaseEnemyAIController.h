@@ -19,4 +19,12 @@ public:
 
 protected:
 	void OnPossess(APawn* inPawn) override;
+
+private:
+	TObjectPtr<UAISenseConfig_Sight> SightConfig = nullptr;
+
+	void SetupPerceptionComponent();
+
+	UFUNCTION()
+	void OnTargetDetected(AActor* actor, FAIStimulus Stimulus);
 };

@@ -39,7 +39,7 @@ void ABaseEnemy::BeginPlay()
 				}
 			}
 		}
-		GetWorldTimerManager().SetTimer(AttackHandle, FTimerDelegate::CreateUObject(this, &ABaseEnemy::AttackTriggered), 2.0f, true);
+		//GetWorldTimerManager().SetTimer(AttackHandle, FTimerDelegate::CreateUObject(this, &ABaseEnemy::AttackTriggered), 2.0f, true);
 	}
 }
 

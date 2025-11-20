@@ -74,7 +74,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | Detect Box Extent")
 	FVector DetectBoxExtent;
 
-protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -115,4 +114,10 @@ protected:
 
 	UFUNCTION()
 	void HurtMontageEnded(UAnimMontage* Montage, bool isInterrupted);
+
+private:
+	UPROPERTY()
+	TObjectPtr<UAIPerceptionStimuliSourceComponent> StimulusSourceComp = nullptr;
+
+	void SetupStimulusSource();
 };

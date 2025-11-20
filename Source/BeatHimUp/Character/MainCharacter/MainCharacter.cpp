@@ -17,6 +17,7 @@ AMainCharacter::AMainCharacter()
 		SpringArmComp->SetupAttachment(this->RootComponent);
 		if (CineCameraComp) CineCameraComp->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepRelativeTransform);
 	}
+	SetupStimulusSource();
 }
 
 void AMainCharacter::BeginPlay()
@@ -174,7 +175,9 @@ void AMainCharacter::NetMulticast_LockTargetTriggered_Implementation()
 			ObjectFilter.AddObjectTypesToQuery(ECollisionChannel::ECC_Pawn);
 			AdditionParams.AddIgnoredActor(this);
 			FVector CameraForwardDir = CineCameraComp->GetForwardVector();
-			if (GetWorld()->SweepSingleByObjectType(Hit, CineCameraComp->GetComponentLocation() + CameraForwardDir * 1200.0f, CineCameraComp->GetComponentLocation() + CameraForwardDir * 5000.0f, FQuat(0, 0, 45.0, 0), ObjectFilter, FCollisionShape::MakeBox(DetectBoxExtent), AdditionParams)) {
+			FRotator BoxRotation = CameraForwardDir.Rotation();
+			FVector EndLocation = CineCameraComp->GetComponentLocation() + CameraForwardDir * 1200.0f + CineCameraComp->GetComponentLocation() + CameraForwardDir * 2000.0f;
+			if (GetWorld()->SweepSingleByObjectType(Hit, CineCameraComp->GetComponentLocation() + CameraForwardDir * 1200.0f, EndLocation, BoxRotation.Quaternion(), ObjectFilter, FCollisionShape::MakeBox(DetectBoxExtent), AdditionParams)) {
 				if (IsValid(Hit.GetActor())) {
 					LockedOnTarget = Hit.GetActor();
 					CharMovementComponent->MaxWalkSpeed = 250.0f;
@@ -247,5 +250,14 @@ void AMainCharacter::HurtMontageEnded(UAnimMontage* Montage, bool isInterrupted)
 {
 	//GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Blue, "HurtMontageEnded");
 	AbilitySystemComp->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Hurt")));
+}
+
+void AMainCharacter::SetupStimulusSource()
+{
+	StimulusSourceComp = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimulusSourceComp"));
+	if (IsValid(StimulusSourceComp)) {
+		StimulusSourceComp->RegisterForSense(TSubclassOf<UAISense_Sight>());
+		StimulusSourceComp->RegisterWithPerceptionSystem();
+	}
 }
 

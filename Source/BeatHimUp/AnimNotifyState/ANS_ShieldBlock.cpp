@@ -13,13 +13,18 @@ void UANS_ShieldBlock::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequen
 						weapon->GetBoxComp()->SetCollisionProfileName(FName("WeaponActivePreset"));
 				}
 			}
+			if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(character)) {
+				if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent()) {
+					ASC->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Parrying")));
+				}
+			}
 		}
 	}
 }
 
 void UANS_ShieldBlock::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference)
 {
-	if (MeshComp) {
+	/*if (MeshComp) {
 		if (ABaseCharacter* character = Cast<ABaseCharacter>(MeshComp->GetOwner())) {
 			if (UWeaponComponent* WeaponComponent = character->GetWeaponComponent()) {
 				if (AWeapon* LeftWeapon = WeaponComponent->GetLeftWeapon()) {
@@ -42,9 +47,24 @@ void UANS_ShieldBlock::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenc
 				}
 			}
 		}
-	}
+	}*/
 }
 
 void UANS_ShieldBlock::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
+	if (MeshComp) {
+		if (ABaseCharacter* character = Cast<ABaseCharacter>(MeshComp->GetOwner())) {
+			if (UWeaponComponent* WeaponComponent = character->GetWeaponComponent()) {
+				if (AWeapon* weapon = WeaponComponent->GetLeftWeapon()) {
+					if (weapon->GetBoxComp())
+						weapon->GetBoxComp()->SetCollisionProfileName(FName("WeaponOfflinePreset"));
+				}
+			}
+			if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(character)) {
+				if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent()) {
+					ASC->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Parrying")));
+				}
+			}
+		}
+	}
 }
