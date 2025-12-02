@@ -36,6 +36,12 @@ protected:
 	UFUNCTION()
 	void AttackEnd();
 
+	UFUNCTION()
+	void AttackParried(FGameplayEventData eventData);
+
 	UFUNCTION(Server, Reliable)
 	void TargetHit(FGameplayEventData eventData);
+
+	UFUNCTION()
+	void AbilityEndedCallback(UGameplayAbility* Ability);
 };

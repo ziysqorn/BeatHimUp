@@ -20,10 +20,6 @@ public:
 		return AbilitySubclassName;
 	}
 
-	UAnimMontage* GetMontage() {
-		return MontageToPlay;
-	}
-
 	UBoxComponent* GetBoxComp() {
 		return BoxComp;
 	}
@@ -54,9 +50,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mesh")
 	UStaticMeshComponent* StaticMeshComp = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MontageToPlay")
-	UAnimMontage* MontageToPlay = nullptr;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

@@ -62,17 +62,21 @@ public:
 				))
 				{
 					spawnedLeftWeapon->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, LeftHandSocketName);
+					spawnedLeftWeapon->SetOwner(character);
 					LeftWeapon = spawnedLeftWeapon;
+					LeftWeapon->SetOwner(character);
 				}
 			}
-			if (IsValid(LeftWeaponType) && !RightHandSocketname.IsNone()) {
+			if (IsValid(RightWeaponType) && !RightHandSocketname.IsNone()) {
 				if (AWeapon* spawnedRightWeapon = GetWorld()->SpawnActor<AWeapon>(RightWeaponType, character->GetMesh()->GetSocketLocation(RightHandSocketname),
 					character->GetMesh()->GetSocketRotation(RightHandSocketname),
 					SpawnParams
 				))
 				{
 					spawnedRightWeapon->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, RightHandSocketname);
+					spawnedRightWeapon->SetOwner(character);
 					RightWeapon = spawnedRightWeapon;
+					RightWeapon->SetOwner(character);
 				}
 			}
 		}

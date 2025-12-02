@@ -6,6 +6,7 @@
 #include "../../ProjectIncludes.h"
 #include "../../ActorComponent/WeaponComponent/WeaponComponent.h"
 #include "../../ActorComponent/HitStopComponent/HitStopComponent.h"
+#include "../../DataAsset/MontagesDataAsset.h"
 #include "BaseCharacter.generated.h"
 
 UCLASS()
@@ -19,6 +20,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components | HitStopComponent")
 	UHitStopComponent* HitStopComp = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | DataAssets | Montages")
+	UMontagesDataAsset* MontagesDataAsset = nullptr;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -34,6 +39,10 @@ public:
 
 	UWeaponComponent* GetWeaponComponent() {
 		return WeaponComponent;
+	}
+
+	UMontagesDataAsset* GetMontagesDataAsset() {
+		return MontagesDataAsset;
 	}
 
 	TWeakObjectPtr<AActor>& GetLockedOnTarget() {

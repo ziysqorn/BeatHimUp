@@ -24,4 +24,3 @@ void ABaseCharacter::BeginPlay()
 	Super::BeginPlay();
 	
 }
-

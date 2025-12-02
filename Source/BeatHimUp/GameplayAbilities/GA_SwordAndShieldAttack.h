@@ -18,6 +18,9 @@ class BEATHIMUP_API UGA_SwordAndShieldAttack : public UGameplayAbility
 {
 	GENERATED_BODY()
 	
+public:
+	UGA_SwordAndShieldAttack();
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | ApplyDamageGameplayEffect")
 	TSubclassOf<UGE_ApplyDamage> GE_ApplyDamageSubclass;
@@ -37,4 +40,7 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void TargetHit(FGameplayEventData eventData);
+
+	UFUNCTION()
+	void AbilityEndedCallback(UGameplayAbility* Ability);
 };

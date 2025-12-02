@@ -35,7 +35,7 @@ void AMainCharacter::BeginPlay()
 				FName("RightHand_Weapon")
 			);
 		}
-		if (HasAuthority() && AbilitySystemComp && GADataAsset) {
+		if (AbilitySystemComp && GADataAsset) {
 			AbilitySystemComp->InitAbilityActorInfo(this, this);
 			AbilitySystemComp->AffectedAnimInstanceTag = NAME_None;
 			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_HumanoidMove")))
@@ -43,6 +43,12 @@ void AMainCharacter::BeginPlay()
 
 			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dodge")))
 				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dodge")), 1, -1, this));
+
+			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Hurt")))
+				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Hurt")), 1, -1, this));
+
+			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead")))
+				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead")), 1, -1, this));
 
 			if (AWeapon* RightWeapon = WeaponComponent->GetRightWeapon()) {
 				if (GADataAsset->GameplayAbilitySubclassMap.Find(RightWeapon->GetAbilitySubclass())) {
@@ -224,33 +230,20 @@ void AMainCharacter::Hurt(const float& remainHealth, const float& totalHealth)
 void AMainCharacter::NetMulticast_Hurt_Implementation(const float& remainHealth, const float& totalHealth)
 {
 	if (AbilitySystemComp) {
-		if (IsValid(HumanoidMontagesDataAsset)) {
-			if (USkeletalMeshComponent* mesh = GetMesh()) {
-				if (UAnimInstance* animInstance = mesh->GetAnimInstance()) {
-					if (FMath::IsNearlyEqual(remainHealth, 0.0f, 1.0E-4)) {
-						AbilitySystemComp->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Dead")));
-						//GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Red, "Character died");
-					}
-					else
-					{
-						AbilitySystemComp->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Hurt")));
-						UAnimMontage* montageToPlay = *HumanoidMontagesDataAsset->HumanoidMontagesMap.Find(FName("Hurt"));
-						animInstance->Montage_Play(montageToPlay);
-						FOnMontageEnded montageEndedDel = FOnMontageEnded::CreateUObject(this, &AMainCharacter::HurtMontageEnded);
-						animInstance->Montage_SetEndDelegate(montageEndedDel, montageToPlay);
-						//GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Red, "Character hurt");
-					}
-				}
+		if (FMath::IsNearlyEqual(remainHealth, 0.0f, 1.0E-4)) {
+			if (IsValid(GADataAsset) && GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead"))) {
+				AbilitySystemComp->TryActivateAbilityByClass(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead")));
+			}
+		}
+		else
+		{
+			if (IsValid(GADataAsset) && GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Hurt"))) {
+				AbilitySystemComp->TryActivateAbilityByClass(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Hurt")));
 			}
 		}
 	}
 }
 
-void AMainCharacter::HurtMontageEnded(UAnimMontage* Montage, bool isInterrupted)
-{
-	//GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Blue, "HurtMontageEnded");
-	AbilitySystemComp->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Hurt")));
-}
 
 void AMainCharacter::SetupStimulusSource()
 {

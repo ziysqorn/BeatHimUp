@@ -5,6 +5,7 @@
 
 ABaseEnemy::ABaseEnemy()
 {
+	CharacterAttributeSet = CreateDefaultSubobject<UAS_AICharacter>("GameplayAttributeSet");
 }
 
 void ABaseEnemy::BeginPlay()
@@ -27,6 +28,12 @@ void ABaseEnemy::BeginPlay()
 			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_HumanoidMove")))
 				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_HumanoidMove")), 1, -1, this));
 
+			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Hurt")))
+				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Hurt")), 1, -1, this));
+
+			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead")))
+				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead")), 1, -1, this));
+
 			if (AWeapon* RightWeapon = WeaponComponent->GetRightWeapon()) {
 				if (GADataAsset->GameplayAbilitySubclassMap.Find(RightWeapon->GetAbilitySubclass())) {
 					AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(RightWeapon->GetAbilitySubclass()), 1, -1, RightWeapon));
@@ -39,7 +46,23 @@ void ABaseEnemy::BeginPlay()
 				}
 			}
 		}
-		//GetWorldTimerManager().SetTimer(AttackHandle, FTimerDelegate::CreateUObject(this, &ABaseEnemy::AttackTriggered), 2.0f, true);
+	}
+}
+
+void ABaseEnemy::Hurt_Implementation(const float& remainHealth, const float& totalHealth)
+{
+	if (AbilitySystemComp) {
+		if (FMath::IsNearlyEqual(remainHealth, 0.0f, 1.0E-4)) {
+			if (IsValid(GADataAsset) && GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead"))) {
+				AbilitySystemComp->TryActivateAbilityByClass(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead")));
+			}
+		}
+		else
+		{
+			if (IsValid(GADataAsset) && GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Hurt"))) {
+				AbilitySystemComp->TryActivateAbilityByClass(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Hurt")));
+			}
+		}
 	}
 }
 

@@ -4,27 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "../ProjectIncludes.h"
-#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
-#include "GA_Block.generated.h"
+#include "GA_Dead.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class BEATHIMUP_API UGA_Block : public UGameplayAbility
+class BEATHIMUP_API UGA_Dead : public UGameplayAbility
 {
 	GENERATED_BODY()
 	
-public:
-	UGA_Block();
-
 protected:
 	void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-
-	UFUNCTION()
-	void AttackParried(FGameplayEventData eventData);
-
-	UFUNCTION()
-	void AbilityEndedCallback(UGameplayAbility* Ability);
 };
