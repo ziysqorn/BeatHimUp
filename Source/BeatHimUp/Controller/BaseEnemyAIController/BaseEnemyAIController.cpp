@@ -20,9 +20,6 @@ void ABaseEnemyAIController::OnPossess(APawn* inPawn)
 			UseBlackboard(Tree->GetBlackboardAsset(), temp);
 			Blackboard = temp;
 			RunBehaviorTree(Tree);
-			if (GetBlackboardComponent()) {
-				GetBlackboardComponent()->SetValueAsObject(FName("ControlledPawn"), inPawn);
-			}
 		}
 	}
 }

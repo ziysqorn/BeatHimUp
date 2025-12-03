@@ -4,22 +4,22 @@
 
 #include "CoreMinimal.h"
 #include "../ProjectIncludes.h"
-#include "BTTask_ActivateAttack.generated.h"
+#include "BTTask_ActivateAbility.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class BEATHIMUP_API UBTTask_ActivateAttack : public UBTTask_BlackboardBase
+class BEATHIMUP_API UBTTask_ActivateAbility : public UBTTask_BlackboardBase
 {
 	GENERATED_BODY()
 
 public:
-	UBTTask_ActivateAttack();
+	UBTTask_ActivateAbility();
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "AttackAbilitySubclass")
-	TSubclassOf<UGameplayAbility> AttackAbilitySubclass;
+	UPROPERTY(EditAnywhere, Category = "AbilitySubclass")
+	TSubclassOf<UGameplayAbility> AbilitySubclass;
 
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 

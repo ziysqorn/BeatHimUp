@@ -25,8 +25,8 @@ void ABaseEnemy::BeginPlay()
 		}
 
 		if (AbilitySystemComp && GADataAsset) {
-			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_HumanoidMove")))
-				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_HumanoidMove")), 1, -1, this));
+			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_AIMove")))
+				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_AIMove")), 1, -1, this));
 
 			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Hurt")))
 				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Hurt")), 1, -1, this));
