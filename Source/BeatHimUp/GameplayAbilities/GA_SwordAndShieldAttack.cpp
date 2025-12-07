@@ -4,6 +4,7 @@
 #include "../ActorComponent/HitStopComponent/HitStopComponent.h"
 #include "../Weapon/Weapon.h"
 #include "../Character/BaseCharacter/BaseCharacter.h"
+#include "../Interface/CanCauseDamage.h"
 
 UGA_SwordAndShieldAttack::UGA_SwordAndShieldAttack()
 {
@@ -17,9 +18,13 @@ void UGA_SwordAndShieldAttack::ActivateAbility(const FGameplayAbilitySpecHandle 
 		CurrentActivationInfo = ActivationInfo;
 		this->OnGameplayAbilityEnded.AddUObject(this, &UGA_SwordAndShieldAttack::AbilityEndedCallback);
 		FGameplayTag targetHitTag = FGameplayTag::RequestGameplayTag(FName("GameplayEvent.TargetAttacked"));
-		if (UAbilityTask_WaitGameplayEvent* WaitForTargetHitTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, targetHitTag, nullptr, true, false)) {
+		if (UAbilityTask_WaitGameplayEvent* WaitForTargetHitTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, targetHitTag, nullptr, false, false)) {
 			WaitForTargetHitTask->EventReceived.AddDynamic(this, &UGA_SwordAndShieldAttack::TargetHit);
 			WaitForTargetHitTask->ReadyForActivation();
+		}
+		if (AWeapon* Weapon = Cast<AWeapon>(GetSourceObject(Handle, ActorInfo)))
+		{
+			Weapon->ClearHandledActors(2);
 		}
 		if (ABaseCharacter* OwnCharacter = Cast<ABaseCharacter>(ActorInfo->OwnerActor))
 		{
@@ -66,22 +71,26 @@ void UGA_SwordAndShieldAttack::AbilityEndedCallback(UGameplayAbility* Ability)
 void UGA_SwordAndShieldAttack::TargetHit_Implementation(FGameplayEventData eventData)
 {
 	if (const ACharacter* TargetCharacter = Cast<ACharacter>(eventData.Target)) {
-		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(GE_ApplyDamageSubclass);
 		if (const IAbilitySystemInterface* AbilitySystemInterface = Cast<IAbilitySystemInterface>(TargetCharacter)) {
 			if (UAbilitySystemComponent* TargetAbilitySystemComp = AbilitySystemInterface->GetAbilitySystemComponent()) {
 				if (UAbilitySystemComponent* SelfAbilitySystemComp = this->GetAbilitySystemComponentFromActorInfo()) {
-					SelfAbilitySystemComp->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetAbilitySystemComp);
-					if (CurrentActorInfo) {
-						if (AActor* OwnerActor = CurrentActorInfo->OwnerActor.Get()) {
-							if (UHitStopComponent* HitStopComp = OwnerActor->FindComponentByClass<UHitStopComponent>()) {
-								HitStopComp->NetMulticast_HitStop(HitStopDuration, HitStopDilation);
-								HitStopComp->Client_ShakeCameraOnHit();
+					if (ICanCauseDamage* CanCauseDamage = Cast<ICanCauseDamage>(this->GetOwningActorFromActorInfo())) {
+						FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(CanCauseDamage->GetDamageGESubclass());
+						//Send Target's Shield's Defence Stats to Gameplay Effect Calculation
+						if (SpecHandle.Data) SpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(FName("Data.ShieldDef")), eventData.EventMagnitude);
+						SelfAbilitySystemComp->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetAbilitySystemComp);
+						if (CurrentActorInfo) {
+							if (AActor* OwnerActor = CurrentActorInfo->OwnerActor.Get()) {
+								if (UHitStopComponent* HitStopComp = OwnerActor->FindComponentByClass<UHitStopComponent>()) {
+									HitStopComp->NetMulticast_HitStop(HitStopDuration, HitStopDilation);
+									HitStopComp->Client_ShakeCameraOnHit();
+								}
 							}
-						}
-						if (AActor* TargetActor = TargetAbilitySystemComp->GetOwnerActor()) {
-							if (UHitStopComponent* HitStopComp = TargetActor->FindComponentByClass<UHitStopComponent>()) {
-								HitStopComp->NetMulticast_HitStop(HitStopDuration, HitStopDilation);
-								HitStopComp->Client_ShakeCameraOnHit();
+							if (AActor* TargetActor = TargetAbilitySystemComp->GetOwnerActor()) {
+								if (UHitStopComponent* HitStopComp = TargetActor->FindComponentByClass<UHitStopComponent>()) {
+									HitStopComp->NetMulticast_HitStop(HitStopDuration, HitStopDilation);
+									HitStopComp->Client_ShakeCameraOnHit();
+								}
 							}
 						}
 					}

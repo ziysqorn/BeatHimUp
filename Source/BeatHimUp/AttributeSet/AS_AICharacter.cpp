@@ -3,6 +3,7 @@
 
 #include "AS_AICharacter.h"
 #include "../Interface/Damageable.h"
+#include "../Character/BaseCharacter/BaseCharacter.h"
 #include "GameplayEffectExtension.h"
 
 UAS_AICharacter::UAS_AICharacter()
@@ -35,7 +36,14 @@ void UAS_AICharacter::PostGameplayEffectExecute(const struct FGameplayEffectModC
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute()) {
 		if (Data.EvaluatedData.ModifierOp == EGameplayModOp::AddBase && Data.EvaluatedData.Magnitude < 0.0f) {
 			if (IDamageable* damageable = Cast<IDamageable>(this->GetActorInfo()->OwnerActor)) {
-				damageable->Hurt(Health.GetCurrentValue(), MaxHealth.GetCurrentValue());
+				AController* GESourceController = nullptr;
+				if (ABaseCharacter* GESourceChar = Cast<ABaseCharacter>(Data.EffectSpec.GetContext().GetOriginalInstigator())) {
+					GESourceController = GESourceChar->GetController();
+				}
+				if (!GESourceController)
+					GESourceController = Cast<AController>(Data.EffectSpec.GetContext().GetOriginalInstigator());
+				FDamageEvent DamageEvent;
+				damageable->Hurt(Health.GetCurrentValue(), MaxHealth.GetCurrentValue(), DamageEvent, GESourceController, Data.EffectSpec.GetContext().GetEffectCauser());
 			}
 		}
 	}

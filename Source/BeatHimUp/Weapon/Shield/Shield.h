@@ -21,5 +21,9 @@ public:
 	void CancelWeaponAbility() override;
 
 protected:
+	//Stats
+	UPROPERTY(EditDefaultsOnly, Category = "WeaponStats")
+	float Def = 30.0f;
+
 	void ResponseToAttackingWeapon(AActor* Causer) override;
 };

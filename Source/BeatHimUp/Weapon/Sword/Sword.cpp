@@ -15,38 +15,54 @@ void ASword::BeginPlay()
 	Super::BeginPlay();
 	
 	this->BoxComp->OnComponentBeginOverlap.AddDynamic(this, &ASword::BoxCompBeginOverlapped);
+	this->BoxComp->OnComponentEndOverlap.AddDynamic(this, &ASword::BoxCompEndOverlapped);
 }
 
 void ASword::BoxCompBeginOverlapped(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (HasAuthority()) {
-		if (OtherActor && OtherActor != this->GetOwner() && OtherActor->GetOwner() != this->GetOwner()) {
+		if (OtherActor && OtherActor != this && OtherActor != this->GetOwner() && OtherActor->GetOwner() != this->GetOwner()) {
 			FGameplayTag TargetAttackedEventTag = FGameplayTag::RequestGameplayTag(FName("GameplayEvent.TargetAttacked"));
 			FGameplayEventData Payload;
-			TArray<AActor*> OverlappingActor;
-			GetOverlappingActors(OverlappingActor);
-			TObjectPtr<AActor> overlappedWeapon = nullptr, overlappedDamageable = nullptr;
-			for (AActor* actor : OverlappingActor) {
-				if (AWeapon* Weapon = Cast<AWeapon>(actor)) {
-					overlappedWeapon = actor;
-				}
-				else if (IDamageable* Damageable = Cast<IDamageable>(actor)) {
-					overlappedDamageable = actor;
-				}
-			}
-			if (overlappedWeapon) {
-				if (IInteractableWithWeapon* InteractableWithWeapon = Cast<IInteractableWithWeapon>(overlappedWeapon)) {
-					InteractableWithWeapon->ResponseToAttackingWeapon(this);
+			if (IInteractableWithWeapon* InteractableWithWeapon = Cast<IInteractableWithWeapon>(OtherActor)) {
+				if (HandledActors.Contains(OtherActor->GetOwner())) {
 					return;
 				}
+				HandledActors.Add(OtherActor->GetOwner());
+				InteractableWithWeapon->ResponseToAttackingWeapon(this);
 			}
-			if (overlappedDamageable) {
+			else if (IDamageable* Damageable = Cast<IDamageable>(OtherActor)) {
+				if (HandledActors.Contains(OtherActor)) {
+					return;
+				}
+				HandledActors.Add(OtherActor);
 				Payload.EventTag = TargetAttackedEventTag;
 				Payload.Instigator = this->GetOwner();
-				Payload.Target = overlappedDamageable;
+				Payload.Target = OtherActor;
 				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this->GetOwner(), TargetAttackedEventTag, Payload);
-				return;
 			}
 		}
 	}
 }
+
+void ASword::BoxCompEndOverlapped(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	/*if (HasAuthority()) {
+		if (OtherActor && OtherActor != this && OtherActor != this->GetOwner() && OtherActor->GetOwner() != this->GetOwner()) {
+			if (IInteractableWithWeapon* InteractableWithWeapon = Cast<IInteractableWithWeapon>(OtherActor)) {
+				if (HandledActors.Contains(OtherActor->GetOwner())) {
+					HandledActors.Remove(OtherActor->GetOwner());
+				}
+			}
+			else if (IDamageable* Damageable = Cast<IDamageable>(OtherActor)) {
+				if (HandledActors.Contains(OtherActor)) {
+					HandledActors.Remove(OtherActor);
+				}
+			}
+			else if (HandledActors.Contains(OtherActor)) {
+				HandledActors.Remove(OtherActor);
+			}
+		}
+	}*/
+}
+

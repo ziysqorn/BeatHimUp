@@ -7,13 +7,14 @@
 #include "../../ActorComponent/AttackComponent/AttackComponent.h"
 #include "../../AttributeSet/AttributeSet_PlayableCharacter.h"
 #include "../../Interface/Damageable.h"
+#include "../../Interface/CanCauseDamage.h"
 #include "MainCharacter.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class BEATHIMUP_API AMainCharacter : public ABaseCharacter, public IAbilitySystemInterface, public IDamageable
+class BEATHIMUP_API AMainCharacter : public ABaseCharacter, public IAbilitySystemInterface, public IDamageable, public ICanCauseDamage
 {
 	GENERATED_BODY()
 public:
@@ -23,7 +24,6 @@ public:
 	UAbilitySystemComponent* GetAbilitySystemComponent() const override {
 		return AbilitySystemComp;
 	}
-
 protected:
 	//Components
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Camera|SpringArmComponent")
@@ -43,6 +43,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties|DataAssets|GameplayAbilityDataAsset")
 	UGameplayAbilityDataAsset* GADataAsset = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage GE Subclass")
+	TSubclassOf<UGameplayEffect> DamageGESubclass;
 
 	//Editor Properties
 	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input")
@@ -103,11 +106,12 @@ protected:
 
 	void Look(const FInputActionValue& value);
 
-	void Hurt(const float& remainHealth, const float& totalHealth) override;
-
 	UFUNCTION(NetMulticast, Reliable)
-	void NetMulticast_Hurt(const float& remainHealth, const float& totalHealth);
+	void Hurt(const float& remainHealth, const float& totalHealth, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
+	TSubclassOf<UGameplayEffect> GetDamageGESubclass() override {
+		return DamageGESubclass;
+	}
 private:
 	UPROPERTY()
 	TObjectPtr<UAIPerceptionStimuliSourceComponent> StimulusSourceComp = nullptr;

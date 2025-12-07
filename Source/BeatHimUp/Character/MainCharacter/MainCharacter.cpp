@@ -222,12 +222,7 @@ void AMainCharacter::Look(const FInputActionValue& value)
 	}
 }
 
-void AMainCharacter::Hurt(const float& remainHealth, const float& totalHealth)
-{
-	NetMulticast_Hurt(remainHealth, totalHealth);
-}
-
-void AMainCharacter::NetMulticast_Hurt_Implementation(const float& remainHealth, const float& totalHealth)
+void AMainCharacter::Hurt_Implementation(const float& remainHealth, const float& totalHealth, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	if (AbilitySystemComp) {
 		if (FMath::IsNearlyEqual(remainHealth, 0.0f, 1.0E-4)) {
@@ -237,6 +232,13 @@ void AMainCharacter::NetMulticast_Hurt_Implementation(const float& remainHealth,
 		}
 		else
 		{
+			FVector VecFromThisToDamageCauser = DamageCauser->GetActorLocation() - this->GetActorLocation();
+			float dotProduct = FVector::DotProduct(this->GetActorForwardVector(), VecFromThisToDamageCauser);
+			if (dotProduct < 0) {
+				FGameplayTagContainer tagContainer;
+				tagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Block")));
+				AbilitySystemComp->CancelAbilities(&tagContainer);
+			}
 			if (IsValid(GADataAsset) && GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Hurt"))) {
 				AbilitySystemComp->TryActivateAbilityByClass(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Hurt")));
 			}

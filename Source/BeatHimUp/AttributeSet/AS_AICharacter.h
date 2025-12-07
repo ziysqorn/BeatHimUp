@@ -26,23 +26,23 @@ public:
 	float GetHealthPercentage() const {
 		return Health.GetCurrentValue() / MaxHealth.GetCurrentValue();
 	}
+	ATTRIBUTE_ACCESSORS(UAS_AICharacter, Health)
+	ATTRIBUTE_ACCESSORS(UAS_AICharacter, MaxHealth)
 
+	ATTRIBUTE_ACCESSORS(UAS_AICharacter, Damage)
+	ATTRIBUTE_ACCESSORS(UAS_AICharacter, MaxDamage)
 protected:
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Health, Category = "Attributes")
 	FGameplayAttributeData Health;
-	ATTRIBUTE_ACCESSORS(UAS_AICharacter, Health)
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxHealth, Category = "Attributes")
 	FGameplayAttributeData MaxHealth;
-	ATTRIBUTE_ACCESSORS(UAS_AICharacter, MaxHealth)
 
 	UPROPERTY()
 	FGameplayAttributeData Damage;
-	ATTRIBUTE_ACCESSORS(UAS_AICharacter, Damage)
 
 	UPROPERTY()
 	FGameplayAttributeData MaxDamage;
-	ATTRIBUTE_ACCESSORS(UAS_AICharacter, MaxDamage)
 
 	void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 

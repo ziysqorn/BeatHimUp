@@ -7,15 +7,19 @@ void UANS_ShieldBlock::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequen
 {
 	if (MeshComp) {
 		if (ABaseCharacter* character = Cast<ABaseCharacter>(MeshComp->GetOwner())) {
-			if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(character)) {
-				if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent()) {
-					ASC->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Parrying")));
-				}
-			}
-			if (UWeaponComponent* WeaponComponent = character->GetWeaponComponent()) {
-				if (AWeapon* weapon = WeaponComponent->GetLeftWeapon()) {
-					if (weapon->GetBoxComp())
-						weapon->GetBoxComp()->SetCollisionProfileName(FName("WeaponActivePreset"));
+			if (character->HasAuthority()) {
+				if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(character)) {
+					if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent()) {
+						if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Block")))) {
+							if (UWeaponComponent* WeaponComponent = character->GetWeaponComponent()) {
+								if (AWeapon* weapon = WeaponComponent->GetLeftWeapon()) {
+									if (weapon->GetBoxComp())
+										weapon->GetBoxComp()->SetCollisionProfileName(FName("WeaponActivePreset"));
+								}
+							}
+							ASC->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Parrying")));
+						}
+					}
 				}
 			}
 		}
@@ -26,15 +30,13 @@ void UANS_ShieldBlock::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequence
 {
 	if (MeshComp) {
 		if (ABaseCharacter* character = Cast<ABaseCharacter>(MeshComp->GetOwner())) {
-			if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(character)) {
-				if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent()) {
-					ASC->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Parrying")));
-				}
-			}
-			if (UWeaponComponent* WeaponComponent = character->GetWeaponComponent()) {
-				if (AWeapon* weapon = WeaponComponent->GetLeftWeapon()) {
-					if (weapon->GetBoxComp())
-						weapon->GetBoxComp()->SetCollisionProfileName(FName("WeaponOfflinePreset"));
+			if (character->HasAuthority()) {
+				if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(character)) {
+					if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent()) {
+						if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Block")))) {
+							ASC->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Parrying")));
+						}
+					}
 				}
 			}
 		}

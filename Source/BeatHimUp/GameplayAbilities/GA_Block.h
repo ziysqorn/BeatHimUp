@@ -26,5 +26,11 @@ protected:
 	void AttackParried(FGameplayEventData eventData);
 
 	UFUNCTION()
+	void AttackBlocked(FGameplayEventData eventData);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlayBlockedMontage();
+
+	UFUNCTION()
 	void AbilityEndedCallback(UGameplayAbility* Ability);
 };

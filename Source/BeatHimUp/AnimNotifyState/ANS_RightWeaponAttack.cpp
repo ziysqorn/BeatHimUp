@@ -8,10 +8,18 @@ void UANS_RightWeaponAttack::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnim
 {
 	if (MeshComp) {
 		if (ABaseCharacter* character = Cast<ABaseCharacter>(MeshComp->GetOwner())) {
-			if (UWeaponComponent* WeaponComponent = character->GetWeaponComponent()) {
-				if (AWeapon* weapon = WeaponComponent->GetRightWeapon()) {
-					if (weapon->GetBoxComp())
-						weapon->GetBoxComp()->SetCollisionProfileName(FName("WeaponActivePreset"));
+			if (character->HasAuthority()) {
+				if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(character)) {
+					if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent()) {
+						if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Attack")))) {
+							if (UWeaponComponent* WeaponComponent = character->GetWeaponComponent()) {
+								if (AWeapon* weapon = WeaponComponent->GetRightWeapon()) {
+									if (weapon->GetBoxComp())
+										weapon->GetBoxComp()->SetCollisionProfileName(FName("WeaponActivePreset"));
+								}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -22,10 +30,18 @@ void UANS_RightWeaponAttack::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSe
 {
 	if (MeshComp) {
 		if (ABaseCharacter* character = Cast<ABaseCharacter>(MeshComp->GetOwner())) {
-			if (UWeaponComponent* WeaponComponent = character->GetWeaponComponent()) {
-				if (AWeapon* weapon = WeaponComponent->GetRightWeapon()) {
-					if (weapon->GetBoxComp())
-						weapon->GetBoxComp()->SetCollisionProfileName(FName("WeaponOfflinePreset"));
+			if (character->HasAuthority()) {
+				if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(character)) {
+					if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent()) {
+						if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Attack")))) {
+							if (UWeaponComponent* WeaponComponent = character->GetWeaponComponent()) {
+								if (AWeapon* weapon = WeaponComponent->GetRightWeapon()) {
+									if (weapon->GetBoxComp())
+										weapon->GetBoxComp()->SetCollisionProfileName(FName("WeaponOfflinePreset"));
+								}
+							}
+						}
+					}
 				}
 			}
 		}

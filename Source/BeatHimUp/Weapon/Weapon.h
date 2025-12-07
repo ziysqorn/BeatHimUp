@@ -30,12 +30,19 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void RemoveWeaponStateTag(FGameplayTag inTag);
 
+	void ClearHandledActors(int32 ExpectedNumElements) {
+		HandledActors.Empty(ExpectedNumElements);
+	}
+
 	bool HasWeaponStateTag(FGameplayTag inTag) {
 		return WeaponStateTags.HasTag(inTag);
 	}
 
 	virtual void CancelWeaponAbility() {}
 protected:
+	UPROPERTY()
+	TSet<AActor*> HandledActors;
+
 	UPROPERTY(EditDefaultsOnly, Category = "AbilitySubclassName")
 	FName AbilitySubclassName;
 

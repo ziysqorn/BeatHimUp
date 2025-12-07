@@ -49,7 +49,7 @@ void ABaseEnemy::BeginPlay()
 	}
 }
 
-void ABaseEnemy::Hurt_Implementation(const float& remainHealth, const float& totalHealth)
+void ABaseEnemy::Hurt_Implementation(const float& remainHealth, const float& totalHealth, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	if (AbilitySystemComp) {
 		if (FMath::IsNearlyEqual(remainHealth, 0.0f, 1.0E-4)) {
@@ -59,6 +59,13 @@ void ABaseEnemy::Hurt_Implementation(const float& remainHealth, const float& tot
 		}
 		else
 		{
+			FVector VecFromThisToDamageCauser = DamageCauser->GetActorLocation() - this->GetActorLocation();
+			float dotProduct = FVector::DotProduct(this->GetActorForwardVector(), VecFromThisToDamageCauser);
+			if (dotProduct < 0) {
+				FGameplayTagContainer tagContainer;
+				tagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Block")));
+				AbilitySystemComp->CancelAbilities(&tagContainer);
+			}
 			if (IsValid(GADataAsset) && GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Hurt"))) {
 				AbilitySystemComp->TryActivateAbilityByClass(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Hurt")));
 			}

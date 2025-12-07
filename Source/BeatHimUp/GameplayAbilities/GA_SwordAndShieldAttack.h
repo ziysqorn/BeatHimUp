@@ -22,9 +22,6 @@ public:
 	UGA_SwordAndShieldAttack();
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | ApplyDamageGameplayEffect")
-	TSubclassOf<UGE_ApplyDamage> GE_ApplyDamageSubclass;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | HitStopDuration")
 	float HitStopDuration;
 

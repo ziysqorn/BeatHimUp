@@ -30,34 +30,39 @@ public:
 	float GetStaminaPercentage() const {
 		return Stamina.GetCurrentValue() / MaxStamina.GetCurrentValue();
 	}
+
+	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, Health)
+	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, MaxHealth)
+
+	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, Stamina)
+	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, MaxStamina)
+
+	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, Damage)
+	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, MaxDamage)
+
+	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, StaminaRecoveryAmount)
+
 protected:
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Health, Category = "Attributes" )
 	FGameplayAttributeData Health;
-	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, Health)
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxHealth, Category = "Attributes")
 	FGameplayAttributeData MaxHealth;
-	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, MaxHealth)
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Stamina, Category = "Attributes")
 	FGameplayAttributeData Stamina;
-	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, Stamina)
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxStamina, Category = "Attributes")
 	FGameplayAttributeData MaxStamina;
-	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, MaxStamina)
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_StaminaRecoveryAmount, Category = "Attributes")
 	FGameplayAttributeData StaminaRecoveryAmount;
-	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, StaminaRecoveryAmount)
 
 	UPROPERTY()
 	FGameplayAttributeData Damage;
-	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, Damage)
 
 	UPROPERTY()
 	FGameplayAttributeData MaxDamage;
-	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, MaxDamage)
 
 	UPROPERTY()
 	FTimerHandle StaminaRecoverHandle;

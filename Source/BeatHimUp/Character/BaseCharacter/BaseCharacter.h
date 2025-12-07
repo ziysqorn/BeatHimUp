@@ -48,4 +48,6 @@ public:
 	TWeakObjectPtr<AActor>& GetLockedOnTarget() {
 		return LockedOnTarget;
 	}
+
+
 };

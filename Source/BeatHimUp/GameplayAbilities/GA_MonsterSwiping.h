@@ -20,9 +20,6 @@ public:
 	UGA_MonsterSwiping();
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | ApplyDamageGameplayEffect")
-	TSubclassOf<UGameplayEffect> GE_ApplyDamageSubclass;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | HitStopDuration")
 	float HitStopDuration;
 
