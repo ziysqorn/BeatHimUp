@@ -10,7 +10,7 @@ void UANS_ShieldBlock::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequen
 			if (character->HasAuthority()) {
 				if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(character)) {
 					if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent()) {
-						if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Block")))) {
+						if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Block")))) {
 							if (UWeaponComponent* WeaponComponent = character->GetWeaponComponent()) {
 								if (AWeapon* weapon = WeaponComponent->GetLeftWeapon()) {
 									if (weapon->GetBoxComp())
@@ -33,7 +33,7 @@ void UANS_ShieldBlock::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequence
 			if (character->HasAuthority()) {
 				if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(character)) {
 					if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent()) {
-						if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Block")))) {
+						if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Block")))) {
 							ASC->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Parrying")));
 						}
 					}

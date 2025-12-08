@@ -19,16 +19,6 @@ AWeapon::AWeapon()
 	StaticMeshComp->AttachToComponent(AltRootComp, FAttachmentTransformRules::KeepRelativeTransform);
 }
 
-void AWeapon::RemoveWeaponStateTag_Implementation(FGameplayTag inTag)
-{
-	WeaponStateTags.RemoveTag(inTag);
-}
-
-void AWeapon::AddWeaponStateTag_Implementation(FGameplayTag inTag)
-{
-	WeaponStateTags.AddTag(inTag);
-}
-
 // Called when the game starts or when spawned
 void AWeapon::BeginPlay()
 {

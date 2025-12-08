@@ -24,18 +24,8 @@ public:
 		return BoxComp;
 	}
 
-	UFUNCTION(NetMulticast, Reliable)
-	void AddWeaponStateTag(FGameplayTag inTag);
-
-	UFUNCTION(NetMulticast, Reliable)
-	void RemoveWeaponStateTag(FGameplayTag inTag);
-
 	void ClearHandledActors(int32 ExpectedNumElements) {
 		HandledActors.Empty(ExpectedNumElements);
-	}
-
-	bool HasWeaponStateTag(FGameplayTag inTag) {
-		return WeaponStateTags.HasTag(inTag);
 	}
 
 	virtual void CancelWeaponAbility() {}
@@ -45,9 +35,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "AbilitySubclassName")
 	FName AbilitySubclassName;
-
-	UPROPERTY()
-	FGameplayTagContainer WeaponStateTags;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Altenative Root Component")
 	USceneComponent* AltRootComp = nullptr;

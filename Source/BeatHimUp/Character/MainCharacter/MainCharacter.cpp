@@ -10,8 +10,8 @@ AMainCharacter::AMainCharacter()
 	this->PrimaryActorTick.bCanEverTick = true;
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(FName("SpringArmComponent"));
 	CineCameraComp = CreateDefaultSubobject<UCineCameraComponent>(FName("CineCameraComponent"));
-	AttackComponent = CreateDefaultSubobject<UAttackComponent>(FName("AttackComponent"));
 	AbilitySystemComp = CreateDefaultSubobject<UAbilitySystemComponent>(FName("AbilitySystemComponent"));
+	ItemComp = CreateDefaultSubobject<UItemComponent>(FName("ItemComponent"));
 	CharacterAttributeSet = CreateDefaultSubobject<UAttributeSet_PlayableCharacter>("GameplayAttributeSet");
 	if (SpringArmComp) {
 		SpringArmComp->SetupAttachment(this->RootComponent);
@@ -50,6 +50,9 @@ void AMainCharacter::BeginPlay()
 			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead")))
 				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead")), 1, -1, this));
 
+			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_UseItem")))
+				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_UseItem")), 1, -1, this));
+
 			if (AWeapon* RightWeapon = WeaponComponent->GetRightWeapon()) {
 				if (GADataAsset->GameplayAbilitySubclassMap.Find(RightWeapon->GetAbilitySubclass())) {
 					AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(RightWeapon->GetAbilitySubclass()), 1, -1, RightWeapon));
@@ -85,6 +88,8 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		if (IsValid(IA_LeftWeapon)) EIComponent->BindAction(IA_LeftWeapon, ETriggerEvent::Completed, this, &AMainCharacter::Server_LeftWeaponCompleted);
 		if (IsValid(IA_Dodge)) EIComponent->BindAction(IA_Dodge, ETriggerEvent::Triggered, this, &AMainCharacter::DodgeTriggered);
 		if (IsValid(IA_LockTarget)) EIComponent->BindAction(IA_LockTarget, ETriggerEvent::Triggered, this, &AMainCharacter::Server_LockTargetTriggered);
+		if (IsValid(IA_SwitchItem)) EIComponent->BindAction(IA_SwitchItem, ETriggerEvent::Triggered, this, &AMainCharacter::SwitchItemTriggered);
+		if (IsValid(IA_UseItem)) EIComponent->BindAction(IA_UseItem, ETriggerEvent::Triggered, this, &AMainCharacter::UseItemTriggered);
 	}
 }
 
@@ -193,6 +198,22 @@ void AMainCharacter::NetMulticast_LockTargetTriggered_Implementation()
 				}
 			}
 		}
+	}
+}
+
+void AMainCharacter::SwitchItemTriggered()
+{
+	if (IsValid(ItemComp)) {
+		ItemComp->SwitchUsableItem();
+	}
+}
+
+void AMainCharacter::UseItemTriggered()
+{
+	if (AbilitySystemComp) {
+		FGameplayTagContainer tagContainer;
+		tagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.UseItem")));
+		AbilitySystemComp->TryActivateAbilitiesByTag(tagContainer);
 	}
 }
 

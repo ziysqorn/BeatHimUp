@@ -12,7 +12,7 @@ void UANS_LeftWeaponAttack::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimS
 			if (character->HasAuthority()) {
 				if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(character)) {
 					if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent()) {
-						if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Attack")))) {
+						if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Attack")))) {
 							if (UWeaponComponent* WeaponComponent = character->GetWeaponComponent()) {
 								if (AWeapon* weapon = WeaponComponent->GetLeftWeapon()) {
 									if (weapon->GetBoxComp())
@@ -35,7 +35,7 @@ void UANS_LeftWeaponAttack::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSeq
 			if (character->HasAuthority()) {
 				if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(character)) {
 					if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent()) {
-						if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Attack")))) {
+						if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Attack")))) {
 							if (UWeaponComponent* WeaponComponent = character->GetWeaponComponent()) {
 								if (AWeapon* weapon = WeaponComponent->GetLeftWeapon()) {
 									if (weapon->GetBoxComp())

@@ -4,17 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "../BaseCharacter/BaseCharacter.h"
-#include "../../ActorComponent/AttackComponent/AttackComponent.h"
 #include "../../AttributeSet/AttributeSet_PlayableCharacter.h"
 #include "../../Interface/Damageable.h"
 #include "../../Interface/CanCauseDamage.h"
+#include "../../Interface/CanUseItem.h"
 #include "MainCharacter.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class BEATHIMUP_API AMainCharacter : public ABaseCharacter, public IAbilitySystemInterface, public IDamageable, public ICanCauseDamage
+class BEATHIMUP_API AMainCharacter : public ABaseCharacter, public IAbilitySystemInterface, public IDamageable, public ICanCauseDamage, public ICanUseItem
 {
 	GENERATED_BODY()
 public:
@@ -24,6 +24,10 @@ public:
 	UAbilitySystemComponent* GetAbilitySystemComponent() const override {
 		return AbilitySystemComp;
 	}
+
+	UItemComponent* GetItemComponent() override {
+		return ItemComp;
+	}
 protected:
 	//Components
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Camera|SpringArmComponent")
@@ -32,11 +36,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Camera|CineCameraComponent")
 	UCineCameraComponent* CineCameraComp = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components|AttackComponent")
-	UAttackComponent* AttackComponent = nullptr;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components|AbilitySystemComponent")
 	UAbilitySystemComponent* AbilitySystemComp = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components|ItemComponent")
+	UItemComponent* ItemComp = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GameplayAttributeSet")
 	UAttributeSet_PlayableCharacter* CharacterAttributeSet = nullptr;
@@ -70,6 +74,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
 	UInputAction* IA_LockTarget = nullptr;
 
+	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
+	UInputAction* IA_SwitchItem = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
+	UInputAction* IA_UseItem = nullptr;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | Detect Box Extent")
 	FVector DetectBoxExtent;
 
@@ -101,6 +111,10 @@ protected:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void NetMulticast_LockTargetTriggered();
+
+	void SwitchItemTriggered();
+
+	void UseItemTriggered();
 
 	void RotateToLockTarget(float DeltaTime);
 
