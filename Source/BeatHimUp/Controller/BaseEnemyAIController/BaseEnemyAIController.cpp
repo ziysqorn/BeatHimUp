@@ -29,11 +29,11 @@ void ABaseEnemyAIController::SetupPerceptionComponent()
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightSenseConfig"));
 	if (IsValid(SightConfig)) {
 		SetPerceptionComponent(*CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("PerceptionComponent")));
-		SightConfig->SightRadius = 500.f;
+		SightConfig->SightRadius = 700.f;
 		SightConfig->LoseSightRadius = SightConfig->SightRadius + 25.f;
 		SightConfig->PeripheralVisionAngleDegrees = 90.f;
 		SightConfig->SetMaxAge(5.f);
-		SightConfig->AutoSuccessRangeFromLastSeenLocation = 520.f;
+		SightConfig->AutoSuccessRangeFromLastSeenLocation = 525.f;
 		SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 		SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
 		SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
@@ -49,7 +49,6 @@ void ABaseEnemyAIController::OnTargetDetected(AActor* actor, FAIStimulus Stimulu
 {
 	if (AMainCharacter* MainCharacter = Cast<AMainCharacter>(actor)) {
 		if (GetBlackboardComponent()) {
-			//GetBlackboardComponent()->SetValueAsBool(FName("bHasSeenPlayer"), Stimulus.WasSuccessfullySensed());
 			if (AActor* Target = Cast<AActor>(GetBlackboardComponent()->GetValueAsObject(FName("Target")))) {
 				if (this->GetPawn()) {
 					FVector VectorToDetectedActor = MainCharacter->GetActorLocation() - this->GetPawn()->GetActorLocation();
@@ -62,6 +61,9 @@ void ABaseEnemyAIController::OnTargetDetected(AActor* actor, FAIStimulus Stimulu
 						GetBlackboardComponent()->SetValueAsObject(FName("Target"), MainCharacter);
 					}
 				}
+			}
+			else {
+				GetBlackboardComponent()->SetValueAsObject(FName("Target"), MainCharacter);
 			}
 		}
 	}

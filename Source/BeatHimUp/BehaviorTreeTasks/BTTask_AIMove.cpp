@@ -37,6 +37,20 @@ EBTNodeResult::Type UBTTask_AIMove::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 	return EBTNodeResult::Failed;
 }
 
+EBTNodeResult::Type UBTTask_AIMove::AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+{
+	if (AAIController* Controller = OwnerComp.GetAIOwner()) {
+		if (AAICharacter* AICharacter = Controller->GetPawn<AAICharacter>()) {
+			if (UAbilitySystemComponent* ASC = AICharacter->GetAbilitySystemComponent()) {
+				FGameplayTagContainer TagContainer;
+				TagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Move")));
+				ASC->CancelAbilities(&TagContainer);
+			}
+		}
+	}
+	return Super::AbortTask(OwnerComp, NodeMemory);
+}
+
 void UBTTask_AIMove::SetTaskResultSucceeded(UGameplayAbility* Ability)
 {
 	FinishLatentTask(*CachedOwnerComp, EBTNodeResult::Succeeded);

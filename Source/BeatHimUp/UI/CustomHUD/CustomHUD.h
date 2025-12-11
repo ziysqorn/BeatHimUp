@@ -21,13 +21,45 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Stamina", meta = (BindWidget))
 	TObjectPtr<UProgressBar> ProgressBar_Stamina = nullptr;
 
+	UPROPERTY(EditDefaultsOnly, Category = "BossHealthbar", meta = (BindWidget))
+	TObjectPtr<UVerticalBox> VerBox_BossHealthbar = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "BossHealth", meta = (BindWidget))
+	TObjectPtr<UProgressBar> ProgressBar_BossHealth = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "BossName", meta = (BindWidget))
+	TObjectPtr<UTextBlock> Txt_BossName = nullptr;
+
 	void NativeOnInitialized() override;
+
+	void NativeConstruct() override;
 
 public:
 	void BindHealthProgress(UObject* inObject, const FName& funcName) {
 		if (IsValid(ProgressBar_Health)) ProgressBar_Health->PercentDelegate.BindUFunction(inObject, funcName);
 	}
+
 	void BindStaminaProgress(UObject* inObject, const FName& funcName) {
 		if (IsValid(ProgressBar_Stamina)) ProgressBar_Stamina->PercentDelegate.BindUFunction(inObject, funcName);
+	}
+
+	void BindBossHealthProgress(UObject* inObject, const FName& funcName) {
+		if (IsValid(ProgressBar_BossHealth)) ProgressBar_BossHealth->PercentDelegate.BindUFunction(inObject, funcName);
+	}
+
+	void SetBossName(FText inText) {
+		if (IsValid(Txt_BossName)) Txt_BossName->SetText(inText);
+	}
+
+	void ShowBossHealthbar() {
+		if (IsValid(VerBox_BossHealthbar)) {
+			VerBox_BossHealthbar->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+
+	void HideBossHealthbar() {
+		if (IsValid(VerBox_BossHealthbar)) {
+			VerBox_BossHealthbar->SetVisibility(ESlateVisibility::Hidden);
+		}
 	}
 };

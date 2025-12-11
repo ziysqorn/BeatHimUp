@@ -6,6 +6,8 @@
 #include "../BaseCharacter/AICharacter.h"
 #include "../../Interface/Damageable.h"
 #include "../../Interface/CanCauseDamage.h"
+#include "../../Interface/HaveAttributeSet.h"
+#include "../../Interface/CanBeAggressive.h"
 #include "../../AttributeSet/AS_AICharacter.h"
 #include "BaseEnemy.generated.h"
 
@@ -13,7 +15,7 @@
  * 
  */
 UCLASS()
-class BEATHIMUP_API ABaseEnemy : public AAICharacter, public IDamageable, public ICanCauseDamage
+class BEATHIMUP_API ABaseEnemy : public AAICharacter, public IDamageable, public ICanCauseDamage, public IHaveAttributeSet, public ICanBeAggressive
 {
 	GENERATED_BODY()
 	
@@ -27,6 +29,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage GE Subclass")
 	TSubclassOf<UGameplayEffect> DamageGESubclass;
 
+	bool HasBecomeAggressive = false;
+
 	FTimerHandle AttackHandle;
 
 	virtual void BeginPlay() override;
@@ -39,5 +43,17 @@ protected:
 
 	TSubclassOf<UGameplayEffect> GetDamageGESubclass() {
 		return DamageGESubclass;
+	}
+
+	UAttributeSet* GetAttributeSet() override {
+		return CharacterAttributeSet;
+	}
+
+	bool GetHasBecomeAggressive() override {
+		return HasBecomeAggressive;
+	}
+
+	void SetHasBecomeAggressive(bool inHasBecomeAggress) override {
+		HasBecomeAggressive = inHasBecomeAggress;
 	}
 };

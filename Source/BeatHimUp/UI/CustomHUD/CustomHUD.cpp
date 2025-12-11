@@ -7,3 +7,8 @@ void UCustomHUD::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 }
+
+void UCustomHUD::NativeConstruct()
+{
+	Super::NativeConstruct();
+}

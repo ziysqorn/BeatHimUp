@@ -2,32 +2,28 @@
 
 
 #include "MainController.h"
+#include "../../CustomGameState/MainGameState.h"
 
 AMainController::AMainController()
 {
+	PlayerHUDComp = CreateDefaultSubobject<UPlayerHUDComponent>(FName("PlayerHUDComp"));
 }
 
 void AMainController::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 void AMainController::OnPossess(APawn* aPawn)
 {
 	Super::OnPossess(aPawn);
-
-	AddHUD();
 }
 
-void AMainController::AddHUD_Implementation()
+void AMainController::AcknowledgePossession(APawn* aPawn)
 {
-	if (MainHUDSubclass) {
-		MainHUD = CreateWidget<UCustomHUD>(this, MainHUDSubclass);
-		if (MainHUD) {
-			MainHUD->BindHealthProgress(this, FName("GetPawnHealthPercentage"));
-			MainHUD->BindStaminaProgress(this, FName("GetPawnStaminaPercentage"));
-			MainHUD->AddToViewport(0);
-		}
+	Super::AcknowledgePossession(aPawn);
+
+	if (IsValid(PlayerHUDComp)) {
+		PlayerHUDComp->Client_AddHUD();
 	}
 }

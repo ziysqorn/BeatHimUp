@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../ProjectIncludes.h"
+#include "../Interface/HaveHealthAttribute.h"
 #include "AS_AICharacter.generated.h"
 
 /**
@@ -16,16 +17,18 @@
  	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
 UCLASS()
-class BEATHIMUP_API UAS_AICharacter : public UAttributeSet
+class BEATHIMUP_API UAS_AICharacter : public UAttributeSet, public IHaveHealthAttribute
 {
 	GENERATED_BODY()
 
 public:
 	UAS_AICharacter();
 
-	float GetHealthPercentage() const {
+	UFUNCTION()
+	float GetHealthPercentage() const override {
 		return Health.GetCurrentValue() / MaxHealth.GetCurrentValue();
 	}
+
 	ATTRIBUTE_ACCESSORS(UAS_AICharacter, Health)
 	ATTRIBUTE_ACCESSORS(UAS_AICharacter, MaxHealth)
 

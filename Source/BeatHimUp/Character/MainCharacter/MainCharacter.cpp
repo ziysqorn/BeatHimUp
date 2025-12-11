@@ -10,12 +10,17 @@ AMainCharacter::AMainCharacter()
 	this->PrimaryActorTick.bCanEverTick = true;
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(FName("SpringArmComponent"));
 	CineCameraComp = CreateDefaultSubobject<UCineCameraComponent>(FName("CineCameraComponent"));
+	WidgetComp = CreateDefaultSubobject<UHealthbarWidgetComponent>(FName("HealthbarWidgetComponent"));
 	AbilitySystemComp = CreateDefaultSubobject<UAbilitySystemComponent>(FName("AbilitySystemComponent"));
 	ItemComp = CreateDefaultSubobject<UItemComponent>(FName("ItemComponent"));
 	CharacterAttributeSet = CreateDefaultSubobject<UAttributeSet_PlayableCharacter>("GameplayAttributeSet");
 	if (SpringArmComp) {
 		SpringArmComp->SetupAttachment(this->RootComponent);
 		if (CineCameraComp) CineCameraComp->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepRelativeTransform);
+	}
+	if (WidgetComp) {
+		WidgetComp->SetOwnerNoSee(true);
+		WidgetComp->AttachToComponent(this->RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 	SetupStimulusSource();
 }
@@ -26,44 +31,12 @@ void AMainCharacter::BeginPlay()
 
 	SetupMappingContext();
 
-	if (HasAuthority()) {
-		if (WeaponComponent) {
-			WeaponComponent->SetupWeaponsOnHands(
-				*WeaponComponent->GetWeaponSubclassByName(FName("Shield")),
-				*WeaponComponent->GetWeaponSubclassByName(FName("Sword")),
-				FName("LeftHand_Shield"),
-				FName("RightHand_Weapon")
-			);
-		}
-		if (AbilitySystemComp && GADataAsset) {
-			AbilitySystemComp->InitAbilityActorInfo(this, this);
-			AbilitySystemComp->AffectedAnimInstanceTag = NAME_None;
-			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_HumanoidMove")))
-				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_HumanoidMove")), 1, -1, this));
+	SetupGameplay();
 
-			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dodge")))
-				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dodge")), 1, -1, this));
-
-			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Hurt")))
-				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Hurt")), 1, -1, this));
-
-			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead")))
-				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead")), 1, -1, this));
-
-			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_UseItem")))
-				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_UseItem")), 1, -1, this));
-
-			if (AWeapon* RightWeapon = WeaponComponent->GetRightWeapon()) {
-				if (GADataAsset->GameplayAbilitySubclassMap.Find(RightWeapon->GetAbilitySubclass())) {
-					AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(RightWeapon->GetAbilitySubclass()), 1, -1, RightWeapon));
-				}
-			}
-
-			if (AWeapon* LeftWeapon = WeaponComponent->GetLeftWeapon()) {
-				if (GADataAsset->GameplayAbilitySubclassMap.Find(LeftWeapon->GetAbilitySubclass())) {
-					AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(LeftWeapon->GetAbilitySubclass()), 1, -1, LeftWeapon));
-				}
-			}
+	if (!HasAuthority()) {
+		if (IsValid(WidgetComp)) {
+			WidgetComp->SetCustomOwner(this);
+			WidgetComp->SetupHealthbarUI();
 		}
 	}
 }
@@ -73,6 +46,8 @@ void AMainCharacter::Tick(float deltaTime)
 	Super::Tick(deltaTime);
 
 	RotateToLockTarget(deltaTime);
+
+	BillboardingWidgetCompByClient();
 }
 
 void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -240,6 +215,66 @@ void AMainCharacter::Look(const FInputActionValue& value)
 		FVector lookDirectionVal = value.Get<FVector>();
 		AddControllerYawInput(lookDirectionVal.X);
 		AddControllerPitchInput(lookDirectionVal.Y);
+	}
+}
+
+void AMainCharacter::BillboardingWidgetCompByClient()
+{
+	if (GetNetMode() == ENetMode::NM_DedicatedServer) return;
+	if (IsLocallyControlled()) return;
+	if (IsValid(WidgetComp)) {
+		if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController()) {
+			FRotator CameraRotation;
+			FVector CameraLocation;
+			FVector WidgetLocation = WidgetComp->GetComponentLocation();
+			PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
+			FRotator TargetRotation = (CameraLocation - WidgetLocation).Rotation();
+			WidgetComp->SetWorldRotation(TargetRotation);
+		}
+	}
+}
+
+void AMainCharacter::SetupGameplay()
+{
+	if (HasAuthority()) {
+		if (WeaponComponent) {
+			WeaponComponent->SetupWeaponsOnHands(
+				*WeaponComponent->GetWeaponSubclassByName(FName("Shield")),
+				*WeaponComponent->GetWeaponSubclassByName(FName("Sword")),
+				FName("LeftHand_Shield"),
+				FName("RightHand_Weapon")
+			);
+		}
+		if (AbilitySystemComp && GADataAsset) {
+			AbilitySystemComp->InitAbilityActorInfo(this, this);
+			AbilitySystemComp->AffectedAnimInstanceTag = NAME_None;
+			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_HumanoidMove")))
+				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_HumanoidMove")), 1, -1, this));
+
+			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dodge")))
+				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dodge")), 1, -1, this));
+
+			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Hurt")))
+				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Hurt")), 1, -1, this));
+
+			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead")))
+				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead")), 1, -1, this));
+
+			if (GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_UseItem")))
+				AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_UseItem")), 1, -1, this));
+
+			if (AWeapon* RightWeapon = WeaponComponent->GetRightWeapon()) {
+				if (GADataAsset->GameplayAbilitySubclassMap.Find(RightWeapon->GetAbilitySubclass())) {
+					AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(RightWeapon->GetAbilitySubclass()), 1, -1, RightWeapon));
+				}
+			}
+
+			if (AWeapon* LeftWeapon = WeaponComponent->GetLeftWeapon()) {
+				if (GADataAsset->GameplayAbilitySubclassMap.Find(LeftWeapon->GetAbilitySubclass())) {
+					AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(*GADataAsset->GameplayAbilitySubclassMap.Find(LeftWeapon->GetAbilitySubclass()), 1, -1, LeftWeapon));
+				}
+			}
+		}
 	}
 }
 

@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "../ProjectIncludes.h"
+#include "../Interface/HaveHealthAttribute.h"
+#include "../Interface/HaveStaminaAttribute.h"
 #include "AttributeSet_PlayableCharacter.generated.h"
 
 /**
@@ -16,18 +18,20 @@
  	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
 UCLASS()
-class BEATHIMUP_API UAttributeSet_PlayableCharacter : public UAttributeSet
+class BEATHIMUP_API UAttributeSet_PlayableCharacter : public UAttributeSet, public IHaveHealthAttribute, public IHaveStaminaAttribute
 {
 	GENERATED_BODY()
 	
 public:
 	UAttributeSet_PlayableCharacter();
 
-	float GetHealthPercentage() const {
+	UFUNCTION()
+	float GetHealthPercentage() const override {
 		return Health.GetCurrentValue() / MaxHealth.GetCurrentValue();
 	}
 
-	float GetStaminaPercentage() const {
+	UFUNCTION()
+	float GetStaminaPercentage() const override {
 		return Stamina.GetCurrentValue() / MaxStamina.GetCurrentValue();
 	}
 

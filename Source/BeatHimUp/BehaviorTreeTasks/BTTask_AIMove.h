@@ -41,6 +41,8 @@ protected:
 
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
+	EBTNodeResult::Type AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+
 	UFUNCTION()
 	void SetTaskResultSucceeded(UGameplayAbility* Ability);
 

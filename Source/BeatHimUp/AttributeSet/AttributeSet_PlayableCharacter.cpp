@@ -38,6 +38,10 @@ void UAttributeSet_PlayableCharacter::PostAttributeChange(const FGameplayAttribu
 		Stamina.SetBaseValue(FMath::Clamp(Stamina.GetBaseValue(), 0.0f, MaxStamina.GetCurrentValue()));
 		//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, FString::Format(TEXT("CurrentValue: {0}, BaseValue: {1}"), { Stamina.GetCurrentValue(), Stamina.GetBaseValue()}));
 	}
+
+	if (Attribute == GetHealthAttribute()) {
+		Health.SetBaseValue(FMath::Clamp(Health.GetBaseValue(), 0.0f, MaxHealth.GetCurrentValue()));
+	}
 }
 
 void UAttributeSet_PlayableCharacter::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -63,6 +67,14 @@ void UAttributeSet_PlayableCharacter::PostGameplayEffectExecute(const FGameplayE
 void UAttributeSet_PlayableCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UAttributeSet_PlayableCharacter, Health);
+
+	DOREPLIFETIME(UAttributeSet_PlayableCharacter, MaxHealth);
+
+	DOREPLIFETIME(UAttributeSet_PlayableCharacter, Stamina);
+
+	DOREPLIFETIME(UAttributeSet_PlayableCharacter, MaxStamina);
 }
 
 void UAttributeSet_PlayableCharacter::OnRep_Health(const FGameplayAttributeData& OldHealth)

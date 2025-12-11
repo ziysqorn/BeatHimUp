@@ -6,17 +6,6 @@
 void AMainGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-
-	//Teams.Init(NewObject<ATeamState>(this), 2);
-    //TArray<APlayerController*> Clients;
-
-    //for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-    //{
-    //    if (APlayerController* PC = It->Get())
-    //    {
-    //        Clients.Add(PC);
-    //    }
-    //}
 }
 
 void AMainGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -27,5 +16,4 @@ void AMainGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 void AMainGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
-
 }

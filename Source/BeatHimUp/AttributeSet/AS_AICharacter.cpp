@@ -20,13 +20,16 @@ void UAS_AICharacter::PreAttributeChange(const FGameplayAttribute& Attribute, fl
 
 	if (Attribute == GetHealthAttribute()) {
 		NewValue = FMath::Clamp(NewValue, 0.0f, MaxHealth.GetCurrentValue());
-
 	}
 }
 
 void UAS_AICharacter::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
 {
 	Super::PostAttributeChange(Attribute, OldValue, NewValue);
+
+	if (Attribute == GetHealthAttribute()) {
+		Health.SetBaseValue(FMath::Clamp(Health.GetBaseValue(), 0.0f, MaxHealth.GetCurrentValue()));
+	}
 }
 
 void UAS_AICharacter::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) 

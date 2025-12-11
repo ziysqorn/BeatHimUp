@@ -18,6 +18,9 @@ public:
 	UHealthPotion();
 
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "HealthPotionLevel")
+	float Level = 1.f;
+
 	UPROPERTY(EditDefaultsOnly, Category = "IncreaseHealthGESubclass")
 	TSubclassOf<UGameplayEffect> GESubclass_IncreaseHealth;
 

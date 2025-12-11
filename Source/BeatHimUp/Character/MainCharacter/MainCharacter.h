@@ -5,16 +5,18 @@
 #include "CoreMinimal.h"
 #include "../BaseCharacter/BaseCharacter.h"
 #include "../../AttributeSet/AttributeSet_PlayableCharacter.h"
+#include "../../CustomComponents/HealthbarWidgetComponent.h"
 #include "../../Interface/Damageable.h"
 #include "../../Interface/CanCauseDamage.h"
 #include "../../Interface/CanUseItem.h"
+#include "../../Interface/HaveAttributeSet.h"
 #include "MainCharacter.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class BEATHIMUP_API AMainCharacter : public ABaseCharacter, public IAbilitySystemInterface, public IDamageable, public ICanCauseDamage, public ICanUseItem
+class BEATHIMUP_API AMainCharacter : public ABaseCharacter, public IAbilitySystemInterface, public IDamageable, public ICanCauseDamage, public ICanUseItem, public IHaveAttributeSet
 {
 	GENERATED_BODY()
 public:
@@ -35,6 +37,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Camera|CineCameraComponent")
 	UCineCameraComponent* CineCameraComp = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components|WidgetComponent")
+	UHealthbarWidgetComponent* WidgetComp = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components|AbilitySystemComponent")
 	UAbilitySystemComponent* AbilitySystemComp = nullptr;
@@ -120,11 +125,19 @@ protected:
 
 	void Look(const FInputActionValue& value);
 
+	void BillboardingWidgetCompByClient();
+
+	void SetupGameplay();
+
 	UFUNCTION(NetMulticast, Reliable)
 	void Hurt(const float& remainHealth, const float& totalHealth, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	TSubclassOf<UGameplayEffect> GetDamageGESubclass() override {
 		return DamageGESubclass;
+	}
+
+	UAttributeSet* GetAttributeSet() override {
+		return CharacterAttributeSet;
 	}
 private:
 	UPROPERTY()

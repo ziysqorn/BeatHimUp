@@ -47,6 +47,8 @@ void ABaseEnemy::BeginPlay()
 			}
 		}
 	}
+
+
 }
 
 void ABaseEnemy::Hurt_Implementation(const float& remainHealth, const float& totalHealth, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
