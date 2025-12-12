@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
+#include "../../CustomGameState/MainGameState.h"
 #include "../../ActorComponent/PlayerHUDComponent/PlayerHUDComponent.h"
 #include "MainController.generated.h"
 
@@ -18,12 +19,22 @@ class BEATHIMUP_API AMainController : public APlayerController
 public:
 	AMainController();
 
+	void SpectatePlayer();
+
+	UFUNCTION(Server, Unreliable)
+	void Server_SpectateNextPlayer();
+
 	UPlayerHUDComponent* GetPlayerHUDComp() {
 		return PlayerHUDComp;
 	}
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerHUDComponent")
 	UPlayerHUDComponent* PlayerHUDComp = nullptr;
+
+	UPROPERTY()
+	TWeakObjectPtr<APlayerController> CurrentSpectatedPlayer = nullptr;
+
+	int CurSpectatedPlayerIdx = -1;
 
 	void BeginPlay() override;
 	void OnPossess(APawn* aPawn) override;

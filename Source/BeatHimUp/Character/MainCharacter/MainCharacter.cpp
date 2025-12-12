@@ -303,6 +303,21 @@ void AMainCharacter::Hurt_Implementation(const float& remainHealth, const float&
 }
 
 
+void AMainCharacter::ExecuteAfterDeathBehaviour()
+{
+	if (AMainController* MainController = this->GetController<AMainController>()) {
+		MainController->SpectatePlayer();
+		if (UEnhancedInputLocalPlayerSubsystem* EISubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(MainController->GetLocalPlayer())) {
+			EISubsystem->RemoveMappingContext(PlayerMappingContext);
+			EISubsystem->AddMappingContext(MC_SpectatorMode, 1);
+			if (UEnhancedInputComponent* EIComponent = Cast<UEnhancedInputComponent>(InputComponent)) {
+				if (IsValid(IA_NextSpectatedPlayer))
+					EIComponent->BindAction(IA_NextSpectatedPlayer, ETriggerEvent::Triggered, MainController, &AMainController::Server_SpectateNextPlayer);
+			}
+		}
+	}
+}
+
 void AMainCharacter::SetupStimulusSource()
 {
 	StimulusSourceComp = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimulusSourceComp"));

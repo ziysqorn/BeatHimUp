@@ -2,7 +2,6 @@
 
 
 #include "MainController.h"
-#include "../../CustomGameState/MainGameState.h"
 
 AMainController::AMainController()
 {
@@ -25,5 +24,49 @@ void AMainController::AcknowledgePossession(APawn* aPawn)
 
 	if (IsValid(PlayerHUDComp)) {
 		PlayerHUDComp->Client_AddHUD();
+	}
+}
+
+void AMainController::SpectatePlayer()
+{
+	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator) {
+		if (Iterator->IsValid()) {
+			if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(Iterator->Get()->GetPawn())) {
+				if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent()) {
+					if (!ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Dead")))) {
+						CurSpectatedPlayerIdx = Iterator.GetIndex();
+						CurrentSpectatedPlayer = Iterator->Get(false);
+						SetViewTargetWithBlend(Iterator->Get());
+						return;
+					}
+				}
+			}
+		}
+	}
+}
+
+void AMainController::Server_SpectateNextPlayer_Implementation()
+{
+	if (CurSpectatedPlayerIdx != -1) {
+		int NumPlayers = GetWorld()->GetNumPlayerControllers();
+		int curIdx = CurSpectatedPlayerIdx + 1;
+		while (true) {
+			if (curIdx == NumPlayers) {
+				curIdx = 0;
+			}
+			if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), curIdx)) {
+				if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(PC->GetPawn())) {
+					if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent()) {
+						if (!ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Dead")))) {
+							CurSpectatedPlayerIdx = curIdx;
+							CurrentSpectatedPlayer = PC;
+							SetViewTargetWithBlend(PC);
+							return;
+						}
+					}
+				}
+			}
+			++curIdx;
+		}
 	}
 }

@@ -4,19 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "../BaseCharacter/BaseCharacter.h"
+#include "../../Controller/MainController/MainController.h"
 #include "../../AttributeSet/AttributeSet_PlayableCharacter.h"
 #include "../../CustomComponents/HealthbarWidgetComponent.h"
 #include "../../Interface/Damageable.h"
 #include "../../Interface/CanCauseDamage.h"
 #include "../../Interface/CanUseItem.h"
 #include "../../Interface/HaveAttributeSet.h"
+#include "../../Interface/HaveSpecialDeath.h"
 #include "MainCharacter.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class BEATHIMUP_API AMainCharacter : public ABaseCharacter, public IAbilitySystemInterface, public IDamageable, public ICanCauseDamage, public ICanUseItem, public IHaveAttributeSet
+class BEATHIMUP_API AMainCharacter : public ABaseCharacter, public IAbilitySystemInterface, public IDamageable, public ICanCauseDamage, public ICanUseItem, public IHaveAttributeSet, public IHaveSpecialDeath
 {
 	GENERATED_BODY()
 public:
@@ -60,6 +62,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input")
 	UInputMappingContext* PlayerMappingContext = nullptr;
 
+	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input")
+	UInputMappingContext* MC_SpectatorMode = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties|Input|Input Action");
 	UInputAction* IA_Move = nullptr;
@@ -84,6 +88,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
 	UInputAction* IA_UseItem = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
+	UInputAction* IA_NextSpectatedPlayer = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | Detect Box Extent")
 	FVector DetectBoxExtent;
@@ -139,6 +146,12 @@ protected:
 	UAttributeSet* GetAttributeSet() override {
 		return CharacterAttributeSet;
 	}
+
+	float GetDeathDelay() override {
+		return 3.f;
+	}
+
+	void ExecuteAfterDeathBehaviour() override;
 private:
 	UPROPERTY()
 	TObjectPtr<UAIPerceptionStimuliSourceComponent> StimulusSourceComp = nullptr;
