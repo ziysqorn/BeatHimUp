@@ -3,6 +3,8 @@
 
 #include "MainCharacter.h"
 #include "../../GameplayAbilities/GA_Move.h"
+#include "../../GameplayAbilities/GA_Dead.h"
+#include "../../CustomGameState/MainGameState.h"
 
 
 AMainCharacter::AMainCharacter()
@@ -283,7 +285,12 @@ void AMainCharacter::Hurt_Implementation(const float& remainHealth, const float&
 	if (AbilitySystemComp) {
 		if (FMath::IsNearlyEqual(remainHealth, 0.0f, 1.0E-4)) {
 			if (IsValid(GADataAsset) && GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead"))) {
-				AbilitySystemComp->TryActivateAbilityByClass(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead")));
+				if (FGameplayAbilitySpec* GASpec = AbilitySystemComp->FindAbilitySpecFromClass(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead")))) {
+					if (UGA_Dead* GA_Dead = Cast<UGA_Dead>(GASpec->GetPrimaryInstance())) {
+						GA_Dead->SetupDeadInfo(EventInstigator, DamageCauser);
+						AbilitySystemComp->TryActivateAbility(GASpec->Handle);
+					}
+				}
 			}
 		}
 		else
@@ -303,9 +310,12 @@ void AMainCharacter::Hurt_Implementation(const float& remainHealth, const float&
 }
 
 
-void AMainCharacter::ExecuteAfterDeathBehaviour()
+void AMainCharacter::ExecuteAfterDeathBehaviour(AController* inInstigator, AActor* DamageCauser)
 {
 	if (AMainController* MainController = this->GetController<AMainController>()) {
+		if (AMainGameState* MainGameState = GetWorld()->GetGameState< AMainGameState>()) {
+			MainGameState->OnPlayerKilled(this, inInstigator, DamageCauser);
+		}
 		MainController->SpectatePlayer();
 		if (UEnhancedInputLocalPlayerSubsystem* EISubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(MainController->GetLocalPlayer())) {
 			EISubsystem->RemoveMappingContext(PlayerMappingContext);

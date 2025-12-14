@@ -41,6 +41,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
+#include "Animation/WidgetAnimation.h"
 #include "Animation/BlendSpace.h"
 #include "InputMappingContext.h"
 #include "EnhancedInputComponent.h"
@@ -68,4 +69,5 @@
 #include "IWebSocket.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/LevelScriptActor.h"
+#include "MyStructs/MyStructs.h"
 

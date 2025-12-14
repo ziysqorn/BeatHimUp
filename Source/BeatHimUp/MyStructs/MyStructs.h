@@ -8,6 +8,16 @@
 /**
  * 
  */
+UENUM(BlueprintType)
+enum class EMatchStatus : uint8
+{
+	MATCH_BEGIN UMETA(DisplayName = "Match Begin"),
+	MATCH_PAUSED UMETA(DisplayName = "Match Paused"),
+	MATCH_END UMETA(DisplayName = "Match Ended"),
+	MATCH_WON UMETA(DisplayName = "Match Won"),
+	MATCH_LOST UMETA(DisplayName = "Match Lost")
+};
+
 USTRUCT()
 struct FPlayerInfo {
 

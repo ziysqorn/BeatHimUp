@@ -17,6 +17,12 @@ class BEATHIMUP_API UGA_Dead : public UGameplayAbility
 	
 protected:
 	UPROPERTY()
+	TObjectPtr<AController> CauseDeadInstigator = nullptr;
+
+	UPROPERTY()
+	TObjectPtr<AActor> DamageCauser = nullptr;
+
+	UPROPERTY()
 	FTimerHandle DeadDelayHandle;
 
 	void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
@@ -26,4 +32,10 @@ protected:
 
 	UFUNCTION()
 	void DeadDelayEnd();
+
+public:
+	void SetupDeadInfo(AController* EventInstigator, AActor* Causer) {
+		CauseDeadInstigator = EventInstigator;
+		DamageCauser = Causer;
+	}
 };

@@ -2,6 +2,8 @@
 
 
 #include "MainController.h"
+#include "../../CustomGameState/MainGameState.h"
+#include "../../GameMode/MainGameMode/MainGameMode.h"
 
 AMainController::AMainController()
 {
@@ -24,6 +26,9 @@ void AMainController::AcknowledgePossession(APawn* aPawn)
 
 	if (IsValid(PlayerHUDComp)) {
 		PlayerHUDComp->Client_AddHUD();
+		if (AMainGameState* MainGS = GetWorld()->GetGameState<AMainGameState>()) {
+			MainGS->OnRepMatchStatusDel.AddUObject(PlayerHUDComp, &UPlayerHUDComponent::DisplayMatchStatusMessage);
+		}
 	}
 }
 
@@ -42,6 +47,13 @@ void AMainController::SpectatePlayer()
 				}
 			}
 		}
+	}
+}
+
+void AMainController::Server_RequestEndGame_Implementation(EMatchStatus inMatchStatus)
+{
+	if (AMainGameMode* MainGM = GetWorld()->GetAuthGameMode<AMainGameMode>()) {
+		MainGM->EndMatch(inMatchStatus);
 	}
 }
 

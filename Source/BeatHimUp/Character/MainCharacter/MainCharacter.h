@@ -151,7 +151,7 @@ protected:
 		return 3.f;
 	}
 
-	void ExecuteAfterDeathBehaviour() override;
+	void ExecuteAfterDeathBehaviour(AController * inInstigator, AActor* DamageCauser) override;
 private:
 	UPROPERTY()
 	TObjectPtr<UAIPerceptionStimuliSourceComponent> StimulusSourceComp = nullptr;

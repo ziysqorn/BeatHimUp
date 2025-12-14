@@ -8,6 +8,7 @@
 #include "../../Interface/CanCauseDamage.h"
 #include "../../Interface/HaveAttributeSet.h"
 #include "../../Interface/CanBeAggressive.h"
+#include "../../Interface/HaveSpecialDeath.h"
 #include "../../AttributeSet/AS_AICharacter.h"
 #include "BaseEnemy.generated.h"
 
@@ -15,7 +16,7 @@
  * 
  */
 UCLASS()
-class BEATHIMUP_API ABaseEnemy : public AAICharacter, public IDamageable, public ICanCauseDamage, public IHaveAttributeSet, public ICanBeAggressive
+class BEATHIMUP_API ABaseEnemy : public AAICharacter, public IDamageable, public ICanCauseDamage, public IHaveAttributeSet, public ICanBeAggressive, public IHaveSpecialDeath
 {
 	GENERATED_BODY()
 	
@@ -56,4 +57,10 @@ protected:
 	void SetHasBecomeAggressive(bool inHasBecomeAggress) override {
 		HasBecomeAggressive = inHasBecomeAggress;
 	}
+
+	float GetDeathDelay() override {
+		return 3.f;
+	}
+
+	void ExecuteAfterDeathBehaviour(AController* inInstigator, AActor* DamageCauser) override;
 };

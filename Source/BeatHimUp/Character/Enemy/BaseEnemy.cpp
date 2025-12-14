@@ -2,6 +2,8 @@
 
 
 #include "BaseEnemy.h"
+#include "../../GameplayAbilities/GA_Dead.h"
+#include "../../CustomGameState/MainGameState.h"
 
 ABaseEnemy::ABaseEnemy()
 {
@@ -46,9 +48,20 @@ void ABaseEnemy::BeginPlay()
 				}
 			}
 		}
+
+		if (AMainGameState* MainGameState = GetWorld()->GetGameState<AMainGameState>()) {
+			MainGameState->SetBossRef(this);
+		}
 	}
 
 
+}
+
+void ABaseEnemy::ExecuteAfterDeathBehaviour(AController* inInstigator, AActor* DamageCauser)
+{
+	if (AMainGameState* MainGameState = GetWorld()->GetGameState<AMainGameState>()) {
+		MainGameState->OnBossKilled(this, inInstigator, DamageCauser);
+	}
 }
 
 void ABaseEnemy::Hurt_Implementation(const float& remainHealth, const float& totalHealth, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -56,7 +69,12 @@ void ABaseEnemy::Hurt_Implementation(const float& remainHealth, const float& tot
 	if (AbilitySystemComp) {
 		if (FMath::IsNearlyEqual(remainHealth, 0.0f, 1.0E-4)) {
 			if (IsValid(GADataAsset) && GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead"))) {
-				AbilitySystemComp->TryActivateAbilityByClass(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead")));
+				if (FGameplayAbilitySpec* GASpec = AbilitySystemComp->FindAbilitySpecFromClass(*GADataAsset->GameplayAbilitySubclassMap.Find(FName("GA_Dead")))) {
+					if (UGA_Dead* GA_Dead = Cast<UGA_Dead>(GASpec->GetPrimaryInstance())) {
+						GA_Dead->SetupDeadInfo(EventInstigator, DamageCauser);
+						AbilitySystemComp->TryActivateAbility(GASpec->Handle);
+					}
+				}
 			}
 		}
 		else

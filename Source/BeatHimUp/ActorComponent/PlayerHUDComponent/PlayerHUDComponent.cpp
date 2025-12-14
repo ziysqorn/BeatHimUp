@@ -3,6 +3,7 @@
 
 #include "PlayerHUDComponent.h"
 #include "../../CustomGameState/MainGameState.h"
+#include "../../Controller/MainController/MainController.h"
 #include "../../Interface/HaveHealthAttribute.h"
 #include "../../Interface/HaveStaminaAttribute.h"
 
@@ -60,6 +61,40 @@ void UPlayerHUDComponent::Client_SetupBossHUDHealthbar_Implementation(AActor* Ac
 					MainHUD->AddToViewport(0);
 				}
 			}
+		}
+	}
+}
+
+void UPlayerHUDComponent::DisplayMatchStatusMessage(EMatchStatus inMatchStatus)
+{
+	if (AMainController* PlayerController = Cast<AMainController>(this->GetOwner())) {
+		switch (inMatchStatus) {
+		case EMatchStatus::MATCH_WON:
+			if (!IsValid(OnScreenMessage)) {
+				if (OnScreenMessageSubclass)
+					OnScreenMessage = CreateWidget<UOnScreenMessage>(PlayerController, OnScreenMessageSubclass);
+			}
+			OnScreenMessage->SetMessageText(FText::FromString(TEXT("YOU WON !")));
+			OnScreenMessage->SetMessageColor(TEXT("#0ec208"));
+			OnScreenMessage->SetAfterFinishedFadeinDelay(2.0f);
+			OnScreenMessage->AfterFinishedFadeinDel.BindUObject(PlayerController, &AMainController::Server_RequestEndGame, inMatchStatus);
+			OnScreenMessage->AddToViewport(99);
+			OnScreenMessage->PlayMessageFadein();
+			break;
+		case EMatchStatus::MATCH_LOST:
+			if (!IsValid(OnScreenMessage)) {
+				if (OnScreenMessageSubclass)
+					OnScreenMessage = CreateWidget<UOnScreenMessage>(PlayerController, OnScreenMessageSubclass);
+			}
+			OnScreenMessage->SetMessageText(FText::FromString(TEXT("YOU LOSE !")));
+			OnScreenMessage->SetMessageColor(TEXT("#e60e0e"));
+			OnScreenMessage->SetAfterFinishedFadeinDelay(2.0f);
+			OnScreenMessage->AfterFinishedFadeinDel.BindUObject(PlayerController, &AMainController::Server_RequestEndGame, inMatchStatus);
+			OnScreenMessage->AddToViewport(99);
+			OnScreenMessage->PlayMessageFadein();
+			break;
+		default:
+			break;
 		}
 	}
 }

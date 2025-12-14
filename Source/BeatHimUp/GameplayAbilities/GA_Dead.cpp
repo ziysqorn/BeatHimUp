@@ -34,7 +34,12 @@ void UGA_Dead::DeadAnimEnd()
 {
 	if (CurrentActorInfo) {
 		if (IHaveSpecialDeath* HaveSpecialDeath = Cast<IHaveSpecialDeath>(CurrentActorInfo->OwnerActor)) {
-			GetWorld()->GetTimerManager().SetTimer(DeadDelayHandle, FTimerDelegate::CreateUObject(this, &UGA_Dead::DeadDelayEnd), HaveSpecialDeath->GetDeathDelay(), false);
+			//GetWorld()->GetTimerManager().SetTimer(DeadDelayHandle, FTimerDelegate::CreateUObject(this, &UGA_Dead::DeadDelayEnd), HaveSpecialDeath->GetDeathDelay(), false);
+			if (UAbilityTask_WaitDelay* Task = UAbilityTask_WaitDelay::WaitDelay(this, HaveSpecialDeath->GetDeathDelay()))
+			{
+				Task->OnFinish.AddDynamic(this, &UGA_Dead::DeadDelayEnd);
+				Task->ReadyForActivation();
+			}
 		}
 	}
 }
@@ -43,7 +48,7 @@ void UGA_Dead::DeadDelayEnd()
 {
 	if (CurrentActorInfo) {
 		if (IHaveSpecialDeath* HaveSpecialDeath = Cast<IHaveSpecialDeath>(CurrentActorInfo->OwnerActor)) {
-			HaveSpecialDeath->ExecuteAfterDeathBehaviour();
+			HaveSpecialDeath->ExecuteAfterDeathBehaviour(CauseDeadInstigator, DamageCauser);
 		}
 	}
 }

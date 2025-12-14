@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
 #include "../../UI/CustomHUD/CustomHUD.h"
+#include "../../UI/OnScreenMessage/OnScreenMessage.h"
 #include "../../AttributeSet/AttributeSet_PlayableCharacter.h"
 #include "../../Interface/HaveAttributeSet.h"
 #include "PlayerHUDComponent.generated.h"
@@ -30,12 +31,21 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void Client_AddHUD();
+
+	UFUNCTION()
+	void DisplayMatchStatusMessage(EMatchStatus inMatchStatus);
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties|HUDSubclass")
 	TSubclassOf<UCustomHUD> MainHUDSubclass;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties|HUDSubclass")
+	TSubclassOf<UOnScreenMessage> OnScreenMessageSubclass;
+
 	UPROPERTY()
-	UCustomHUD* MainHUD = nullptr;
+	TObjectPtr<UCustomHUD> MainHUD = nullptr;
+
+	UPROPERTY()
+	TObjectPtr<UOnScreenMessage> OnScreenMessage = nullptr;
 
 	// Called when the game starts
 	virtual void BeginPlay() override;

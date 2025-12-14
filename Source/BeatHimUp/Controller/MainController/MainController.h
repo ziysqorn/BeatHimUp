@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
-#include "../../CustomGameState/MainGameState.h"
 #include "../../ActorComponent/PlayerHUDComponent/PlayerHUDComponent.h"
 #include "MainController.generated.h"
 
@@ -23,6 +22,9 @@ public:
 
 	UFUNCTION(Server, Unreliable)
 	void Server_SpectateNextPlayer();
+
+	UFUNCTION(Server, Reliable)
+	void Server_RequestEndGame(EMatchStatus inMatchStatus);
 
 	UPlayerHUDComponent* GetPlayerHUDComp() {
 		return PlayerHUDComp;

@@ -24,5 +24,5 @@ class BEATHIMUP_API IHaveSpecialDeath
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	virtual float GetDeathDelay() = 0;
-	virtual void ExecuteAfterDeathBehaviour() = 0;
+	virtual void ExecuteAfterDeathBehaviour(AController * inInstigator, AActor* DamageCauser) = 0;
 };
