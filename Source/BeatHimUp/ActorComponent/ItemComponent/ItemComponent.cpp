@@ -2,7 +2,6 @@
 
 
 #include "ItemComponent.h"
-#include "../../Item/UsableItem/HealthPotion.h"
 
 
 // Sets default values for this component's properties
@@ -14,6 +13,8 @@ UItemComponent::UItemComponent()
 
 	//
 	bReplicateUsingRegisteredSubObjectList = true;
+
+	SetIsReplicatedByDefault(true);
 }
 
 void UItemComponent::UseItem()
@@ -53,12 +54,9 @@ void UItemComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	if (GetOwnerRole() == ROLE_Authority) {
-		InitUsableItemList();
-	}
 }
 
-void UItemComponent::InitUsableItemList()
+void UItemComponent::Server_InitUsableItemList_Implementation()
 {
 	if (IsValid(DT_Items)) {
 		FItemData* HealthPotionData = DT_Items->FindRow<FItemData>(FName("HealthPotion"), TEXT("Lookup"));
@@ -74,5 +72,13 @@ void UItemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UItemComponent, UsableItemList);
+}
+
+void UItemComponent::OnRep_UsableItemList(const TArray<UUsableItem*>& OldUsableItemList)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("Item list replicated !"));
+	if (OnRepUsableItemListDel.IsBound()) {
+		OnRepUsableItemListDel.Broadcast(UsableItemList);
+	}
 }
 

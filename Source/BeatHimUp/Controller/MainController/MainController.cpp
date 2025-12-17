@@ -4,6 +4,7 @@
 #include "MainController.h"
 #include "../../CustomGameState/MainGameState.h"
 #include "../../GameMode/MainGameMode/MainGameMode.h"
+#include "../../Character/BaseCharacter/BaseCharacter.h"
 
 AMainController::AMainController()
 {
@@ -13,6 +14,15 @@ AMainController::AMainController()
 void AMainController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (GetLocalRole() == ENetRole::ROLE_AutonomousProxy && TargetLockPointWidgetActorSubclass) {
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		TargetLockPointWidgetActor = GetWorld()->SpawnActor<AActor>(TargetLockPointWidgetActorSubclass);
+		if (IsValid(TargetLockPointWidgetActor)) {
+			TargetLockPointWidgetActor->SetActorHiddenInGame(true);
+		}
+	}
 }
 
 void AMainController::OnPossess(APawn* aPawn)
@@ -28,6 +38,9 @@ void AMainController::AcknowledgePossession(APawn* aPawn)
 		PlayerHUDComp->Client_AddHUD();
 		if (AMainGameState* MainGS = GetWorld()->GetGameState<AMainGameState>()) {
 			MainGS->OnRepMatchStatusDel.AddUObject(PlayerHUDComp, &UPlayerHUDComponent::DisplayMatchStatusMessage);
+		}
+		if (ABaseCharacter* ControlledCharacter = Cast<ABaseCharacter>(aPawn)) {
+			ControlledCharacter->OnLockTargetDel.AddUObject(this, &AMainController::SetWidgetToLockTarget);
 		}
 	}
 }
@@ -46,6 +59,25 @@ void AMainController::SpectatePlayer()
 					}
 				}
 			}
+		}
+	}
+}
+
+void AMainController::SetWidgetToLockTarget(AActor* Target)
+{
+	if (GetNetMode() == ENetMode::NM_DedicatedServer) return;
+	if (IsValid(TargetLockPointWidgetActor)) {
+		if (Target)
+		{
+			if (ACharacter* TargetCharacter = Cast<ACharacter>(Target)) {
+				TargetLockPointWidgetActor->SetActorHiddenInGame(false);
+				TargetLockPointWidgetActor->AttachToComponent(TargetCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName("Socket_TargetLockPoint"));
+			}
+		}
+		else
+		{
+			TargetLockPointWidgetActor->SetActorHiddenInGame(true);
+			TargetLockPointWidgetActor->DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
 		}
 	}
 }

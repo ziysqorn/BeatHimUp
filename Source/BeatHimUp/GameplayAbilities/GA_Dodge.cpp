@@ -2,6 +2,7 @@
 
 
 #include "GA_Dodge.h"
+#include "../Controller/MainController/MainController.h"
 #include "../Character/BaseCharacter/BaseCharacter.h"
 
 UGA_Dodge::UGA_Dodge()
@@ -24,7 +25,7 @@ void UGA_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 		CurrentSpecHandle = Handle;
 		CurrentActorInfo = ActorInfo;
 		CurrentActivationInfo = ActivationInfo;
-		if (ABaseCharacter* BaseCharacter = Cast<ABaseCharacter>(ActorInfo->OwnerActor.Get())) {
+		if (ABaseCharacter* BaseCharacter = Cast<ABaseCharacter>(ActorInfo->OwnerActor)) {
 			if (!BaseCharacter->GetLockedOnTarget().IsValid()) {
 				Client_RequestRotateOwnerAndDodge();
 			}

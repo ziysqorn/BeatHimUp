@@ -18,9 +18,19 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UseItemMontageSubclassName")
 	FName MontageSubclass;
 
+	UPROPERTY(Replicated, ReplicatedUsing = "OnRep_Quantity", EditDefaultsOnly, Category = "EditorProperties | Quantity")
 	int Quantity = 1;
 
+	UPROPERTY(Replicated, ReplicatedUsing = "OnRep_MaxQuantity", EditDefaultsOnly, Category = "EditorProperties | MaxQuantity")
 	int MaxQuantity = 3;
+
+	UFUNCTION()
+	virtual void OnRep_Quantity(int OldQuantity);
+
+	UFUNCTION()
+	virtual void OnRep_MaxQuantity(int OldMaxQuantity);
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
 	UUsableItem();

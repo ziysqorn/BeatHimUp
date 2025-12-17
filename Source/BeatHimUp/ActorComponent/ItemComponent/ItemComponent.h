@@ -16,6 +16,9 @@ struct FItemData : public FTableRowBase {
 	TSubclassOf<UItem> ItemSubclass;
 };
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnRepUsableItemList, const TArray<UUsableItem*>&);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnItemQuantityChanged, UUsableItem* /*Changed Item*/)
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BEATHIMUP_API UItemComponent : public UActorComponent
 {
@@ -24,6 +27,10 @@ class BEATHIMUP_API UItemComponent : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UItemComponent();
+
+	FOnRepUsableItemList OnRepUsableItemListDel;
+
+	FOnItemQuantityChanged OnItemQuantityChangedDel;
 
 	void UseItem();
 
@@ -36,13 +43,21 @@ public:
 		return nullptr;
 	}
 
-	void AddUsableItemToList(UUsableItem* Item);
+	const TArray<UUsableItem*>& GetUsableItemList() {
+		return UsableItemList;
+	}
 
+	UFUNCTION(Server, Reliable)
+	void Server_InitUsableItemList();
+
+	void AddUsableItemToList(UUsableItem* Item);
+	 
 	void RemoveUsableItemFromList(UUsableItem* Item);
+
 protected:
 	int CurrentItemIdx = 0;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated, ReplicatedUsing = "OnRep_UsableItemList")
 	TArray<UUsableItem*> UsableItemList;
 
 	UPROPERTY(EditDefaultsOnly, Category = "DataTable | Items")
@@ -51,7 +66,8 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	void InitUsableItemList();
-
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION()
+	void OnRep_UsableItemList(const TArray<UUsableItem*>& OldUsableItemList);
 };

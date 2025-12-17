@@ -57,16 +57,18 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	if (UEnhancedInputComponent* EIComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
-		if (IsValid(IA_Move)) EIComponent->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AMainCharacter::MoveTriggered);
-		if (IsValid(IA_Look)) EIComponent->BindAction(IA_Look, ETriggerEvent::Triggered, this, &AMainCharacter::Look);
-		if (IsValid(IA_RightWeapon)) EIComponent->BindAction(IA_RightWeapon, ETriggerEvent::Triggered, this, &AMainCharacter::RightWeaponTriggered);
-		if (IsValid(IA_RightWeapon)) EIComponent->BindAction(IA_RightWeapon, ETriggerEvent::Completed, this, &AMainCharacter::Server_RightWeaponCompleted);
-		if (IsValid(IA_LeftWeapon)) EIComponent->BindAction(IA_LeftWeapon, ETriggerEvent::Triggered, this, &AMainCharacter::LeftWeaponTriggered);
-		if (IsValid(IA_LeftWeapon)) EIComponent->BindAction(IA_LeftWeapon, ETriggerEvent::Completed, this, &AMainCharacter::Server_LeftWeaponCompleted);
-		if (IsValid(IA_Dodge)) EIComponent->BindAction(IA_Dodge, ETriggerEvent::Triggered, this, &AMainCharacter::DodgeTriggered);
-		if (IsValid(IA_LockTarget)) EIComponent->BindAction(IA_LockTarget, ETriggerEvent::Triggered, this, &AMainCharacter::Server_LockTargetTriggered);
-		if (IsValid(IA_SwitchItem)) EIComponent->BindAction(IA_SwitchItem, ETriggerEvent::Triggered, this, &AMainCharacter::SwitchItemTriggered);
-		if (IsValid(IA_UseItem)) EIComponent->BindAction(IA_UseItem, ETriggerEvent::Triggered, this, &AMainCharacter::UseItemTriggered);
+		if (AMainController* MainController = this->GetController<AMainController>()) {
+			if (IsValid(IA_Move)) EIComponent->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AMainCharacter::MoveTriggered);
+			if (IsValid(IA_Look)) EIComponent->BindAction(IA_Look, ETriggerEvent::Triggered, this, &AMainCharacter::Look);
+			if (IsValid(IA_RightWeapon)) EIComponent->BindAction(IA_RightWeapon, ETriggerEvent::Triggered, this, &AMainCharacter::RightWeaponTriggered);
+			if (IsValid(IA_RightWeapon)) EIComponent->BindAction(IA_RightWeapon, ETriggerEvent::Completed, this, &AMainCharacter::Server_RightWeaponCompleted);
+			if (IsValid(IA_LeftWeapon)) EIComponent->BindAction(IA_LeftWeapon, ETriggerEvent::Triggered, this, &AMainCharacter::LeftWeaponTriggered);
+			if (IsValid(IA_LeftWeapon)) EIComponent->BindAction(IA_LeftWeapon, ETriggerEvent::Completed, this, &AMainCharacter::Server_LeftWeaponCompleted);
+			if (IsValid(IA_Dodge)) EIComponent->BindAction(IA_Dodge, ETriggerEvent::Triggered, this, &AMainCharacter::DodgeTriggered);
+			if (IsValid(IA_LockTarget)) EIComponent->BindAction(IA_LockTarget, ETriggerEvent::Triggered, this, &AMainCharacter::Server_LockTargetTriggered);
+			if (IsValid(IA_SwitchItem)) EIComponent->BindAction(IA_SwitchItem, ETriggerEvent::Triggered, this, &AMainCharacter::SwitchItemTriggered);
+			if (IsValid(IA_UseItem)) EIComponent->BindAction(IA_UseItem, ETriggerEvent::Triggered, this, &AMainCharacter::UseItemTriggered);
+		}
 	}
 }
 
@@ -92,6 +94,15 @@ void AMainCharacter::MoveTriggered(const FInputActionValue& value)
 				}
 			}
 		}
+	}
+}
+
+void AMainCharacter::Look(const FInputActionValue& value)
+{
+	if (!LockedOnTarget.IsValid()) {
+		FVector lookDirectionVal = value.Get<FVector>();
+		AddControllerYawInput(lookDirectionVal.X);
+		AddControllerPitchInput(lookDirectionVal.Y);
 	}
 }
 
@@ -143,10 +154,10 @@ void AMainCharacter::DodgeTriggered()
 
 void AMainCharacter::Server_LockTargetTriggered_Implementation()
 {
-	NetMulticast_LockTargetTriggered();
+	NetMulticast_LockTarget();
 }
 
-void AMainCharacter::NetMulticast_LockTargetTriggered_Implementation()
+void AMainCharacter::NetMulticast_LockTarget_Implementation()
 {
 	if (UCharacterMovementComponent* CharMovementComponent = GetCharacterMovement()) {
 		if (LockedOnTarget.IsValid()) {
@@ -154,7 +165,9 @@ void AMainCharacter::NetMulticast_LockTargetTriggered_Implementation()
 			CharMovementComponent->MaxWalkSpeed = 400.0f;
 			CharMovementComponent->bOrientRotationToMovement = true;
 			CharMovementComponent->bUseControllerDesiredRotation = false;
-			this->bUseControllerRotationYaw = false;
+			bUseControllerRotationYaw = false;
+			if (OnLockTargetDel.IsBound())
+				OnLockTargetDel.Broadcast(nullptr);
 		}
 		else {
 			FHitResult Hit;
@@ -164,16 +177,44 @@ void AMainCharacter::NetMulticast_LockTargetTriggered_Implementation()
 			AdditionParams.AddIgnoredActor(this);
 			FVector CameraForwardDir = CineCameraComp->GetForwardVector();
 			FRotator BoxRotation = CameraForwardDir.Rotation();
-			FVector EndLocation = CineCameraComp->GetComponentLocation() + CameraForwardDir * 1200.0f + CineCameraComp->GetComponentLocation() + CameraForwardDir * 2000.0f;
+			FVector EndLocation = CineCameraComp->GetComponentLocation() + CameraForwardDir * 2000.0f;
 			if (GetWorld()->SweepSingleByObjectType(Hit, CineCameraComp->GetComponentLocation() + CameraForwardDir * 1200.0f, EndLocation, BoxRotation.Quaternion(), ObjectFilter, FCollisionShape::MakeBox(DetectBoxExtent), AdditionParams)) {
 				if (IsValid(Hit.GetActor())) {
 					LockedOnTarget = Hit.GetActor();
 					CharMovementComponent->MaxWalkSpeed = 250.0f;
 					CharMovementComponent->bOrientRotationToMovement = false;
 					CharMovementComponent->bUseControllerDesiredRotation = true;
-					this->bUseControllerRotationYaw = true;
+					bUseControllerRotationYaw = true;
+					if (OnLockTargetDel.IsBound())
+						OnLockTargetDel.Broadcast(LockedOnTarget.Get());
 				}
 			}
+		}
+	}
+}
+
+void AMainCharacter::RotateToLockTarget(float DeltaTime) 
+{
+	if (LockedOnTarget.IsValid()) {
+		if (IsValid(CineCameraComp)) {
+			FVector TargetLocation = LockedOnTarget->GetActorLocation();
+			FRotator TargetRotation = (TargetLocation - CineCameraComp->GetComponentLocation()).Rotation();
+			float TargetSocketOffsetY = 100.0f;
+			//float TargetSocketOffsetZ = 200.0f;
+			if (APlayerController* PC = this->GetController<APlayerController>()) {
+				FRotator NewRot = FMath::RInterpTo(GetControlRotation(), TargetRotation, DeltaTime, 10.0f);
+				PC->SetControlRotation(NewRot);
+				if (IsValid(SpringArmComp)) {
+					SpringArmComp->SocketOffset.Y = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, TargetSocketOffsetY, DeltaTime, 10.0f);
+					//SpringArmComp->SocketOffset.Z = FMath::FInterpTo(SpringArmComp->SocketOffset.Z, TargetSocketOffsetZ, DeltaTime, 10.0f);
+				}
+			}
+		}
+	}
+	else {
+		if (IsValid(SpringArmComp)) {
+			SpringArmComp->SocketOffset.Y = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, 0.0f, DeltaTime, 1.0f);
+			//SpringArmComp->SocketOffset.Z = FMath::FInterpTo(SpringArmComp->SocketOffset.Z, 150.0f, DeltaTime, 1.0f);
 		}
 	}
 }
@@ -191,32 +232,6 @@ void AMainCharacter::UseItemTriggered()
 		FGameplayTagContainer tagContainer;
 		tagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.UseItem")));
 		AbilitySystemComp->TryActivateAbilitiesByTag(tagContainer);
-	}
-}
-
-void AMainCharacter::RotateToLockTarget(float DeltaTime)
-{
-	if (LockedOnTarget.IsValid()) {
-		FVector TargetLocation = LockedOnTarget->GetActorLocation();
-		FRotator TargetRotation = (TargetLocation - this->GetActorLocation()).Rotation();
-		float TargetSocketOffsetY = 100.0f;
-		if (APlayerController* PC = this->GetController<APlayerController>()) {
-			FRotator NewRot = FMath::RInterpTo(GetControlRotation(), TargetRotation, DeltaTime, 10.0f);
-			PC->SetControlRotation(NewRot);
-			if (IsValid(SpringArmComp)) SpringArmComp->SocketOffset.Y = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, TargetSocketOffsetY, DeltaTime, 10.0f);
-		}
-	}
-	else {
-		if (IsValid(SpringArmComp)) SpringArmComp->SocketOffset.Y = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, 0.0f, DeltaTime, 1.0f);
-	}
-}
-
-void AMainCharacter::Look(const FInputActionValue& value)
-{
-	if (!LockedOnTarget.IsValid()) {
-		FVector lookDirectionVal = value.Get<FVector>();
-		AddControllerYawInput(lookDirectionVal.X);
-		AddControllerPitchInput(lookDirectionVal.Y);
 	}
 }
 
@@ -313,7 +328,7 @@ void AMainCharacter::Hurt_Implementation(const float& remainHealth, const float&
 void AMainCharacter::ExecuteAfterDeathBehaviour(AController* inInstigator, AActor* DamageCauser)
 {
 	if (AMainController* MainController = this->GetController<AMainController>()) {
-		if (AMainGameState* MainGameState = GetWorld()->GetGameState< AMainGameState>()) {
+		if (AMainGameState* MainGameState = GetWorld()->GetGameState<AMainGameState>()) {
 			MainGameState->OnPlayerKilled(this, inInstigator, DamageCauser);
 		}
 		MainController->SpectatePlayer();

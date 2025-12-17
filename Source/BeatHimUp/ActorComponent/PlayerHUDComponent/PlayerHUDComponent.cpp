@@ -4,6 +4,7 @@
 #include "PlayerHUDComponent.h"
 #include "../../CustomGameState/MainGameState.h"
 #include "../../Controller/MainController/MainController.h"
+#include "../../Interface/CanUseItem.h"
 #include "../../Interface/HaveHealthAttribute.h"
 #include "../../Interface/HaveStaminaAttribute.h"
 
@@ -24,6 +25,58 @@ void UPlayerHUDComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
+}
+
+void UPlayerHUDComponent::SetupItemFrameList(const TArray<UUsableItem*>& inItemList)
+{
+	if (APlayerController* PlayerController = Cast<APlayerController>(this->GetOwner())) {
+		for (int i = 0; i < inItemList.Num(); ++i) {
+			if (IsValid(inItemList[i])) {
+				if (UUsableItemFrame* UsableItemFrame = CreateWidget<UUsableItemFrame>(PlayerController, UsableItemFrameSubclass)) {
+					UsableItemFrame->SetItemImage(inItemList[i]->GetItemImage());
+					UsableItemFrame->SetQuantityText(FText::FromString(FString::FromInt(inItemList[i]->GetQuantity())));
+					MainHUD->AddItemFrameToContainer(UsableItemFrame);
+				}
+			}
+		}
+	}
+}
+
+void UPlayerHUDComponent::UpdateItemFrameQuantity(UUsableItem* Item)
+{
+	if (APlayerController* PlayerController = Cast<APlayerController>(this->GetOwner())) {
+		if (ICanUseItem* CanUseItem = Cast<ICanUseItem>(PlayerController->GetPawn())) {
+			if (UItemComponent* ItemComp = CanUseItem->GetItemComponent()) {
+				const TArray<UUsableItem*>& ItemList = ItemComp->GetUsableItemList();
+				for (int i = 0; i < ItemList.Num(); ++i) {
+					if (ItemList[i] == Item) {
+						if (IsValid(MainHUD)) {
+							if (UUsableItemFrame* UsableItemFrame = Cast<UUsableItemFrame>(MainHUD->GetItemFrame(i))) {
+								if (IsValid(Item)) {
+									UsableItemFrame->SetQuantityText(FText::FromString(FString::FromInt(Item->GetQuantity())));
+									return;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void UPlayerHUDComponent::BindItemDelegates()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, TEXT("Controller bound !"));
+	if (APlayerController* PlayerController = Cast<APlayerController>(this->GetOwner())) {
+		if (ICanUseItem* CanUseItem = Cast<ICanUseItem>(PlayerController->GetPawn())) {
+			if (UItemComponent* ItemComp = CanUseItem->GetItemComponent()) {
+				ItemComp->OnRepUsableItemListDel.AddUObject(this, &UPlayerHUDComponent::SetupItemFrameList);
+				ItemComp->OnItemQuantityChangedDel.AddUObject(this, &UPlayerHUDComponent::UpdateItemFrameQuantity);
+				ItemComp->Server_InitUsableItemList();
+			}
+		}
+	}
 }
 
 void UPlayerHUDComponent::Client_SetEnemyNameText_Implementation(const FText& inText)
@@ -114,6 +167,7 @@ void UPlayerHUDComponent::Client_AddHUD_Implementation()
 						MainHUD->BindStaminaProgress(HaveAS->GetAttributeSet(), FName("GetStaminaPercentage"));
 					}
 				}
+				BindItemDelegates();
 				if (AMainGameState* MainGS = GetWorld()->GetGameState<AMainGameState>()) {
 					if (AActor* Boss = MainGS->GetBossRef()) {
 						MainHUD->SetBossName(FText::FromString(TEXT("Warrok")));

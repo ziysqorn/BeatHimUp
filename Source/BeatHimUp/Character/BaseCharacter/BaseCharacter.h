@@ -9,12 +9,17 @@
 #include "../../DataAsset/MontagesDataAsset.h"
 #include "BaseCharacter.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnLockTarget, AActor* /*Locked Target*/);
+
 UCLASS()
 class BEATHIMUP_API ABaseCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
 protected:
+	UPROPERTY(BlueprintReadOnly)
+	TWeakObjectPtr<AActor> LockedOnTarget;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components | WeaponComponent")
 	UWeaponComponent* WeaponComponent = nullptr;
 
@@ -27,10 +32,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UPROPERTY(BlueprintReadOnly)
-	TWeakObjectPtr<AActor> LockedOnTarget;
-
 public:
+	FOnLockTarget OnLockTargetDel;
+
 	// Sets default values for this character's properties
 	ABaseCharacter();
 
@@ -41,13 +45,11 @@ public:
 		return WeaponComponent;
 	}
 
-	UMontagesDataAsset* GetMontagesDataAsset() {
-		return MontagesDataAsset;
-	}
-
 	TWeakObjectPtr<AActor>& GetLockedOnTarget() {
 		return LockedOnTarget;
 	}
 
-
+	UMontagesDataAsset* GetMontagesDataAsset() {
+		return MontagesDataAsset;
+	}
 };

@@ -26,12 +26,20 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_RequestEndGame(EMatchStatus inMatchStatus);
 
+	void SetWidgetToLockTarget(AActor* Target);
+
 	UPlayerHUDComponent* GetPlayerHUDComp() {
 		return PlayerHUDComp;
 	}
 protected:
+	UPROPERTY()
+	TObjectPtr<AActor> TargetLockPointWidgetActor = nullptr;
+
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerHUDComponent")
 	UPlayerHUDComponent* PlayerHUDComp = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "TargetLockPointWidgetActorSubclass")
+	TSubclassOf<AActor> TargetLockPointWidgetActorSubclass;
 
 	UPROPERTY()
 	TWeakObjectPtr<APlayerController> CurrentSpectatedPlayer = nullptr;

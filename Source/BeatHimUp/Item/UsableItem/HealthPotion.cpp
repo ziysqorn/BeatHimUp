@@ -2,6 +2,7 @@
 
 
 #include "HealthPotion.h"
+#include "../../Interface/CanUseItem.h"
 
 UHealthPotion::UHealthPotion()
 {
@@ -25,4 +26,20 @@ void UHealthPotion::Use_Implementation()
 	}
 	--Quantity;
 	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Format(TEXT("HEALTH POTION USED ! - CurrentQuantity: {0}"), {Quantity}));
+}
+
+void UHealthPotion::OnRep_Quantity(int OldQuantity) 
+{
+	if (ICanUseItem* CanUseItem = Cast<ICanUseItem>(this->GetOuter())) {
+		if (UItemComponent* ItemComp = CanUseItem->GetItemComponent()) {
+			if (ItemComp->OnItemQuantityChangedDel.IsBound()) {
+				ItemComp->OnItemQuantityChangedDel.Broadcast(this);
+			}
+		}
+	}
+}
+
+void UHealthPotion::OnRep_MaxQuantity(int OldMaxQuantity) 
+{
+
 }

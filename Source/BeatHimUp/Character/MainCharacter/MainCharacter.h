@@ -7,6 +7,7 @@
 #include "../../Controller/MainController/MainController.h"
 #include "../../AttributeSet/AttributeSet_PlayableCharacter.h"
 #include "../../CustomComponents/HealthbarWidgetComponent.h"
+#include "../../Interface/CameraSystemInterface.h"
 #include "../../Interface/Damageable.h"
 #include "../../Interface/CanCauseDamage.h"
 #include "../../Interface/CanUseItem.h"
@@ -17,8 +18,9 @@
 /**
  * 
  */
+
 UCLASS()
-class BEATHIMUP_API AMainCharacter : public ABaseCharacter, public IAbilitySystemInterface, public IDamageable, public ICanCauseDamage, public ICanUseItem, public IHaveAttributeSet, public IHaveSpecialDeath
+class BEATHIMUP_API AMainCharacter : public ABaseCharacter, public IAbilitySystemInterface, public ICameraSystemInterface, public IDamageable, public ICanCauseDamage, public ICanUseItem, public IHaveAttributeSet, public IHaveSpecialDeath
 {
 	GENERATED_BODY()
 public:
@@ -27,6 +29,14 @@ public:
 
 	UAbilitySystemComponent* GetAbilitySystemComponent() const override {
 		return AbilitySystemComp;
+	}
+
+	USpringArmComponent* GetSpringArmComp() override {
+		return SpringArmComp;
+	}
+
+	UCineCameraComponent* GetCineCameraComp() override {
+		return CineCameraComp;
 	}
 
 	UItemComponent* GetItemComponent() override {
@@ -106,6 +116,8 @@ protected:
 
 	void MoveTriggered(const FInputActionValue& value);
 
+	void Look(const FInputActionValue& value);
+
 	void RightWeaponTriggered();
 
 	UFUNCTION(Server, Reliable)
@@ -121,16 +133,14 @@ protected:
 	UFUNCTION(Server, Unreliable)
 	void Server_LockTargetTriggered();
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void NetMulticast_LockTargetTriggered();
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticast_LockTarget();
+
+	void RotateToLockTarget(float DeltaTime);
 
 	void SwitchItemTriggered();
 
 	void UseItemTriggered();
-
-	void RotateToLockTarget(float DeltaTime);
-
-	void Look(const FInputActionValue& value);
 
 	void BillboardingWidgetCompByClient();
 

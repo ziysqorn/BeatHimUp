@@ -18,6 +18,7 @@
 #include "Components/Border.h"
 #include "Components/ScrollBox.h"
 #include "Components/VerticalBox.h"
+#include "Components/HorizontalBox.h"
 #include "Components/Image.h"
 #include "Components/NamedSlot.h"
 #include "Kismet/GameplayStatics.h"

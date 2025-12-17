@@ -21,6 +21,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Stamina", meta = (BindWidget))
 	TObjectPtr<UProgressBar> ProgressBar_Stamina = nullptr;
 
+	UPROPERTY(EditDefaultsOnly, Category = "ItemFrameContainer", meta = (BindWidget))
+	TObjectPtr<UHorizontalBox> HorBox_ItemFrameContainer = nullptr;
+
 	UPROPERTY(EditDefaultsOnly, Category = "BossHealthbar", meta = (BindWidget))
 	TObjectPtr<UVerticalBox> VerBox_BossHealthbar = nullptr;
 
@@ -46,6 +49,12 @@ public:
 	void BindBossHealthProgress(UObject* inObject, const FName& funcName) {
 		if (IsValid(ProgressBar_BossHealth)) ProgressBar_BossHealth->PercentDelegate.BindUFunction(inObject, funcName);
 	}
+
+	void AddItemFrameToContainer(UWidget* inWidget);
+
+	void RemoveItemFrameFromContainer(UWidget* inWidget);
+
+	UWidget* GetItemFrame(int Idx);
 
 	void SetBossName(FText inText) {
 		if (IsValid(Txt_BossName)) Txt_BossName->SetText(inText);

@@ -26,4 +26,8 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void Use() override; 
+
+	void OnRep_Quantity(int OldQuantity) override;
+
+	void OnRep_MaxQuantity(int OldMaxQuantity) override;
 };

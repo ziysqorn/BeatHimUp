@@ -5,11 +5,13 @@
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
 #include "../../UI/CustomHUD/CustomHUD.h"
+#include "../../UI/UsableItemFrame/UsableItemFrame.h"
 #include "../../UI/OnScreenMessage/OnScreenMessage.h"
 #include "../../AttributeSet/AttributeSet_PlayableCharacter.h"
 #include "../../Interface/HaveAttributeSet.h"
 #include "PlayerHUDComponent.generated.h"
 
+class UUsableItem;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BEATHIMUP_API UPlayerHUDComponent : public UActorComponent
@@ -38,7 +40,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties|HUDSubclass")
 	TSubclassOf<UCustomHUD> MainHUDSubclass;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties|HUDSubclass")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties|UsableItemFrameSubclass")
+	TSubclassOf<UUsableItemFrame> UsableItemFrameSubclass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties|OnScreenMessageSubclass")
 	TSubclassOf<UOnScreenMessage> OnScreenMessageSubclass;
 
 	UPROPERTY()
@@ -49,4 +54,10 @@ protected:
 
 	// Called when the game starts
 	virtual void BeginPlay() override;
+
+	void SetupItemFrameList(const TArray<UUsableItem*>& inItemList);
+
+	void UpdateItemFrameQuantity(UUsableItem* Item);
+
+	void BindItemDelegates();
 };
