@@ -59,6 +59,9 @@ void ABaseEnemy::BeginPlay()
 
 void ABaseEnemy::ExecuteAfterDeathBehaviour(AController* inInstigator, AActor* DamageCauser)
 {
+	if (OnDeathDel.IsBound()) {
+		OnDeathDel.Broadcast(this);
+	}
 	if (AMainGameState* MainGameState = GetWorld()->GetGameState<AMainGameState>()) {
 		MainGameState->OnBossKilled(this, inInstigator, DamageCauser);
 	}

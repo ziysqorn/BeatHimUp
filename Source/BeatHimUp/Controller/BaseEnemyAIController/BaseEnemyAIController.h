@@ -17,6 +17,8 @@ class BEATHIMUP_API ABaseEnemyAIController : public AAIController
 public:
 	ABaseEnemyAIController();
 
+	void OnTargetDeath(AActor* DeadTarget);
+
 protected:
 	void OnPossess(APawn* inPawn) override;
 

@@ -2,7 +2,9 @@
 
 
 #include "BTTask_FindRandomPlayer.h"
+#include "../Controller/BaseEnemyAIController/BaseEnemyAIController.h"
 #include "../Interface/CanBeAggressive.h"
+#include "../Interface/HaveSpecialDeath.h"
 
 UBTTask_FindRandomPlayer::UBTTask_FindRandomPlayer()
 {
@@ -11,7 +13,7 @@ UBTTask_FindRandomPlayer::UBTTask_FindRandomPlayer()
 
 EBTNodeResult::Type UBTTask_FindRandomPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-    if (AAIController* OwnerAIController = OwnerComp.GetAIOwner()) {
+    if (ABaseEnemyAIController* OwnerAIController = Cast<ABaseEnemyAIController>(OwnerComp.GetAIOwner())) {
         for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator) {
             if (APlayerController* PlayerController = Iterator->Get()) {
                 if (IAbilitySystemInterface* ASI = PlayerController->GetPawn<IAbilitySystemInterface>()) {
@@ -21,6 +23,9 @@ EBTNodeResult::Type UBTTask_FindRandomPlayer::ExecuteTask(UBehaviorTreeComponent
                                 if (!CanBeAggressive->GetHasBecomeAggressive()) {
                                     CanBeAggressive->SetHasBecomeAggressive(true);
                                 }
+                            }
+                            if (IHaveSpecialDeath* HaveSpecialDeath = PlayerController->GetPawn<IHaveSpecialDeath>()) {
+                                HaveSpecialDeath->OnDeath().AddUObject(OwnerAIController, &ABaseEnemyAIController::OnTargetDeath);
                             }
                             if (UBlackboardComponent* BBComp = OwnerComp.GetBlackboardComponent()) {
                                 BBComp->SetValueAsObject(FName("Target"), PlayerController->GetPawn());

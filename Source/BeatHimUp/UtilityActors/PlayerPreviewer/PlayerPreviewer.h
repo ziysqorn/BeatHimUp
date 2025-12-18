@@ -17,6 +17,10 @@ public:
 
 	UFUNCTION(Client, Unreliable)
 	void ResetModelRotation();
+
+	USkeletalMeshComponent* GetModel() {
+		return ModelComponent;
+	}
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "AltRootComponent")
 	TObjectPtr<USceneComponent> AltRootComponent = nullptr;

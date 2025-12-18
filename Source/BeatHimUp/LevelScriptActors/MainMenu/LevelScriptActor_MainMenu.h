@@ -22,10 +22,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerPreviewerList")
 	TArray<TObjectPtr<APlayerPreviewer>> PlayerPreviewerList;
 
+	int CurrentPreviewerPlaceholder = 0;
+
 	void BeginPlay() override;
 
-	UFUNCTION(Client, Reliable)
 	void SetupView();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void NetMulticast_AddPlayerToPreviewer(APlayerController* NewPlayerController);
 
 public:
 	UFUNCTION(Client, Unreliable)

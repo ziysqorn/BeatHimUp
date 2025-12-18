@@ -105,6 +105,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | Detect Box Extent")
 	FVector DetectBoxExtent;
 
+	FOnDeath OnDeathDel;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -159,6 +161,10 @@ protected:
 
 	float GetDeathDelay() override {
 		return 3.f;
+	}
+
+	FOnDeath& OnDeath() override {
+		return OnDeathDel;
 	}
 
 	void ExecuteAfterDeathBehaviour(AController * inInstigator, AActor* DamageCauser) override;

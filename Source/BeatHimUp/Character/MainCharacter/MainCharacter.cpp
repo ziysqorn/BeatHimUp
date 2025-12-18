@@ -327,6 +327,9 @@ void AMainCharacter::Hurt_Implementation(const float& remainHealth, const float&
 
 void AMainCharacter::ExecuteAfterDeathBehaviour(AController* inInstigator, AActor* DamageCauser)
 {
+	if (OnDeathDel.IsBound()) {
+		OnDeathDel.Broadcast(this);
+	}
 	if (AMainController* MainController = this->GetController<AMainController>()) {
 		if (AMainGameState* MainGameState = GetWorld()->GetGameState<AMainGameState>()) {
 			MainGameState->OnPlayerKilled(this, inInstigator, DamageCauser);

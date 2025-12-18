@@ -53,9 +53,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "DA_UI")
 	TObjectPtr<UUIDataAsset> DA_UI;
 
-	FTimerHandle GetFriendlistTimerHandle;
-
-
 	void NativeOnInitialized() override;
 	void NativeConstruct() override;
 	void NativeDestruct() override;
@@ -77,9 +74,6 @@ protected:
 
 	UFUNCTION()
 	void ConfirmLogout();
-
-	UFUNCTION(Client, Unreliable)
-	void FriendlistMessageRecvCallback(const FString& Message);
 
 	void InitMainMenu();
 

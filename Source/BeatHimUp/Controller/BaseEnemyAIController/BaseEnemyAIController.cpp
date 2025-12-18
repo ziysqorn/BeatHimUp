@@ -49,22 +49,48 @@ void ABaseEnemyAIController::OnTargetDetected(AActor* actor, FAIStimulus Stimulu
 {
 	if (AMainCharacter* MainCharacter = Cast<AMainCharacter>(actor)) {
 		if (GetBlackboardComponent()) {
-			if (AActor* Target = Cast<AActor>(GetBlackboardComponent()->GetValueAsObject(FName("Target")))) {
-				if (this->GetPawn()) {
-					FVector VectorToDetectedActor = MainCharacter->GetActorLocation() - this->GetPawn()->GetActorLocation();
-					FVector VectortoCurrentTarget = Target->GetActorLocation() - this->GetPawn()->GetActorLocation();
-					float DistanceToDetectedActor = VectorToDetectedActor.Length();
-					float DistanceToCurrentTarget = VectortoCurrentTarget.Length();
-					/*GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Format(TEXT("To detected actor: {0}"), { DistanceToDetectedActor }));
-					GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Format(TEXT("To current target: {0}"), { DistanceToCurrentTarget }));*/
-					if (DistanceToDetectedActor < DistanceToCurrentTarget) {
-						GetBlackboardComponent()->SetValueAsObject(FName("Target"), MainCharacter);
+			if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(MainCharacter)) {
+				if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent()) {
+					if (!ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Dead")))) {
+						if (AActor* Target = Cast<AActor>(GetBlackboardComponent()->GetValueAsObject(FName("Target")))) {
+							if (this->GetPawn()) {
+								FVector VectorToDetectedActor = MainCharacter->GetActorLocation() - this->GetPawn()->GetActorLocation();
+								FVector VectortoCurrentTarget = Target->GetActorLocation() - this->GetPawn()->GetActorLocation();
+								float DistanceToDetectedActor = VectorToDetectedActor.Length();
+								float DistanceToCurrentTarget = VectortoCurrentTarget.Length();
+								/*GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Format(TEXT("To detected actor: {0}"), { DistanceToDetectedActor }));
+								GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Format(TEXT("To current target: {0}"), { DistanceToCurrentTarget }));*/
+								if (DistanceToDetectedActor < DistanceToCurrentTarget) {
+									if (IHaveSpecialDeath* TargetHaveSpecialDeath = Cast<IHaveSpecialDeath>(Target)) {
+										TargetHaveSpecialDeath->OnDeath().RemoveAll(this);
+									}
+									if (IHaveSpecialDeath* HaveSpecialDeath = Cast<IHaveSpecialDeath>(MainCharacter)) {
+										HaveSpecialDeath->OnDeath().AddUObject(this, &ABaseEnemyAIController::OnTargetDeath);
+										GetBlackboardComponent()->SetValueAsObject(FName("Target"), MainCharacter);
+									}
+								}
+							}
+						}
+						else {
+							if (IHaveSpecialDeath* HaveSpecialDeath = Cast<IHaveSpecialDeath>(MainCharacter)) {
+								HaveSpecialDeath->OnDeath().AddUObject(this, &ABaseEnemyAIController::OnTargetDeath);
+								GetBlackboardComponent()->SetValueAsObject(FName("Target"), MainCharacter);
+							}
+						}
 					}
 				}
 			}
-			else {
-				GetBlackboardComponent()->SetValueAsObject(FName("Target"), MainCharacter);
-			}
+		}
+	}
+}
+
+void ABaseEnemyAIController::OnTargetDeath(AActor* DeadTarget)
+{
+	if (GetBlackboardComponent()) {
+		if (AActor* Target = Cast<AActor>(GetBlackboardComponent()->GetValueAsObject(FName("Target")))) 
+		{
+			if(Target == DeadTarget)
+				GetBlackboardComponent()->SetValueAsObject(FName("Target"), nullptr);
 		}
 	}
 }

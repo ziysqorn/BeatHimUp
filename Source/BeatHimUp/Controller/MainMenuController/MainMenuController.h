@@ -32,6 +32,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "IA_LeftMouseClicked")
 	TObjectPtr<UInputAction> IA_LeftMouseClicked;
 
+	FTimerHandle GetFriendlistTimerHandle;
+
 	void BeginPlay() override;
 
 	void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -39,6 +41,11 @@ protected:
 	void SetupInputComponent() override;
 
 	void SetupMappingContext();
+
+	void InitForMainMenu();
+
+	UFUNCTION(Client, Unreliable)
+	void FriendlistMessageRecvCallback(const FString& Message);
 
 public:
 

@@ -17,6 +17,8 @@ class UHaveSpecialDeath : public UInterface
 /**
  * 
  */
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnDeath, AActor*);
+
 class BEATHIMUP_API IHaveSpecialDeath
 {
 	GENERATED_BODY()
@@ -25,4 +27,5 @@ class BEATHIMUP_API IHaveSpecialDeath
 public:
 	virtual float GetDeathDelay() = 0;
 	virtual void ExecuteAfterDeathBehaviour(AController * inInstigator, AActor* DamageCauser) = 0;
+	virtual FOnDeath& OnDeath() = 0;
 };

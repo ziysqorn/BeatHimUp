@@ -34,6 +34,8 @@ protected:
 
 	FTimerHandle AttackHandle;
 
+	FOnDeath OnDeathDel;
+
 	virtual void BeginPlay() override;
 
 	UFUNCTION(Client, Reliable)
@@ -63,4 +65,8 @@ protected:
 	}
 
 	void ExecuteAfterDeathBehaviour(AController* inInstigator, AActor* DamageCauser) override;
+
+	FOnDeath& OnDeath() override {
+		return OnDeathDel;
+	}
 };
