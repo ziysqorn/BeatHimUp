@@ -33,7 +33,9 @@ void UContextMenu::AddMenuOption(UButton* inButton, UTextBlock* inTextBlock)
 			inTextBlock->SetColorAndOpacity(textColor);
 			inTextBlock->SetMargin(FMargin(0.0f, 5.0f));
 			inButton->AddChild(inTextBlock);
-			VerBox_Menu->AddChildToVerticalBox(inButton);
+			if (UVerticalBoxSlot* VerBoxSlot = VerBox_Menu->AddChildToVerticalBox(inButton)) {
+				VerBoxSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
+			}
 		}
 	}
 }

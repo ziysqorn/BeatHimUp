@@ -30,4 +30,22 @@ struct FPlayerInfo {
 	bool isOnline;
 
 	FPlayerInfo() : Username(NAME_None), isOnline(false) {}
+
+	FPlayerInfo(FName inUsername, bool status) : Username(inUsername), isOnline(status) {}
+};
+
+USTRUCT()
+struct FFriendRequest {
+
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FName Sender_Username;
+
+	UPROPERTY()
+	FName Receiver_Username;
+
+	FFriendRequest() : Sender_Username(NAME_None), Receiver_Username(NAME_None) {}
+
+	FFriendRequest(FName inSender, FName inReceiver) : Sender_Username(inSender), Receiver_Username(inReceiver) {}
 };

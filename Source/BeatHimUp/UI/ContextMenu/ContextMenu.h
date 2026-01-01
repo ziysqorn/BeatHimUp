@@ -16,6 +16,12 @@ class BEATHIMUP_API UContextMenu : public UUserWidget
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	TObjectPtr<UCanvasPanel> CanvasPanel_WholeContainer;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	TObjectPtr<USizeBox> SizeBox_Menu;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	TObjectPtr<UVerticalBox> VerBox_Menu;
 
 	UPROPERTY(EditDefaultsOnly, Category = "ButtonStyle")
@@ -28,6 +34,19 @@ protected:
 	void NativeConstruct() override;
 	void NativeDestruct() override;
 public:
+	void SetMenuPosition(FVector2D& Pos) {
+		if (IsValid(CanvasPanel_WholeContainer)) {
+			UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(SizeBox_Menu->Slot);
+
+			if (!CanvasSlot) {
+				CanvasSlot = CanvasPanel_WholeContainer->AddChildToCanvas(SizeBox_Menu);
+			}
+
+			if (CanvasSlot) {
+				CanvasSlot->SetPosition(Pos);
+			}
+		}
+	}
 	void AddMenuOption(UButton* inButton, UTextBlock* inTextBlock);
 	void ChangeMenuOption(int32 idx, FText newOptionText, FOnButtonClickedEvent& ClickedEvent);
 	void PopMenuOption() {

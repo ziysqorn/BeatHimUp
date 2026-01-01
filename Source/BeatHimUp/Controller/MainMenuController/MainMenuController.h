@@ -17,6 +17,8 @@ class BEATHIMUP_API AMainMenuController : public APlayerController
 	GENERATED_BODY()
 	
 protected:
+	FHttpRequestCompleteDelegate GetFriendlistRequestCompleteDel;
+
 	UPROPERTY(EditDefaultsOnly, Category = "MainMenuSubclass")
 	TSubclassOf<UMainMenu> MainMenuSubclass;
 
@@ -44,8 +46,19 @@ protected:
 
 	void InitForMainMenu();
 
-	UFUNCTION(Client, Unreliable)
-	void FriendlistMessageRecvCallback(const FString& Message);
+	void RequestGetFriendlist();
+
+	void OnFriendRequestReceived(const FString& Message);
+
+	void OnSentFriendRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
+	void OnAcceptFriendRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
+	void OnDeclineFriendRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
+	void FriendlistResponseCallback(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
+	void FriendRequestResponseCallback(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
 
 public:
 
@@ -55,4 +68,10 @@ public:
 	void BindLeftMouseRelease(UObject* userObj, FName FuncName);
 
 	void BindLeftMouseClicked(UObject* userObj, FName FuncName);
+
+	void SendFriendRequest(const FString& receiver);
+
+	void AcceptFriendRequest(const FString& sender);
+
+	void DeclineFriendRequest(const FString& sender);
 };

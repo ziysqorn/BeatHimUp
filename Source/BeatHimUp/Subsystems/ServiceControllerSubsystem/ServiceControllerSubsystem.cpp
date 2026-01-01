@@ -2,15 +2,12 @@
 
 
 #include "ServiceControllerSubsystem.h"
+#include "../../CustomGameInstance/MyGameInstance.h"
 
 UServiceControllerSubsystem::UServiceControllerSubsystem()
 {
 	UserAccountController = NewObject<UUserAccountController>(this, FName("UserAccountController"));
 	FriendlistController = NewObject<UFriendlistController>(this, FName("FriendlistController"));
-	if (!WS_Connection.IsValid()) {
-		FString realURL = FString("ws://").Append(BASE_URL).Append("/ws");
-		WS_Connection = FWebSocketsModule::Get().CreateWebSocket(realURL);
-	}
 }
 
 void UServiceControllerSubsystem::WSConnectedHandle()
@@ -29,8 +26,8 @@ void UServiceControllerSubsystem::WSConnectionErrHandle(const FString& Error)
 
 void UServiceControllerSubsystem::WSMessageRecvHandle(const FString& Message)
 {
-	if (WS_Connection.IsValid() && WSMessageRecieveDel.IsBound()) {
-		WSMessageRecieveDel.Broadcast(Message);
+	if (WS_Connection.IsValid() && WSMessageReceiveDel.IsBound()) {
+		WSMessageReceiveDel.Broadcast(Message);
 	}
 }
 
@@ -50,6 +47,13 @@ void UServiceControllerSubsystem::CloseWSConnection_Implementation()
 
 void UServiceControllerSubsystem::OpenWSConnection_Implementation()
 {
+	if (!WS_Connection.IsValid()) {
+		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(this->GetGameInstance())) {
+			FString webSocketURL = FString("ws://").Append(BASE_URL).Append("/ws");
+			FString realURL = webSocketURL.Append("?").Append(FString::Format(TEXT("username={0}"), { GameInstance->GetPlayerInfo().Username.ToString()}));
+			WS_Connection = FWebSocketsModule::Get().CreateWebSocket(webSocketURL);
+		}
+	}
 	if (WS_Connection.IsValid() && !WS_Connection->IsConnected()) {
 		WS_Connection->OnConnected().AddUObject(this, &UServiceControllerSubsystem::WSConnectedHandle);
 		WS_Connection->OnClosed().AddUObject(this, &UServiceControllerSubsystem::WSClosedHandle);

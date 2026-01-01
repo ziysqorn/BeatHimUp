@@ -18,5 +18,10 @@ class BEATHIMUP_API UFriendlistController : public UObject
 public:
 	UFriendlistController();
 
-	void SendFriendlistMessage(FName Username);
+	void SendFriendRequest(const FString& receiver, const FHttpRequestCompleteDelegate& callback);
+	void GetFriendRequest(const FHttpRequestCompleteDelegate& callback);
+	void AcceptFriendRequest(const FString& sender, const FHttpRequestCompleteDelegate& callback);
+	void DeclineFriendRequest(const FString& sender, const FHttpRequestCompleteDelegate& callback);
+	void RemoveFriend(const FString& username1, const FString& username2, const FHttpRequestCompleteDelegate& callback);
+	void GetFriendlist(const FHttpRequestCompleteDelegate& callback);
 };

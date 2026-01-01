@@ -11,7 +11,7 @@
 /**
  * 
  */
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnWSMessageRecieve, const FString& /* Status Code */)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnWSMessageReceive, const FString& /* Status Code */)
 UCLASS()
 class BEATHIMUP_API UServiceControllerSubsystem : public UGameInstanceSubsystem
 {
@@ -34,7 +34,7 @@ public:
 	UPROPERTY()
 	TObjectPtr<UFriendlistController> FriendlistController;
 
-	FOnWSMessageRecieve WSMessageRecieveDel;
+	FOnWSMessageReceive WSMessageReceiveDel;
 
 	FString GetBaseHTTPURL() {
 		return FString("http://").Append(BASE_URL);

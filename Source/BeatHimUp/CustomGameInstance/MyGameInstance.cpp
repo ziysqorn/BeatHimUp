@@ -23,7 +23,7 @@ void UMyGameInstance::SystemShutdownLogout()
 		if (IsValid(ServiceController->UserAccountController)) {
 			FHttpRequestCompleteDelegate LogoutRequestCompleteDel;
 			LogoutRequestCompleteDel.BindUObject(this, &UMyGameInstance::LogoutRequestComplete);
-			ServiceController->UserAccountController->LogoutUser(this->PlayerInfo.Username.ToString(), LogoutRequestCompleteDel);
+			ServiceController->UserAccountController->LogoutUser(this->SecretToken, LogoutRequestCompleteDel);
 		}
 	}
 }
@@ -33,10 +33,52 @@ void UMyGameInstance::LogoutRequestComplete(FHttpRequestPtr pRequest, FHttpRespo
 	if (connectedSuccessfully && pResponse.IsValid()) {
 		switch (pResponse->GetResponseCode()) {
 		case EHttpResponseCodes::Ok:
+			this->SecretToken = TEXT("");
 			this->PlayerInfo.Username = NAME_None;
 			this->PlayerInfo.isOnline = false;
 			this->Friendlist.Empty();
 			break;
 		}
 	}
+}
+
+void UMyGameInstance::AddToFriendlist(const FPlayerInfo& inPlayer)
+{
+	Friendlist.Add(inPlayer);
+	Friendlist.Sort([](const FPlayerInfo& player1, const FPlayerInfo& player2) {
+		return player1.isOnline && !player2.isOnline;
+		});
+}
+
+void UMyGameInstance::RefreshFriendRequest(const TArray<TSharedPtr<FJsonValue>>& jsonObjArr)
+{
+	FriendRequestList.Empty();
+	for (int i = 0; i < jsonObjArr.Num(); ++i) {
+		TSharedPtr<FJsonObject> friendRequestObj = jsonObjArr[i]->AsObject();
+		FString sender = friendRequestObj->GetStringField(TEXT("sender"));
+		FString receiver = friendRequestObj->GetStringField(TEXT("receiver"));
+		FFriendRequest NewFriendRequest;
+		NewFriendRequest.Sender_Username = FName(sender);
+		NewFriendRequest.Receiver_Username = FName(receiver);
+		FriendRequestList.Add(NewFriendRequest);
+	}
+}
+
+void UMyGameInstance::RefreshFriendlist(const TArray<TSharedPtr<FJsonValue>>& jsonObjArr)
+{
+	Friendlist.Empty();
+	CurrentOnlineFriendNum = 0;
+	for (const TSharedPtr<FJsonValue>& Value : jsonObjArr) {
+		TSharedPtr<FJsonObject> friendJsonObj = Value->AsObject();
+		if (friendJsonObj.IsValid()) {
+			FPlayerInfo newPlayerInfo;
+			newPlayerInfo.Username = FName(friendJsonObj->GetStringField(TEXT("username")));
+			newPlayerInfo.isOnline = friendJsonObj->GetBoolField(TEXT("status"));
+			if (newPlayerInfo.isOnline) ++CurrentOnlineFriendNum;
+			Friendlist.Add(newPlayerInfo);
+		}
+	}
+	Friendlist.Sort([](const FPlayerInfo& player1, const FPlayerInfo& player2) {
+		return player1.isOnline && !player2.isOnline;
+		});
 }

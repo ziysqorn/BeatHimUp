@@ -177,8 +177,9 @@ void ULoginScreen::LoginRequestComplete(FHttpRequestPtr pRequest, FHttpResponseP
 				TSharedPtr<FJsonObject> JsonObj = MakeShareable(new FJsonObject());
 				TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(pResponse->GetContentAsString());
 				if (FJsonSerializer::Deserialize(Reader, JsonObj)) {
-					MyGameInstance->PlayerInfo.Username = FName(JsonObj->GetStringField(TEXT("username")));
-					MyGameInstance->PlayerInfo.isOnline = true;
+					FPlayerInfo PlayerInfo(FName(JsonObj->GetStringField(TEXT("username"))), true);
+					MyGameInstance->SetSecretToken(JsonObj->GetStringField(TEXT("token")));
+					MyGameInstance->SetPlayerInfo(PlayerInfo);
 					UGameplayStatics::OpenLevel(this, FName("Level_MainMenu"));
 				}
 			}

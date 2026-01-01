@@ -74,6 +74,6 @@ void UUIManagerSubsystem::InitFriendTagCxtMenu(const TArray<TPair<FText, FOnButt
 		}
 	}
 	CtxMenu_FriendTag->AddToViewport(1);
-	CtxMenu_FriendTag->SetPositionInViewport(MenuPosition);
+	CtxMenu_FriendTag->SetMenuPosition(MenuPosition);
 }
 
