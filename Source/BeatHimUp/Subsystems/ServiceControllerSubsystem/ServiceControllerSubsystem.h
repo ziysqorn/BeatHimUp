@@ -6,6 +6,7 @@
 #include "../../ProjectIncludes.h"
 #include "../../ServiceController/UserAccountController/UserAccountController.h"
 #include "../../ServiceController/FriendlistController/FriendlistController.h"
+#include "../../ServiceController/LobbyController/LobbyController.h"
 #include "ServiceControllerSubsystem.generated.h"
 
 /**
@@ -34,16 +35,17 @@ public:
 	UPROPERTY()
 	TObjectPtr<UFriendlistController> FriendlistController;
 
+	UPROPERTY()
+	TObjectPtr<ULobbyController> LobbyController;
+
 	FOnWSMessageReceive WSMessageReceiveDel;
 
 	FString GetBaseHTTPURL() {
 		return FString("http://").Append(BASE_URL);
 	}
 
-	UFUNCTION(Client, Reliable)
 	void OpenWSConnection();
 
-	UFUNCTION(Client, Reliable)
 	void CloseWSConnection();
 
 	void WSConnectedHandle();

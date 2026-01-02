@@ -34,7 +34,7 @@ TWeakObjectPtr<UUserWidget>& UUIManagerSubsystem::GetTopWidget() {
 	return stk_Widgets.Top();
 }
 
-void UUIManagerSubsystem::InitFriendTagCxtMenu(const TArray<TPair<FText, FOnButtonClickedEvent&>>& Options, TSubclassOf<UUserWidget> CxtMenuSubclass, FVector2D MenuPosition)
+void UUIManagerSubsystem::InitFriendTagCxtMenu(const TArray<TPair<FText, TSharedPtr<FOnButtonClickedEvent>>>& Options, TSubclassOf<UUserWidget> CxtMenuSubclass, FVector2D MenuPosition)
 {
 	if (IsValid(CtxMenu_FriendTag)) {
 		int buttonCount = CtxMenu_FriendTag->GetOptionButtonCount();
@@ -54,7 +54,9 @@ void UUIManagerSubsystem::InitFriendTagCxtMenu(const TArray<TPair<FText, FOnButt
 			}
 		}
 		for (int i = 0; i < Options.Num(); ++i) {
-			CtxMenu_FriendTag->ChangeMenuOption(i, Options[i].Get<0>(), Options[i].Get<1>());
+			if (FOnButtonClickedEvent* OnButtonClickEvent = Options[i].Get<1>().Get()) {
+				CtxMenu_FriendTag->ChangeMenuOption(i, Options[i].Get<0>(), *OnButtonClickEvent);
+			}
 		}
 	}
 	else {
@@ -63,7 +65,9 @@ void UUIManagerSubsystem::InitFriendTagCxtMenu(const TArray<TPair<FText, FOnButt
 				for (auto& Opt : Options) {
 					if (UButton* newButton = CtxMenu_FriendTag->WidgetTree->ConstructWidget<UButton>(UButton::StaticClass())) {
 						newButton->SetCursor(EMouseCursor::Hand);
-						newButton->OnClicked = Opt.Get<1>();
+						if (FOnButtonClickedEvent* OnButtonClickEvent = Opt.Get<1>().Get()) {
+							newButton->OnClicked = *OnButtonClickEvent;
+						}
 						if (UTextBlock* newTextBlock = CtxMenu_FriendTag->WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass())) {
 							newTextBlock->SetText(Opt.Get<0>());
 							CtxMenu_FriendTag->AddMenuOption(newButton, newTextBlock);

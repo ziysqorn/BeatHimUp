@@ -37,5 +37,5 @@ public:
 		}
 	}
 
-	void InitFriendTagCxtMenu(const TArray<TPair<FText, FOnButtonClickedEvent&>>& Options, TSubclassOf<UUserWidget> CxtMenuSubclass, FVector2D MenuPosition);
+	void InitFriendTagCxtMenu(const TArray<TPair<FText, TSharedPtr<FOnButtonClickedEvent>>>& Options, TSubclassOf<UUserWidget> CxtMenuSubclass, FVector2D MenuPosition);
 };

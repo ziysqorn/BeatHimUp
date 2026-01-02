@@ -4,6 +4,7 @@
 #include "SideInfo.h"
 #include "../../UI/FriendTag/FriendTag.h"
 #include "../../UI/ReceivedFriendRequestPanel/ReceivedFriendRequestPanel.h"
+#include "../../UI/LobbyInvitationPanel/LobbyInvitationPanel.h"
 #include "../../CustomGameInstance/MyGameInstance.h"
 #include "../../Controller/MainMenuController/MainMenuController.h"
 
@@ -115,17 +116,37 @@ void USideInfo::SendFriendRequest()
 	}
 }
 
-void USideInfo::SetupFriendlist(const TArray<FPlayerInfo>& Friendlist)
+void USideInfo::RefreshFriendlist(int CurrentOnlineNum, const TArray<FPlayerInfo>& Friendlist)
 {
 	if (IsValid(ScrollBox_Friendlist) && IsValid(DA_UI)) {
-		ScrollBox_Friendlist->ClearChildren();
-		for (const FPlayerInfo& Player : Friendlist) {
-			if (UFriendTag* FriendTag = CreateWidget<UFriendTag>(this->GetOwningPlayer(), *DA_UI->UISubclassMap.Find(FName("FriendTag")))) {
-				FriendTag->SetUsernameText(FText::FromName(Player.Username));
-				Player.isOnline ? FriendTag->SetTextOnline() : FriendTag->SetTextOffline();
-				ScrollBox_Friendlist->AddChild(FriendTag);
+		int UIAndRealFriendlistNumDiff = FMath::Abs(ScrollBox_Friendlist->GetChildrenCount() - Friendlist.Num());
+		if (Friendlist.Num() > ScrollBox_Friendlist->GetChildrenCount()) {
+			for (int i = 0; i < UIAndRealFriendlistNumDiff; ++i) {
+				CreateWidget<UFriendTag>(this->GetOwningPlayer(), *DA_UI->UISubclassMap.Find(FName("FriendTag")));
+			}
+			for (const FPlayerInfo& Player : Friendlist) {
+				if (UFriendTag* FriendTag = CreateWidget<UFriendTag>(this->GetOwningPlayer(), *DA_UI->UISubclassMap.Find(FName("FriendTag")))) {
+					FriendTag->SetUsernameText(FText::FromName(Player.Username));
+					Player.isOnline ? FriendTag->SetTextOnline() : FriendTag->SetTextOffline();
+					ScrollBox_Friendlist->AddChild(FriendTag);
+				}
 			}
 		}
+		else if (Friendlist.Num() < ScrollBox_Friendlist->GetChildrenCount()) {
+			for (int i = 0; i < UIAndRealFriendlistNumDiff; ++i) {
+				ScrollBox_Friendlist->RemoveChildAt(ScrollBox_Friendlist->GetChildrenCount() - 1);
+			}
+		}
+
+		for (int i = 0; i < Friendlist.Num(); ++i) {
+			if (UFriendTag* FriendTag = Cast<UFriendTag>(ScrollBox_Friendlist->GetChildAt(i))) {
+				const FPlayerInfo& CurPlayerInfo = Friendlist[i];
+				FriendTag->SetUsernameText(FText::FromName(CurPlayerInfo.Username));
+				CurPlayerInfo.isOnline ? FriendTag->SetTextOnline() : FriendTag->SetTextOffline();
+			}
+		}
+
+		SetFriendNumText(CurrentOnlineNum, Friendlist.Num());
 	}
 }
 
@@ -146,9 +167,33 @@ void USideInfo::FetchFriendRequest()
 	}
 }
 
+void USideInfo::FetchLobbyInvitation()
+{
+	if (UMyGameInstance* GameInstance = this->GetGameInstance<UMyGameInstance>()) {
+		if (IsValid(WSwitcher_LobbyInvitation)) {
+			WSwitcher_LobbyInvitation->ClearChildren();
+			const TArray<FLobbyInvitation>& LobbyInvitationList = GameInstance->GetLobbyInvitationList();
+			for (int i = 0; i < LobbyInvitationList.Num(); ++i) {
+				if (ULobbyInvitationPanel* LobbyInvitationPanel = CreateWidget<ULobbyInvitationPanel>(this->GetOwningPlayer(), *DA_UI->UISubclassMap.Find(FName("LobbyInvitationPanel")))) {
+					LobbyInvitationPanel->SetSenderUsername(LobbyInvitationList[i].Sender_Username);
+					WSwitcher_FriendRequest->AddChild(LobbyInvitationPanel);
+				}
+			}
+			WSwitcher_LobbyInvitation->SetActiveWidgetIndex(0);
+		}
+	}
+}
+
 void USideInfo::RemoveReceiveFriendRequestPanel(int idx)
 {
 	if (IsValid(WSwitcher_FriendRequest)) {
 		WSwitcher_FriendRequest->RemoveChildAt(idx);
+	}
+}
+
+void USideInfo::RemoveLobbyInvitationPanel(int idx)
+{
+	if (IsValid(WSwitcher_LobbyInvitation)) {
+		WSwitcher_LobbyInvitation->RemoveChildAt(idx);
 	}
 }

@@ -29,6 +29,12 @@ protected:
 	TObjectPtr<UUIDataAsset> DA_UI;
 
 	FReply NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+
+	UFUNCTION()
+	void InviteToLobby();
+
+	UFUNCTION()
+	void RemoveFriend();
 public:
 	void SetUsernameText(FText inText) {
 		if (IsValid(Txt_Username)) Txt_Username->SetText(inText);

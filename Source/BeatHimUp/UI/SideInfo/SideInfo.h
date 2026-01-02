@@ -27,6 +27,9 @@ protected:
 	TObjectPtr<UWidgetSwitcher> WSwitcher_FriendList;
 
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	TObjectPtr<UWidgetSwitcher> WSwitcher_LobbyInvitation;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	TObjectPtr<UButton> Btn_HideFriendList;
 
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
@@ -52,6 +55,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	TObjectPtr<UButton> Btn_NextRequest;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	TObjectPtr<UButton> Btn_PreviousInvitation;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	TObjectPtr<UButton> Btn_NextInvitation;
 
 	UPROPERTY(EditDefaultsOnly, Category = "DA_UI")
 	TObjectPtr<UUIDataAsset> DA_UI;
@@ -94,9 +103,13 @@ public:
 		if (IsValid(Txt_FriendNum)) Txt_FriendNum->SetText(FText::FromString(result));
 	}
 
-	void SetupFriendlist(const TArray<FPlayerInfo>& Friendlist);
+	void RefreshFriendlist(int CurrentOnlineNum, const TArray<FPlayerInfo>& Friendlist);
 
 	void FetchFriendRequest();
 
+	void FetchLobbyInvitation();
+
 	void RemoveReceiveFriendRequestPanel(int idx);
+
+	void RemoveLobbyInvitationPanel(int idx);
 };

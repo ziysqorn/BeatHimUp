@@ -61,10 +61,10 @@ public:
 		}
 	}
 
-	void SetupFriendlist(const TArray<FPlayerInfo>& Friendlist) {
+	void RefreshFriendlist(int CurrentOnlineNum, const TArray<FPlayerInfo>& Friendlist) {
 		if (IsValid(NamedSlot_SideInfo)) {
 			if (USideInfo* SideInfo = Cast<USideInfo>(NamedSlot_SideInfo->GetChildAt(0))) {
-				SideInfo->SetupFriendlist(Friendlist);
+				SideInfo->RefreshFriendlist(CurrentOnlineNum, Friendlist);
 			}
 		}
 	}
@@ -77,10 +77,10 @@ public:
 		}
 	}
 
-	void SetFriendNumText(int onlineNum, int totalNum) {
+	void FetchLobbyInvitation() {
 		if (IsValid(NamedSlot_SideInfo)) {
 			if (USideInfo* SideInfo = Cast<USideInfo>(NamedSlot_SideInfo->GetChildAt(0))) {
-				SideInfo->SetFriendNumText(onlineNum, totalNum);
+				SideInfo->FetchLobbyInvitation();
 			}
 		}
 	}
@@ -89,6 +89,14 @@ public:
 		if (IsValid(NamedSlot_SideInfo)) {
 			if (USideInfo* SideInfo = Cast<USideInfo>(NamedSlot_SideInfo->GetChildAt(0))) {
 				SideInfo->RemoveReceiveFriendRequestPanel(idx);
+			}
+		}
+	}
+
+	void RemoveLobbyInvitationPanel(int idx) {
+		if (IsValid(NamedSlot_SideInfo)) {
+			if (USideInfo* SideInfo = Cast<USideInfo>(NamedSlot_SideInfo->GetChildAt(0))) {
+				SideInfo->RemoveLobbyInvitationPanel(idx);
 			}
 		}
 	}

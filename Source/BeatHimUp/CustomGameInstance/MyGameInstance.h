@@ -26,6 +26,8 @@ protected:
 
 	TArray<FFriendRequest> FriendRequestList;
 
+	TArray<FLobbyInvitation> LobbyInvitationList;
+
 	int CurrentOnlineFriendNum = 0;
 
 	void Init() override;
@@ -67,6 +69,8 @@ public:
 
 	void AddToFriendlist(const FPlayerInfo& inPlayer);
 
+	int RemoveFromFriendlist(FName target);
+
 	const TArray<FFriendRequest>& GetFriendRequestList() {
 		return FriendRequestList;
 	}
@@ -98,4 +102,14 @@ public:
 	void RefreshFriendRequest(const TArray<TSharedPtr<FJsonValue>>& jsonObjArr);
 
 	void RefreshFriendlist(const TArray<TSharedPtr<FJsonValue>>& jsonObjArr);
+
+	void InsertLobbyInvitation(const FLobbyInvitation& inInvitation, int idx) {
+		LobbyInvitationList.Insert(inInvitation, idx);
+	}
+
+	int RemoveFromLobbyInvitationList(FName target);
+
+	const TArray<FLobbyInvitation>& GetLobbyInvitationList() {
+		return LobbyInvitationList;
+	}
 };

@@ -49,3 +49,19 @@ struct FFriendRequest {
 
 	FFriendRequest(FName inSender, FName inReceiver) : Sender_Username(inSender), Receiver_Username(inReceiver) {}
 };
+
+USTRUCT()
+struct FLobbyInvitation {
+
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FName Sender_Username;
+
+	UPROPERTY()
+	FName Receiver_Username;
+
+	FLobbyInvitation() : Sender_Username(NAME_None), Receiver_Username(NAME_None) {}
+
+	FLobbyInvitation(FName inSender, FName inReceiver) : Sender_Username(inSender), Receiver_Username(inReceiver) {}
+};

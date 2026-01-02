@@ -37,6 +37,9 @@ void UMyGameInstance::LogoutRequestComplete(FHttpRequestPtr pRequest, FHttpRespo
 			this->PlayerInfo.Username = NAME_None;
 			this->PlayerInfo.isOnline = false;
 			this->Friendlist.Empty();
+			if (UServiceControllerSubsystem* ServiceController = this->GetSubsystem<UServiceControllerSubsystem>()) {
+				ServiceController->CloseWSConnection();
+			}
 			break;
 		}
 	}
@@ -44,10 +47,25 @@ void UMyGameInstance::LogoutRequestComplete(FHttpRequestPtr pRequest, FHttpRespo
 
 void UMyGameInstance::AddToFriendlist(const FPlayerInfo& inPlayer)
 {
+	if (inPlayer.isOnline)
+		CurrentOnlineFriendNum += 1;
 	Friendlist.Add(inPlayer);
 	Friendlist.Sort([](const FPlayerInfo& player1, const FPlayerInfo& player2) {
 		return player1.isOnline && !player2.isOnline;
 		});
+}
+
+int UMyGameInstance::RemoveFromFriendlist(FName target)
+{
+	for (int i = 0; i < Friendlist.Num(); ++i) {
+		if (Friendlist[i].Username.IsEqual(target)) {
+			if (Friendlist[i].isOnline)
+				CurrentOnlineFriendNum -= 1;
+			Friendlist.RemoveAt(i, EAllowShrinking::No);
+			return i;
+		}
+	}
+	return -1;
 }
 
 void UMyGameInstance::RefreshFriendRequest(const TArray<TSharedPtr<FJsonValue>>& jsonObjArr)
@@ -81,4 +99,15 @@ void UMyGameInstance::RefreshFriendlist(const TArray<TSharedPtr<FJsonValue>>& js
 	Friendlist.Sort([](const FPlayerInfo& player1, const FPlayerInfo& player2) {
 		return player1.isOnline && !player2.isOnline;
 		});
+}
+
+int UMyGameInstance::RemoveFromLobbyInvitationList(FName target)
+{
+	for (int i = 0; i < LobbyInvitationList.Num(); ++i) {
+		if (LobbyInvitationList[i].Sender_Username.IsEqual(target)) {
+			LobbyInvitationList.RemoveAt(i, EAllowShrinking::No);
+			return i;
+		}
+	}
+	return -1;
 }

@@ -15,6 +15,9 @@ void AMainMenuController::BeginPlay()
 	if (UServiceControllerSubsystem* ServiceController = GetGameInstance()->GetSubsystem<UServiceControllerSubsystem>()) {
 		ServiceController->OpenWSConnection();
 		ServiceController->WSMessageReceiveDel.AddUObject(this, &AMainMenuController::OnFriendRequestReceived);
+		ServiceController->WSMessageReceiveDel.AddUObject(this, &AMainMenuController::OnFriendRequestAccepted);
+		ServiceController->WSMessageReceiveDel.AddUObject(this, &AMainMenuController::OnBeFriendRemovedReceived);
+		ServiceController->WSMessageReceiveDel.AddUObject(this, &AMainMenuController::OnLobbyInvitationReceived);
 	}
 	SetupMappingContext();
 	Client_CreateMainMenu();
@@ -114,6 +117,76 @@ void AMainMenuController::OnFriendRequestReceived(const FString& Message)
 	}
 }
 
+void AMainMenuController::OnFriendRequestAccepted(const FString& Message)
+{
+	TSharedPtr<FJsonObject> messageObj;
+	TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(Message);
+	if (FJsonSerializer::Deserialize(reader, messageObj)) {
+		if (messageObj.IsValid()) {
+			FString resource = messageObj->GetStringField(TEXT("resource"));
+			FString action = messageObj->GetStringField(TEXT("action"));
+			if (resource == TEXT("friend_request") && action == TEXT("accept")) {
+				TSharedPtr<FJsonObject> payloadObj = messageObj->GetObjectField(TEXT("payload"));
+				if (payloadObj.IsValid()) {
+					if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+						FPlayerInfo ReceivedPlayer(FName(payloadObj->GetStringField(TEXT("receiver"))), true);
+						MyGameInstance->AddToFriendlist(ReceivedPlayer);
+						if (IsValid(MainMenu)) {
+							MainMenu->RefreshFriendlist(MyGameInstance->GetCurrentOnlineFriendNum(), MyGameInstance->GetFriendlist());
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void AMainMenuController::OnBeFriendRemovedReceived(const FString& Message)
+{
+	TSharedPtr<FJsonObject> messageObj;
+	TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(Message);
+	if (FJsonSerializer::Deserialize(reader, messageObj)) {
+		if (messageObj.IsValid()) {
+			FString resource = messageObj->GetStringField(TEXT("resource"));
+			FString action = messageObj->GetStringField(TEXT("action"));
+			if (resource == TEXT("friend") && action == TEXT("removed")) {
+				TSharedPtr<FJsonObject> payloadObj = messageObj->GetObjectField(TEXT("payload"));
+				if (payloadObj.IsValid()) {
+					if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+						FString username = payloadObj->GetStringField(TEXT("username"));
+						MyGameInstance->RemoveFromFriendlist(FName(username));
+						MainMenu->RefreshFriendlist(MyGameInstance->GetCurrentOnlineFriendNum(), MyGameInstance->GetFriendlist());
+					}
+				}
+			}
+		}
+	}
+}
+
+void AMainMenuController::OnLobbyInvitationReceived(const FString& Message)
+{
+	TSharedPtr<FJsonObject> messageObj;
+	TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(Message);
+	if (FJsonSerializer::Deserialize(reader, messageObj)) {
+		if (messageObj.IsValid()) {
+			FString resource = messageObj->GetStringField(TEXT("resource"));
+			FString action = messageObj->GetStringField(TEXT("action"));
+			if (resource == TEXT("lobby_invitation") && action == TEXT("receive")) {
+				TSharedPtr<FJsonObject> payloadObj = messageObj->GetObjectField(TEXT("payload"));
+				if (payloadObj.IsValid()) {
+					if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+						FLobbyInvitation LobbyInvitation(FName(payloadObj->GetStringField(TEXT("sender"))), FName(payloadObj->GetStringField(TEXT("receiver"))));
+						MyGameInstance->InsertLobbyInvitation(LobbyInvitation, 0);
+						if (IsValid(MainMenu)) {
+							MainMenu->FetchLobbyInvitation();
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 void AMainMenuController::OnSentFriendRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully)
 {
 	check(IsInGameThread());
@@ -147,8 +220,7 @@ void AMainMenuController::OnAcceptFriendRequestComplete(FHttpRequestPtr pRequest
 							bool status = jsonObj->GetBoolField(TEXT("status"));
 							FPlayerInfo newFriend(sender, status);
 							MyGameInstance->AddToFriendlist(newFriend);
-							MainMenu->SetFriendNumText(MyGameInstance->GetCurrentOnlineFriendNum(), MyGameInstance->GetTotalFriendNum());
-							MainMenu->SetupFriendlist(MyGameInstance->GetFriendlist());
+							MainMenu->RefreshFriendlist(MyGameInstance->GetCurrentOnlineFriendNum(), MyGameInstance->GetFriendlist());
 							int SenderIdxInList = MyGameInstance->RemoveFriendRequestBySender(sender);
 							if (SenderIdxInList >= 0) {
 								MainMenu->RemoveReceiveFriendRequestPanel(SenderIdxInList);
@@ -188,6 +260,64 @@ void AMainMenuController::OnDeclineFriendRequestComplete(FHttpRequestPtr pReques
 	}
 }
 
+void AMainMenuController::OnRemoveFriendComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully)
+{
+	check(IsInGameThread());
+	if (connectedSuccessfully) {
+		if (IsValid(MainMenu)) {
+			if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+				if (pResponse.IsValid()) {
+					switch (pResponse->GetResponseCode()) {
+					case EHttpResponseCodes::Created:
+						FString RemovedFriend = pResponse->GetContentAsString();
+						MyGameInstance->RemoveFromFriendlist(FName(RemovedFriend));
+						MainMenu->RefreshFriendlist(MyGameInstance->GetCurrentOnlineFriendNum(), MyGameInstance->GetFriendlist());
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+void AMainMenuController::OnInviteToLobbyComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully)
+{
+	check(IsInGameThread());
+	if (connectedSuccessfully) {
+		if (IsValid(MainMenu)) {
+			if (pResponse.IsValid()) {
+				/*switch (pResponse->GetResponseCode()) {
+				case EHttpResponseCodes::Created:
+					MainMenu->DisplayOnlyCloseAlert(pResponse->GetContentAsString());
+					break;
+				}*/
+				MainMenu->DisplayOnlyCloseAlert(pResponse->GetContentAsString());
+			}
+		}
+	}
+}
+
+void AMainMenuController::OnDeclineLobbyInvitationComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully)
+{
+	check(IsInGameThread());
+	if (connectedSuccessfully) {
+		if (IsValid(MainMenu)) {
+			if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+				if (pResponse.IsValid()) {
+					switch (pResponse->GetResponseCode()) {
+					case EHttpResponseCodes::Created:
+						int RemovedInvitationIdx = MyGameInstance->RemoveFromLobbyInvitationList(FName(pResponse->GetContentAsString()));
+						if (RemovedInvitationIdx >= 0) {
+							MainMenu->RemoveLobbyInvitationPanel(RemovedInvitationIdx);
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
 void AMainMenuController::FriendlistResponseCallback(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully)
 {
 	check(IsInGameThread());
@@ -201,8 +331,7 @@ void AMainMenuController::FriendlistResponseCallback(FHttpRequestPtr pRequest, F
 						TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(pResponse->GetContentAsString());
 						if (FJsonSerializer::Deserialize(reader, jsonObjArr)) {
 							MyGameInstance->RefreshFriendlist(jsonObjArr);
-							MainMenu->SetFriendNumText(MyGameInstance->GetCurrentOnlineFriendNum(), MyGameInstance->GetTotalFriendNum());
-							MainMenu->SetupFriendlist(MyGameInstance->GetFriendlist());
+							MainMenu->RefreshFriendlist(MyGameInstance->GetCurrentOnlineFriendNum(), MyGameInstance->GetFriendlist());
 						}
 						break;
 					}
@@ -281,6 +410,43 @@ void AMainMenuController::DeclineFriendRequest(const FString& sender)
 		if (UServiceControllerSubsystem* ServiceController = GameInstance->GetSubsystem<UServiceControllerSubsystem>()) {
 			if (ServiceController->FriendlistController) {
 				ServiceController->FriendlistController->DeclineFriendRequest(sender, FHttpRequestCompleteDelegate::CreateUObject(this, &AMainMenuController::OnDeclineFriendRequestComplete));
+			}
+		}
+	}
+}
+
+void AMainMenuController::RemoveFriend(const FString& removedFriend)
+{
+	if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(this->GetGameInstance())) {
+		if (UServiceControllerSubsystem* ServiceController = GameInstance->GetSubsystem<UServiceControllerSubsystem>()) {
+			if (ServiceController->FriendlistController) {
+				ServiceController->FriendlistController->RemoveFriend(removedFriend, FHttpRequestCompleteDelegate::CreateUObject(this, &AMainMenuController::OnRemoveFriendComplete));
+			}
+		}
+	}
+}
+
+void AMainMenuController::InviteToLobby(const FString& receiver)
+{
+	if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(this->GetGameInstance())) {
+		if (UServiceControllerSubsystem* ServiceController = GameInstance->GetSubsystem<UServiceControllerSubsystem>()) {
+			if (ServiceController->LobbyController) {
+				ServiceController->LobbyController->InviteToLobby(receiver, FHttpRequestCompleteDelegate::CreateUObject(this, &AMainMenuController::OnInviteToLobbyComplete));
+			}
+		}
+	}
+}
+
+void AMainMenuController::AcceptLobbyInvitation(const FString& sender)
+{
+}
+
+void AMainMenuController::DeclineLobbyInvitation(const FString& sender)
+{
+	if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(this->GetGameInstance())) {
+		if (UServiceControllerSubsystem* ServiceController = GameInstance->GetSubsystem<UServiceControllerSubsystem>()) {
+			if (ServiceController->LobbyController) {
+				ServiceController->LobbyController->DeclineLobbyInvitation(sender, FHttpRequestCompleteDelegate::CreateUObject(this, &AMainMenuController::OnDeclineLobbyInvitationComplete));
 			}
 		}
 	}

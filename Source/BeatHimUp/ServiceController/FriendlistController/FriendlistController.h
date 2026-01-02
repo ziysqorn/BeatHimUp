@@ -22,6 +22,6 @@ public:
 	void GetFriendRequest(const FHttpRequestCompleteDelegate& callback);
 	void AcceptFriendRequest(const FString& sender, const FHttpRequestCompleteDelegate& callback);
 	void DeclineFriendRequest(const FString& sender, const FHttpRequestCompleteDelegate& callback);
-	void RemoveFriend(const FString& username1, const FString& username2, const FHttpRequestCompleteDelegate& callback);
+	void RemoveFriend(const FString& removedFriend, const FHttpRequestCompleteDelegate& callback);
 	void GetFriendlist(const FHttpRequestCompleteDelegate& callback);
 };

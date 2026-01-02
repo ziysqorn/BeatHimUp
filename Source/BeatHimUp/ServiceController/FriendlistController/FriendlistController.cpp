@@ -88,22 +88,23 @@ void UFriendlistController::DeclineFriendRequest(const FString& sender, const FH
 	}
 }
 
-void UFriendlistController::RemoveFriend(const FString& username1, const FString& username2, const FHttpRequestCompleteDelegate& callback)
+void UFriendlistController::RemoveFriend(const FString& removedFriend, const FHttpRequestCompleteDelegate& callback)
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
-		FString BASE_URL = ServiceController->GetBaseHTTPURL();
-		FString realURL = BASE_URL.Append("/user/friendlist/remove");
-		FHttpModule& HttpModule = FHttpModule::Get();
-		TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();
-		httpRequest->SetVerb("POST");
-		httpRequest->SetHeader("Content-Type", "application/json");
-		realURL.Append(TEXT("?"));
-		realURL.Append(FString::Format(TEXT("player1={0}"), { username1 }));
-		realURL.Append(TEXT("&"));
-		realURL.Append(FString::Format(TEXT("player2={0}"), { username2 }));
-		httpRequest->SetURL(realURL);
-		httpRequest->OnProcessRequestComplete() = callback;
-		httpRequest->ProcessRequest();
+		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(ServiceController->GetGameInstance())) {
+			FString BASE_URL = ServiceController->GetBaseHTTPURL();
+			FString realURL = BASE_URL.Append("/friend/remove");
+			FHttpModule& HttpModule = FHttpModule::Get();
+			TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();
+			httpRequest->SetVerb("POST");
+			httpRequest->SetHeader("Content-Type", "application/json");
+			httpRequest->SetHeader("Authorization", FString::Format(TEXT("Bearer {0}"), { GameInstance->GetSecretKey() }));
+			realURL.Append(TEXT("?"));
+			realURL.Append(FString::Format(TEXT("removed_friend={0}"), { removedFriend }));
+			httpRequest->SetURL(realURL);
+			httpRequest->OnProcessRequestComplete() = callback;
+			httpRequest->ProcessRequest();
+		}
 	}
 }
 

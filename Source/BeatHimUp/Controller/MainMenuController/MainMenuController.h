@@ -50,11 +50,23 @@ protected:
 
 	void OnFriendRequestReceived(const FString& Message);
 
+	void OnFriendRequestAccepted(const FString& Message);
+
+	void OnBeFriendRemovedReceived(const FString& Message);
+
+	void OnLobbyInvitationReceived(const FString& Message);
+
 	void OnSentFriendRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
 
 	void OnAcceptFriendRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
 
 	void OnDeclineFriendRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
+	void OnRemoveFriendComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
+	void OnInviteToLobbyComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
+	void OnDeclineLobbyInvitationComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
 
 	void FriendlistResponseCallback(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
 
@@ -74,4 +86,12 @@ public:
 	void AcceptFriendRequest(const FString& sender);
 
 	void DeclineFriendRequest(const FString& sender);
+
+	void RemoveFriend(const FString& removedFriend);
+
+	void InviteToLobby(const FString& receiver);
+
+	void AcceptLobbyInvitation(const FString& sender);
+
+	void DeclineLobbyInvitation(const FString& sender);
 };

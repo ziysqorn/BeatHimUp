@@ -8,6 +8,7 @@ UServiceControllerSubsystem::UServiceControllerSubsystem()
 {
 	UserAccountController = NewObject<UUserAccountController>(this, FName("UserAccountController"));
 	FriendlistController = NewObject<UFriendlistController>(this, FName("FriendlistController"));
+	LobbyController = NewObject<ULobbyController>(this, FName("LobbyController"));
 }
 
 void UServiceControllerSubsystem::WSConnectedHandle()
@@ -17,7 +18,13 @@ void UServiceControllerSubsystem::WSConnectedHandle()
 
 void UServiceControllerSubsystem::WSClosedHandle(int32 StatusCode, const FString& Reason, bool bWasClean)
 {
-
+	if (WS_Connection.IsValid()) {
+		WS_Connection->OnConnected().Clear();
+		WS_Connection->OnClosed().Clear();
+		WS_Connection->OnConnectionError().Clear();
+		WS_Connection->OnMessage().Clear();
+		WSMessageReceiveDel.Clear();
+	}
 }
 
 void UServiceControllerSubsystem::WSConnectionErrHandle(const FString& Error)
@@ -39,20 +46,18 @@ void UServiceControllerSubsystem::SendWSMessage(const FString& Message)
 }
 
 
-void UServiceControllerSubsystem::CloseWSConnection_Implementation()
+void UServiceControllerSubsystem::CloseWSConnection()
 {
 	if (WS_Connection.IsValid() && WS_Connection->IsConnected())
 		WS_Connection->Close();
 }
 
-void UServiceControllerSubsystem::OpenWSConnection_Implementation()
+void UServiceControllerSubsystem::OpenWSConnection()
 {
-	if (!WS_Connection.IsValid()) {
-		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(this->GetGameInstance())) {
-			FString webSocketURL = FString("ws://").Append(BASE_URL).Append("/ws");
-			FString realURL = webSocketURL.Append("?").Append(FString::Format(TEXT("username={0}"), { GameInstance->GetPlayerInfo().Username.ToString()}));
-			WS_Connection = FWebSocketsModule::Get().CreateWebSocket(webSocketURL);
-		}
+	if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(this->GetGameInstance())) {
+		FString webSocketURL = FString("ws://").Append(BASE_URL).Append("/ws");
+		FString realURL = webSocketURL.Append("?").Append(FString::Format(TEXT("username={0}"), { GameInstance->GetPlayerInfo().Username.ToString() }));
+		WS_Connection = FWebSocketsModule::Get().CreateWebSocket(realURL);
 	}
 	if (WS_Connection.IsValid() && !WS_Connection->IsConnected()) {
 		WS_Connection->OnConnected().AddUObject(this, &UServiceControllerSubsystem::WSConnectedHandle);
