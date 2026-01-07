@@ -18,6 +18,13 @@ void AMainMenuController::BeginPlay()
 		ServiceController->WSMessageReceiveDel.AddUObject(this, &AMainMenuController::OnFriendRequestAccepted);
 		ServiceController->WSMessageReceiveDel.AddUObject(this, &AMainMenuController::OnBeFriendRemovedReceived);
 		ServiceController->WSMessageReceiveDel.AddUObject(this, &AMainMenuController::OnLobbyInvitationReceived);
+		ServiceController->WSMessageReceiveDel.AddUObject(this, &AMainMenuController::OnLobbyInvitationAcceptedReceived);
+		ServiceController->WSMessageReceiveDel.AddUObject(this, &AMainMenuController::OnLobbyLeaveReceived);
+		ServiceController->WSMessageReceiveDel.AddUObject(this, &AMainMenuController::OnMakeLeaderReceived);
+		ServiceController->WSMessageReceiveDel.AddUObject(this, &AMainMenuController::OnBeKickFromLobbyReceived);
+		if (ServiceController->LobbyController) {
+			ServiceController->LobbyController->CreateLobby(FHttpRequestCompleteDelegate::CreateUObject(this, &AMainMenuController::OnCreateLobbyComplete));
+		}
 	}
 	SetupMappingContext();
 	Client_CreateMainMenu();
@@ -57,6 +64,7 @@ void AMainMenuController::SetupMappingContext()
 void AMainMenuController::Client_CreateMainMenu_Implementation()
 {
 	bEnableClickEvents = true;
+	ClickEventKeys.Add(EKeys::RightMouseButton);
 	if (!IsValid(MainMenu) && MainMenuSubclass) MainMenu = CreateWidget<UMainMenu>(this, MainMenuSubclass);
 	if (IsValid(MainMenu)) {
 		MainMenu->SetOwningPlayer(this);
@@ -187,6 +195,143 @@ void AMainMenuController::OnLobbyInvitationReceived(const FString& Message)
 	}
 }
 
+void AMainMenuController::OnLobbyInvitationAcceptedReceived(const FString& Message)
+{
+	TSharedPtr<FJsonObject> messageObj;
+	TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(Message);
+	if (FJsonSerializer::Deserialize(reader, messageObj)) {
+		if (messageObj.IsValid()) {
+			FString resource = messageObj->GetStringField(TEXT("resource"));
+			FString action = messageObj->GetStringField(TEXT("action"));
+			if (resource == TEXT("lobby_invitation") && action == TEXT("accept")) {
+				TSharedPtr<FJsonObject> payloadObj = messageObj->GetObjectField(TEXT("payload"));
+				if (payloadObj.IsValid()) {
+					if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+						FString sender = payloadObj->GetStringField(TEXT("sender"));
+						FString receiver = payloadObj->GetStringField(TEXT("receiver"));
+						FPlayerInfo NewMember(FName(receiver), true);
+						MyGameInstance->AddToLobby(NewMember);
+					}
+				}
+			}
+		}
+	}
+}
+
+void AMainMenuController::OnLobbyLeaveReceived(const FString& Message)
+{
+	TSharedPtr<FJsonObject> messageObj;
+	TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(Message);
+	if (FJsonSerializer::Deserialize(reader, messageObj)) {
+		if (messageObj.IsValid()) {
+			FString resource = messageObj->GetStringField(TEXT("resource"));
+			FString action = messageObj->GetStringField(TEXT("action"));
+			if (resource == TEXT("lobby")) {
+				if (action == TEXT("leave") || action == TEXT("kick_member")) {
+					TSharedPtr<FJsonObject> payloadObj = messageObj->GetObjectField(TEXT("payload"));
+					if (payloadObj.IsValid()) {
+						TSharedPtr<FJsonObject> lobbyObj = payloadObj->GetObjectField(TEXT("lobby"));
+						if (lobbyObj.IsValid()) {
+							if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+								FName LeftUsername = FName(payloadObj->GetStringField(TEXT("left_user")));
+								if (!LeftUsername.IsEqual(MyGameInstance->GetLobbyInfo().Leader_Username)) {
+									FString CurrentLeaderUsername = lobbyObj->GetStringField(TEXT("leader"));
+									MyGameInstance->RemoveFromLobby(LeftUsername, FName(CurrentLeaderUsername));
+								}
+								else {
+									FName LobbyName = FName(lobbyObj->GetStringField(TEXT("lobby_name")));
+									FName LeaderUsername = FName(lobbyObj->GetStringField(TEXT("leader")));
+									TArray<TSharedPtr<FJsonValue>> MembersJson = lobbyObj->GetArrayField(TEXT("members"));
+									TArray<FPlayerInfo> LobbyMembers;
+									for (int i = 0; i < MembersJson.Num(); ++i) {
+										if (MembersJson[i].IsValid()) {
+											FString Username = MembersJson[i]->AsString();
+											FPlayerInfo Member(FName(Username), true);
+											LobbyMembers.Add(Member);
+										}
+									}
+									FLobbyInfo LobbyInfo(LobbyName, LeaderUsername, LobbyMembers, 5);
+									MyGameInstance->SetLobbyInfo(LobbyInfo);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void AMainMenuController::OnMakeLeaderReceived(const FString& Message)
+{
+	TSharedPtr<FJsonObject> messageObj;
+	TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(Message);
+	if (FJsonSerializer::Deserialize(reader, messageObj)) {
+		if (messageObj.IsValid()) {
+			FString resource = messageObj->GetStringField(TEXT("resource"));
+			FString action = messageObj->GetStringField(TEXT("action"));
+			if (resource == TEXT("lobby") && action == TEXT("make_leader")) {
+				TSharedPtr<FJsonObject> payloadObj = messageObj->GetObjectField(TEXT("payload"));
+				if (payloadObj.IsValid()) {
+					TSharedPtr<FJsonObject> lobbyObj = payloadObj->GetObjectField(TEXT("lobby"));
+					if (lobbyObj.IsValid()) {
+						if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+							FName LobbyName = FName(lobbyObj->GetStringField(TEXT("lobby_name")));
+							FName LeaderUsername = FName(lobbyObj->GetStringField(TEXT("leader")));
+							TArray<TSharedPtr<FJsonValue>> MembersJson = lobbyObj->GetArrayField(TEXT("members"));
+							TArray<FPlayerInfo> LobbyMembers;
+							for (int i = 0; i < MembersJson.Num(); ++i) {
+								if (MembersJson[i].IsValid()) {
+									FString Username = MembersJson[i]->AsString();
+									FPlayerInfo Member(FName(Username), true);
+									LobbyMembers.Add(Member);
+								}
+							}
+							FLobbyInfo LobbyInfo(LobbyName, LeaderUsername, LobbyMembers, 5);
+							MyGameInstance->SetLobbyInfo(LobbyInfo);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void AMainMenuController::OnBeKickFromLobbyReceived(const FString& Message)
+{
+	TSharedPtr<FJsonObject> messageObj;
+	TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(Message);
+	if (FJsonSerializer::Deserialize(reader, messageObj)) {
+		if (messageObj.IsValid()) {
+			FString resource = messageObj->GetStringField(TEXT("resource"));
+			FString action = messageObj->GetStringField(TEXT("action"));
+			if (resource == TEXT("lobby") && action == TEXT("is_kick")) {
+				TSharedPtr<FJsonObject> payloadObj = messageObj->GetObjectField(TEXT("payload"));
+				if (payloadObj.IsValid()) {
+					TSharedPtr<FJsonObject> lobbyObj = payloadObj->GetObjectField(TEXT("lobby"));
+					if (lobbyObj.IsValid()) {
+						if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+							FName LobbyName = FName(lobbyObj->GetStringField(TEXT("lobby_name")));
+							FName LeaderUsername = FName(lobbyObj->GetStringField(TEXT("leader")));
+							TArray<TSharedPtr<FJsonValue>> MembersJson = lobbyObj->GetArrayField(TEXT("members"));
+							TArray<FPlayerInfo> LobbyMembers;
+							for (int i = 0; i < MembersJson.Num(); ++i) {
+								if (MembersJson[i].IsValid()) {
+									FString Username = MembersJson[i]->AsString();
+									FPlayerInfo Member(FName(Username), true);
+									LobbyMembers.Add(Member);
+								}
+							}
+							FLobbyInfo LobbyInfo(LobbyName, LeaderUsername, LobbyMembers, 5);
+							MyGameInstance->SetLobbyInfo(LobbyInfo);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 void AMainMenuController::OnSentFriendRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully)
 {
 	check(IsInGameThread());
@@ -280,6 +425,35 @@ void AMainMenuController::OnRemoveFriendComplete(FHttpRequestPtr pRequest, FHttp
 	}
 }
 
+void AMainMenuController::OnCreateLobbyComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully)
+{
+	check(IsInGameThread());
+	if (connectedSuccessfully) {
+		if (IsValid(MainMenu)) {
+			if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+				if (pResponse.IsValid()) {
+					switch (pResponse->GetResponseCode()) {
+					case EHttpResponseCodes::Created:
+						TSharedPtr<FJsonObject> LobbyJson;
+						TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(pResponse->GetContentAsString());
+						if (FJsonSerializer::Deserialize(Reader, LobbyJson)) {
+							if (LobbyJson.IsValid()) {
+								const FPlayerInfo& SelfPlayerInfo = MyGameInstance->GetPlayerInfo();
+								FString LobbyName = LobbyJson->GetStringField(TEXT("lobby_name"));
+								TArray<FPlayerInfo> Members;
+								Members.Add(MyGameInstance->GetPlayerInfo());
+								FLobbyInfo LobbyInfo(FName(LobbyName), SelfPlayerInfo.Username, Members, 5);
+								MyGameInstance->SetLobbyInfo(LobbyInfo);
+							}
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
 void AMainMenuController::OnInviteToLobbyComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully)
 {
 	check(IsInGameThread());
@@ -292,6 +466,68 @@ void AMainMenuController::OnInviteToLobbyComplete(FHttpRequestPtr pRequest, FHtt
 					break;
 				}*/
 				MainMenu->DisplayOnlyCloseAlert(pResponse->GetContentAsString());
+			}
+		}
+	}
+}
+
+void AMainMenuController::OnAcceptLobbyInvitationComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully)
+{
+	check(IsInGameThread());
+	if (connectedSuccessfully) {
+		if (IsValid(MainMenu)) {
+			if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+				if (pResponse.IsValid()) {
+					switch (pResponse->GetResponseCode()) {
+					case EHttpResponseCodes::Created:
+					{
+						TSharedPtr<FJsonObject> JsonObj;
+						TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(pResponse->GetContentAsString());
+						if (FJsonSerializer::Deserialize(Reader, JsonObj)) {
+							FString sender = JsonObj->GetStringField(TEXT("sender"));
+							int RemovedInvitationIdx = MyGameInstance->RemoveFromLobbyInvitationList(FName(sender));
+							if (RemovedInvitationIdx >= 0) {
+								MainMenu->RemoveLobbyInvitationPanel(RemovedInvitationIdx);
+							}
+							TSharedPtr<FJsonObject> LobbyJson = JsonObj->GetObjectField(TEXT("lobby"));
+							if (LobbyJson.IsValid()) {
+								FString LobbyName = LobbyJson->GetStringField(TEXT("lobby_name"));
+								FString Leader = LobbyJson->GetStringField(TEXT("leader"));
+								TArray<TSharedPtr<FJsonValue>> MembersJson = LobbyJson->GetArrayField(TEXT("members"));
+								TArray<FPlayerInfo> LobbyMembers;
+								for (int i = 0; i < MembersJson.Num(); ++i) {
+									if (MembersJson[i].IsValid()) {
+										FString Username = MembersJson[i]->AsString();
+										FPlayerInfo Member(FName(Username), true);
+										LobbyMembers.Add(Member);
+									}
+								}
+								FLobbyInfo LobbyInfo(FName(LobbyName), FName(Leader), LobbyMembers, 5);
+								MyGameInstance->SetLobbyInfo(LobbyInfo);
+							}
+						}
+						break;
+					}
+					case EHttpResponseCodes::BadRequest:
+					{
+						TSharedPtr<FJsonObject> JsonObj;
+						TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(pResponse->GetContentAsString());
+						if (FJsonSerializer::Deserialize(Reader, JsonObj)) {
+							FString sender = JsonObj->GetStringField(TEXT("sender"));
+							FString message = JsonObj->GetStringField(TEXT("message"));
+							int RemovedInvitationIdx = MyGameInstance->RemoveFromLobbyInvitationList(FName(sender));
+							if (RemovedInvitationIdx >= 0) {
+								MainMenu->RemoveLobbyInvitationPanel(RemovedInvitationIdx);
+							}
+							MainMenu->DisplayOnlyCloseAlert(message);
+						}
+						break;
+					}
+					default:
+						MainMenu->DisplayOnlyCloseAlert(pResponse->GetContentAsString());
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -310,6 +546,105 @@ void AMainMenuController::OnDeclineLobbyInvitationComplete(FHttpRequestPtr pRequ
 						if (RemovedInvitationIdx >= 0) {
 							MainMenu->RemoveLobbyInvitationPanel(RemovedInvitationIdx);
 						}
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+void AMainMenuController::OnMakeLeaderComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully)
+{
+	check(IsInGameThread());
+	if (connectedSuccessfully) {
+		if (IsValid(MainMenu)) {
+			if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+				if (pResponse.IsValid()) {
+					switch (pResponse->GetResponseCode()) {
+					case EHttpResponseCodes::Created:
+						TSharedPtr<FJsonObject> lobbyObj;
+						TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(pResponse->GetContentAsString());
+						if (FJsonSerializer::Deserialize(Reader, lobbyObj)) {
+							if (lobbyObj.IsValid()) {
+								FName LobbyName = FName(lobbyObj->GetStringField(TEXT("lobby_name")));
+								FName LeaderUsername = FName(lobbyObj->GetStringField(TEXT("leader")));
+								TArray<TSharedPtr<FJsonValue>> MembersJson = lobbyObj->GetArrayField(TEXT("members"));
+								TArray<FPlayerInfo> LobbyMembers;
+								for (int i = 0; i < MembersJson.Num(); ++i) {
+									if (MembersJson[i].IsValid()) {
+										FString Username = MembersJson[i]->AsString();
+										FPlayerInfo Member(FName(Username), true);
+										LobbyMembers.Add(Member);
+									}
+								}
+								FLobbyInfo LobbyInfo(LobbyName, LeaderUsername, LobbyMembers, 5);
+								MyGameInstance->SetLobbyInfo(LobbyInfo);
+							}
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+void AMainMenuController::OnLeaveLobbyComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully)
+{
+	check(IsInGameThread());
+	if (connectedSuccessfully) {
+		if (IsValid(MainMenu)) {
+			if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+				if (pResponse.IsValid()) {
+					switch (pResponse->GetResponseCode()) {
+					case EHttpResponseCodes::Created:
+					{
+						TSharedPtr<FJsonObject> JsonObj;
+						TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(pResponse->GetContentAsString());
+						if (FJsonSerializer::Deserialize(Reader, JsonObj)) {
+							if (JsonObj.IsValid()) {
+								FString LobbyName = JsonObj->GetStringField(TEXT("lobby_name"));
+								FString Leader = JsonObj->GetStringField(TEXT("leader"));
+								TArray<TSharedPtr<FJsonValue>> MembersJson = JsonObj->GetArrayField(TEXT("members"));
+								TArray<FPlayerInfo> LobbyMembers;
+								for (int i = 0; i < MembersJson.Num(); ++i) {
+									if (MembersJson[i].IsValid()) {
+										FString Username = MembersJson[i]->AsString();
+										FPlayerInfo Member(FName(Username), true);
+										LobbyMembers.Add(Member);
+									}
+								}
+								FLobbyInfo LobbyInfo(FName(LobbyName), FName(Leader), LobbyMembers, 5);
+								MyGameInstance->SetLobbyInfo(LobbyInfo);
+							}
+						}
+						break;
+					}
+					default:
+						MainMenu->DisplayOnlyCloseAlert(pResponse->GetContentAsString());
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+void AMainMenuController::OnKickMemberFromLobbyComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully)
+{
+	check(IsInGameThread());
+	if (connectedSuccessfully) {
+		if (IsValid(MainMenu)) {
+			if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+				if (pResponse.IsValid()) {
+					switch (pResponse->GetResponseCode()) {
+					case EHttpResponseCodes::Created:
+						MainMenu->DisplayOnlyCloseAlert("Kick member successfully !");
+						MyGameInstance->RemoveFromLobby(FName(pResponse->GetContentAsString()), NAME_None);
+						break;
+					default:
+						MainMenu->DisplayOnlyCloseAlert(pResponse->GetContentAsString());
 						break;
 					}
 				}
@@ -439,6 +774,13 @@ void AMainMenuController::InviteToLobby(const FString& receiver)
 
 void AMainMenuController::AcceptLobbyInvitation(const FString& sender)
 {
+	if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(this->GetGameInstance())) {
+		if (UServiceControllerSubsystem* ServiceController = GameInstance->GetSubsystem<UServiceControllerSubsystem>()) {
+			if (ServiceController->LobbyController) {
+				ServiceController->LobbyController->AcceptLobbyInvitation(sender, FHttpRequestCompleteDelegate::CreateUObject(this, &AMainMenuController::OnAcceptLobbyInvitationComplete));
+			}
+		}
+	}
 }
 
 void AMainMenuController::DeclineLobbyInvitation(const FString& sender)
@@ -447,6 +789,43 @@ void AMainMenuController::DeclineLobbyInvitation(const FString& sender)
 		if (UServiceControllerSubsystem* ServiceController = GameInstance->GetSubsystem<UServiceControllerSubsystem>()) {
 			if (ServiceController->LobbyController) {
 				ServiceController->LobbyController->DeclineLobbyInvitation(sender, FHttpRequestCompleteDelegate::CreateUObject(this, &AMainMenuController::OnDeclineLobbyInvitationComplete));
+			}
+		}
+	}
+}
+
+void AMainMenuController::MakeLeader(const FString& receiver)
+{
+	if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(this->GetGameInstance())) {
+		if (GameInstance->GetPlayerInfo().Username.IsEqual(GameInstance->GetLobbyInfo().Leader_Username)) {
+			if (UServiceControllerSubsystem* ServiceController = GameInstance->GetSubsystem<UServiceControllerSubsystem>()) {
+				if (ServiceController->LobbyController) {
+					ServiceController->LobbyController->MakeLeader(receiver, FHttpRequestCompleteDelegate::CreateUObject(this, &AMainMenuController::OnMakeLeaderComplete));
+				}
+			}
+		}
+	}
+}
+
+void AMainMenuController::LeaveLobby()
+{
+	if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(this->GetGameInstance())) {
+		if (UServiceControllerSubsystem* ServiceController = GameInstance->GetSubsystem<UServiceControllerSubsystem>()) {
+			if (ServiceController->LobbyController) {
+				ServiceController->LobbyController->LeaveLobby(FHttpRequestCompleteDelegate::CreateUObject(this, &AMainMenuController::OnLeaveLobbyComplete));
+			}
+		}
+	}
+}
+
+void AMainMenuController::KickMemberFromLobby(const FString& receiver)
+{
+	if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(this->GetGameInstance())) {
+		if (GameInstance->GetPlayerInfo().Username.IsEqual(GameInstance->GetLobbyInfo().Leader_Username)) {
+			if (UServiceControllerSubsystem* ServiceController = GameInstance->GetSubsystem<UServiceControllerSubsystem>()) {
+				if (ServiceController->LobbyController) {
+					ServiceController->LobbyController->KickMemberFromLobby(receiver, FHttpRequestCompleteDelegate::CreateUObject(this, &AMainMenuController::OnKickMemberFromLobbyComplete));
+				}
 			}
 		}
 	}

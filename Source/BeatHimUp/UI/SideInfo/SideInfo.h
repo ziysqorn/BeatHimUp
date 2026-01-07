@@ -88,6 +88,12 @@ protected:
 	void PrevRequest();
 
 	UFUNCTION()
+	void NextInvitation();
+
+	UFUNCTION()
+	void PrevInivtation();
+
+	UFUNCTION()
 	void SendFriendRequest();
 
 public:

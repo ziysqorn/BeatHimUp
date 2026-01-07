@@ -3,6 +3,8 @@
 
 #include "PlayerPreviewer.h"
 #include "../../Controller/MainMenuController/MainMenuController.h"
+#include "../../Subsystems/UIManager/UIManagerSubsystem.h"
+#include "../../CustomGameInstance/MyGameInstance.h"
 
 // Sets default values
 APlayerPreviewer::APlayerPreviewer()
@@ -12,9 +14,11 @@ APlayerPreviewer::APlayerPreviewer()
 
 	AltRootComponent = CreateDefaultSubobject<USceneComponent>(FName("AltenativeRootComponent"));
 	ModelComponent = CreateDefaultSubobject<USkeletalMeshComponent>(FName("SkeletalMeshComponent"));
+	PlayerPreviewerWidgetComp = CreateDefaultSubobject<UPlayerPreviewerWidgetComponent>(FName("PlayerPreviewerWidgetComp"));
 	AltRootComponent->SetupAttachment(RootComponent);
 	RootComponent = AltRootComponent;
 	ModelComponent->AttachToComponent(AltRootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	PlayerPreviewerWidgetComp->AttachToComponent(AltRootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 }
 
 void APlayerPreviewer::ResetModelRotation_Implementation()
@@ -68,6 +72,112 @@ void APlayerPreviewer::OnModelMeshClicked_Implementation(UPrimitiveComponent* To
 			PlayerController->GetMousePosition(MouseLocX, MouseLocY);
 			if (IsValid(ModelComponent)) {
 				CurRotation = ModelComponent->GetRelativeRotation();
+			}
+		}
+	}
+	else if (ButtonPressed == EKeys::RightMouseButton) {
+		OptionContextHandle();
+	}
+}
+
+void APlayerPreviewer::TriggerLeaveLobby()
+{
+	if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+		if (AMainMenuController* MainMenuController = Cast<AMainMenuController>(UGameplayStatics::GetPlayerController(this, 0))) {
+			if (UUIManagerSubsystem* UIManager = MyGameInstance->GetSubsystem<UUIManagerSubsystem>()) {
+				UIManager->HideCtxMenu();
+				MainMenuController->LeaveLobby();
+			}
+		}
+	}
+}
+
+void APlayerPreviewer::TriggerMakeLeader()
+{
+	if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+		if (AMainMenuController* MainMenuController = Cast<AMainMenuController>(UGameplayStatics::GetPlayerController(this, 0))) {
+			if (UUIManagerSubsystem* UIManager = MyGameInstance->GetSubsystem<UUIManagerSubsystem>()) {
+				UIManager->HideCtxMenu();
+				FString ClickedUsername = PlayerPreviewerWidgetComp->GetUsernameTextAsString();
+				MainMenuController->MakeLeader(ClickedUsername);
+			}
+		}
+	}
+}
+
+void APlayerPreviewer::TriggerKickMember()
+{
+	if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+		if (AMainMenuController* MainMenuController = Cast<AMainMenuController>(UGameplayStatics::GetPlayerController(this, 0))) {
+			if (UUIManagerSubsystem* UIManager = MyGameInstance->GetSubsystem<UUIManagerSubsystem>()) {
+				UIManager->HideCtxMenu();
+				FString ClickedUsername = PlayerPreviewerWidgetComp->GetUsernameTextAsString();
+				MainMenuController->KickMemberFromLobby(ClickedUsername);
+			}
+		}
+	}
+}
+
+void APlayerPreviewer::TriggerAddFriend()
+{
+	if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+		if (AMainMenuController* MainMenuController = Cast<AMainMenuController>(UGameplayStatics::GetPlayerController(this, 0))) {
+			if (UUIManagerSubsystem* UIManager = MyGameInstance->GetSubsystem<UUIManagerSubsystem>()) {
+				UIManager->HideCtxMenu();
+				FString ClickedUsername = PlayerPreviewerWidgetComp->GetUsernameTextAsString();
+				MainMenuController->SendFriendRequest(ClickedUsername);
+			}
+		}
+	}
+}
+
+void APlayerPreviewer::TriggerRemoveFriend()
+{
+	if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+		if (AMainMenuController* MainMenuController = Cast<AMainMenuController>(UGameplayStatics::GetPlayerController(this, 0))) {
+			if (UUIManagerSubsystem* UIManager = MyGameInstance->GetSubsystem<UUIManagerSubsystem>()) {
+				UIManager->HideCtxMenu();
+				FString ClickedUsername = PlayerPreviewerWidgetComp->GetUsernameTextAsString();
+				MainMenuController->RemoveFriend(ClickedUsername);
+			}
+		}
+	}
+}
+
+void APlayerPreviewer::OptionContextHandle()
+{
+	if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+		if (UUIManagerSubsystem* UIManager = MyGameInstance->GetSubsystem<UUIManagerSubsystem>()) {
+			if (AMainMenuController* MainMenuController = Cast<AMainMenuController>(UGameplayStatics::GetPlayerController(this, 0))) {
+				FName ClickedUsername = FName(PlayerPreviewerWidgetComp->GetUsernameTextAsString());
+				TArray<TPair<FText, TSharedPtr<FOnButtonClickedEvent>>> Options;
+				if (ClickedUsername.IsEqual(MyGameInstance->GetPlayerInfo().Username)) {
+					TSharedPtr<FOnButtonClickedEvent> SharedPtr_LeaveLobby = MakeShared<FOnButtonClickedEvent>();
+					SharedPtr_LeaveLobby->AddDynamic(this, &APlayerPreviewer::TriggerLeaveLobby);
+					Options.Add(TPair<FText, TSharedPtr<FOnButtonClickedEvent>>(FText::FromString("Leave lobby"), SharedPtr_LeaveLobby));
+				}
+				else {
+					if (MyGameInstance->GetLobbyInfo().Leader_Username.IsEqual(MyGameInstance->GetPlayerInfo().Username)) {
+						TSharedPtr<FOnButtonClickedEvent> SharedPtr_MakeLeader = MakeShared<FOnButtonClickedEvent>();
+						TSharedPtr<FOnButtonClickedEvent> SharedPtr_KickMember = MakeShared<FOnButtonClickedEvent>();
+						SharedPtr_MakeLeader->AddDynamic(this, &APlayerPreviewer::TriggerMakeLeader);
+						SharedPtr_KickMember->AddDynamic(this, &APlayerPreviewer::TriggerKickMember);
+						Options.Add(TPair<FText, TSharedPtr<FOnButtonClickedEvent>>(FText::FromString("Make leader"), SharedPtr_MakeLeader));
+						Options.Add(TPair<FText, TSharedPtr<FOnButtonClickedEvent>>(FText::FromString("Kick member"), SharedPtr_KickMember));
+					}
+					if (MyGameInstance->CheckIsFriend(ClickedUsername) == -1) {
+						TSharedPtr<FOnButtonClickedEvent> SharedPtr_SendFriendRequest = MakeShared<FOnButtonClickedEvent>();
+						SharedPtr_SendFriendRequest->AddDynamic(this, &APlayerPreviewer::TriggerAddFriend);
+						Options.Add(TPair<FText, TSharedPtr<FOnButtonClickedEvent>>(FText::FromString("Add friend"), SharedPtr_SendFriendRequest));
+					}
+					else {
+						TSharedPtr<FOnButtonClickedEvent> SharedPtr_RemoveFriend = MakeShared<FOnButtonClickedEvent>();
+						SharedPtr_RemoveFriend->AddDynamic(this, &APlayerPreviewer::TriggerRemoveFriend);
+						Options.Add(TPair<FText, TSharedPtr<FOnButtonClickedEvent>>(FText::FromString("Remove friend"), SharedPtr_RemoveFriend));
+					}
+				}
+				FVector2D MouseViewportPos = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetWorld());
+				UIManager->InitFriendTagCxtMenu(Options, MainMenuController->GetMenuWidgetSubclass("ContextMenu"), MouseViewportPos);
 			}
 		}
 	}

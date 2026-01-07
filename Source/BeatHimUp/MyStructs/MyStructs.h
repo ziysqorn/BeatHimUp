@@ -32,6 +32,17 @@ struct FPlayerInfo {
 	FPlayerInfo() : Username(NAME_None), isOnline(false) {}
 
 	FPlayerInfo(FName inUsername, bool status) : Username(inUsername), isOnline(status) {}
+
+	FPlayerInfo& operator=(const FPlayerInfo& Other) {
+		if (this == &Other) {
+			return *this;
+		}
+
+		this->Username = Other.Username;
+		this->isOnline = Other.isOnline;
+
+		return *this;
+	}
 };
 
 USTRUCT()
@@ -64,4 +75,41 @@ struct FLobbyInvitation {
 	FLobbyInvitation() : Sender_Username(NAME_None), Receiver_Username(NAME_None) {}
 
 	FLobbyInvitation(FName inSender, FName inReceiver) : Sender_Username(inSender), Receiver_Username(inReceiver) {}
+};
+
+USTRUCT()
+struct FLobbyInfo {
+
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FName LobbyName;
+
+	UPROPERTY()
+	FName Leader_Username;
+
+	UPROPERTY()
+	TArray<FPlayerInfo> Members;
+
+	UPROPERTY()
+	int MaxMember;
+
+	FLobbyInfo() : LobbyName(NAME_None), Leader_Username(NAME_None), Members(TArray<FPlayerInfo>()), MaxMember(5) {}
+	FLobbyInfo(FName inLobbyName, FName inLeader, const TArray<FPlayerInfo>& inMembers, int inMaxMember) : 
+		LobbyName(inLobbyName),
+		Leader_Username(inLeader),
+		Members(inMembers),
+		MaxMember(inMaxMember) {}
+
+	FLobbyInfo& operator=(const FLobbyInfo& Other) {
+		if (this == &Other) {
+			return *this;
+		}
+
+		this->LobbyName = Other.LobbyName;
+		this->Leader_Username = Other.Leader_Username;
+		this->Members = Other.Members;
+		this->MaxMember = Other.MaxMember;
+		return *this;
+	}
 };

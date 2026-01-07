@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../../ProjectIncludes.h"
+#include "../../CustomComponents/PlayerPreviewerWidgetComponent.h"
 #include "PlayerPreviewer.generated.h"
 
 UCLASS()
@@ -21,12 +22,19 @@ public:
 	USkeletalMeshComponent* GetModel() {
 		return ModelComponent;
 	}
+
+	UPlayerPreviewerWidgetComponent* GetPlayerPreviewerWidgetComp() {
+		return PlayerPreviewerWidgetComp;
+	}
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "AltRootComponent")
 	TObjectPtr<USceneComponent> AltRootComponent = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Model")
 	TObjectPtr<USkeletalMeshComponent> ModelComponent = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerPreviewerWidgetComponent")
+	TObjectPtr<UPlayerPreviewerWidgetComponent> PlayerPreviewerWidgetComp;
 
 	float MouseLocX = 0.0f;
 
@@ -45,4 +53,21 @@ protected:
 
 	UFUNCTION(Client, Unreliable)
 	void RotateModel();
+
+	void OptionContextHandle();
+
+	UFUNCTION()
+	void TriggerLeaveLobby();
+
+	UFUNCTION()
+	void TriggerMakeLeader();
+
+	UFUNCTION()
+	void TriggerKickMember();
+
+	UFUNCTION()
+	void TriggerAddFriend();
+
+	UFUNCTION()
+	void TriggerRemoveFriend();
 };

@@ -14,6 +14,9 @@ void UMainMenu::NativeOnInitialized()
 
 	if (IsValid(Btn_ToLobby)) Btn_ToLobby->OnClicked.AddDynamic(this, &UMainMenu::ToggleLobbyAndHome);
 	if (IsValid(Btn_Home)) Btn_Home->OnClicked.AddDynamic(this, &UMainMenu::ToggleLobbyAndHome);
+	if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+		MyGameInstance->OnLobbyUpdateDel.AddUObject(this, &UMainMenu::UpdateMenuAccordingToLobbyUpdate);
+	}
 }
 
 void UMainMenu::NativeConstruct()
@@ -90,4 +93,20 @@ FReply UMainMenu::NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, co
 		UIManager->HideCtxMenu();
 	}
 	return FReply::Unhandled();
+}
+
+void UMainMenu::UpdateMenuAccordingToLobbyUpdate(const FLobbyInfo& LobbyInfo)
+{
+	if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+		if (MyGameInstance->GetPlayerInfo().Username.IsEqual(LobbyInfo.Leader_Username)) {
+			if (IsValid(Btn_Play)) {
+				Btn_Play->SetIsEnabled(true);
+			}
+		}
+		else {
+			if (IsValid(Btn_Play)) {
+				Btn_Play->SetIsEnabled(false);
+			}
+		}
+	}
 }

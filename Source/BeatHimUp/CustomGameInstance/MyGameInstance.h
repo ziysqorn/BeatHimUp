@@ -10,6 +10,8 @@
 /**
  * 
  */
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnLobbyUpdate, const FLobbyInfo&)
+
 UCLASS()
 class BEATHIMUP_API UMyGameInstance : public UGameInstance
 {
@@ -22,18 +24,33 @@ protected:
 	UPROPERTY()
 	FPlayerInfo PlayerInfo;
 
+	UPROPERTY()
+	FLobbyInfo LobbyInfo;
+
+	UPROPERTY()
 	TArray<FPlayerInfo> Friendlist;
 
+	UPROPERTY()
+	TMap<FName, int> FriendlistIdxMap;
+
+	UPROPERTY()
 	TArray<FFriendRequest> FriendRequestList;
 
+	UPROPERTY()
 	TArray<FLobbyInvitation> LobbyInvitationList;
+
+	UPROPERTY()
+	TMap<FName, int> LobbyInvitationIdxMap;
 
 	int CurrentOnlineFriendNum = 0;
 
 	void Init() override;
 	void Shutdown() override;
-	void SystemShutdownLogout();
 public:
+	FOnLobbyUpdate OnLobbyUpdateDel;
+
+	void LogoutProcess();
+
 	void LogoutRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
 
 	const FString& GetSecretKey() {
@@ -71,6 +88,11 @@ public:
 
 	int RemoveFromFriendlist(FName target);
 
+	int CheckIsFriend(FName Target) {
+		int* Found = FriendlistIdxMap.Find(Target);
+		return Found ? *FriendlistIdxMap.Find(Target) : -1;
+	}
+
 	const TArray<FFriendRequest>& GetFriendRequestList() {
 		return FriendRequestList;
 	}
@@ -103,13 +125,35 @@ public:
 
 	void RefreshFriendlist(const TArray<TSharedPtr<FJsonValue>>& jsonObjArr);
 
-	void InsertLobbyInvitation(const FLobbyInvitation& inInvitation, int idx) {
-		LobbyInvitationList.Insert(inInvitation, idx);
-	}
+	void InsertLobbyInvitation(const FLobbyInvitation& inInvitation, int idx);
 
 	int RemoveFromLobbyInvitationList(FName target);
 
 	const TArray<FLobbyInvitation>& GetLobbyInvitationList() {
 		return LobbyInvitationList;
 	}
+
+	const FLobbyInfo& GetLobbyInfo() {
+		return LobbyInfo;
+	}
+
+	void SetLobbyInfo(const FLobbyInfo& inLobby) {
+		LobbyInfo = inLobby;
+		if (OnLobbyUpdateDel.IsBound()) {
+			OnLobbyUpdateDel.Broadcast(LobbyInfo);
+		}
+	}
+
+	void SetLobbyLeader(FName NewLeader) {
+		LobbyInfo.Leader_Username = NewLeader;
+		if (OnLobbyUpdateDel.IsBound()) {
+			OnLobbyUpdateDel.Broadcast(LobbyInfo);
+		}
+	}
+
+	void AddToLobby(const FPlayerInfo& NewMember);
+
+	int RemoveFromLobby(FName UsernameToRemove, FName LeaderUsername);
+
+	void ClearClientInfo();
 };

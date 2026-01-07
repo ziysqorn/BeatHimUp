@@ -26,6 +26,12 @@ void ULobbyInvitationPanel::NativeDestruct()
 
 void ULobbyInvitationPanel::AcceptInvitation()
 {
+	FString sender = Txt_Username->GetText().ToString();
+	if (!sender.IsEmpty()) {
+		if (AMainMenuController* MainMenuController = this->GetOwningPlayer<AMainMenuController>()) {
+			MainMenuController->AcceptLobbyInvitation(sender);
+		}
+	}
 }
 
 void ULobbyInvitationPanel::DeclineInvitation()
@@ -33,7 +39,7 @@ void ULobbyInvitationPanel::DeclineInvitation()
 	FString sender = Txt_Username->GetText().ToString();
 	if (!sender.IsEmpty()) {
 		if (AMainMenuController* MainMenuController = this->GetOwningPlayer<AMainMenuController>()) {
-			MainMenuController->DeclineFriendRequest(sender);
+			MainMenuController->DeclineLobbyInvitation(sender);
 		}
 	}
 }

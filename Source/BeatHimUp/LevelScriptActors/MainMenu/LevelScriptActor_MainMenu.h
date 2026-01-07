@@ -28,10 +28,10 @@ protected:
 
 	void SetupView();
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void NetMulticast_AddPlayerToPreviewer(APlayerController* NewPlayerController);
-
 public:
-	UFUNCTION(Client, Unreliable)
-	void ResetPlayerPreviewerList();
+	void UpdatePlayerPreviewerList(const FLobbyInfo& LobbyInfo);
+
+	void ResetPlayerPreviewerListRotation();
+
+	void ResetPlayerPreviewerRotationAt(int idx);
 };

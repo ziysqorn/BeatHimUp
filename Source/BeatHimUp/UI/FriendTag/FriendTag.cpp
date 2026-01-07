@@ -10,16 +10,25 @@ FReply UFriendTag::NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, c
 	if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton) {
 		if (IsValid(DA_UI)) {
 			if (UUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UUIManagerSubsystem>()) {
-				TSharedPtr<FOnButtonClickedEvent> SharedPtr_InviteClick = MakeShared<FOnButtonClickedEvent>();
-				TSharedPtr<FOnButtonClickedEvent> SharedPtr_RemoveFriendClick = MakeShared<FOnButtonClickedEvent>();
-				SharedPtr_InviteClick->AddDynamic(this, &UFriendTag::InviteToLobby);
-				SharedPtr_RemoveFriendClick->AddDynamic(this, &UFriendTag::RemoveFriend);
-				TArray<TPair<FText, TSharedPtr<FOnButtonClickedEvent>>> Options = {
-					TPair<FText, TSharedPtr<FOnButtonClickedEvent>>(FText::FromString("Invite to lobby"), SharedPtr_InviteClick),
-					TPair<FText, TSharedPtr<FOnButtonClickedEvent>>(FText::FromString("Remove friend"), SharedPtr_RemoveFriendClick)
-				};
-				FVector2D MouseViewportPos = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetWorld());
-				UIManager->InitFriendTagCxtMenu(Options, *DA_UI->UISubclassMap.Find("ContextMenu"), MouseViewportPos);
+				if (IsValid(Txt_OnlineStatus)) {
+					FString OnlineStatusText = Txt_OnlineStatus->GetText().ToString();
+					TArray<TPair<FText, TSharedPtr<FOnButtonClickedEvent>>> Options;
+					if (OnlineStatusText == "Online") {
+						TSharedPtr<FOnButtonClickedEvent> SharedPtr_InviteClick = MakeShared<FOnButtonClickedEvent>();
+						TSharedPtr<FOnButtonClickedEvent> SharedPtr_RemoveFriendClick = MakeShared<FOnButtonClickedEvent>();
+						SharedPtr_InviteClick->AddDynamic(this, &UFriendTag::InviteToLobby);
+						SharedPtr_RemoveFriendClick->AddDynamic(this, &UFriendTag::RemoveFriend);
+						Options.Add(TPair<FText, TSharedPtr<FOnButtonClickedEvent>>(FText::FromString("Invite to lobby"), SharedPtr_InviteClick));
+						Options.Add(TPair<FText, TSharedPtr<FOnButtonClickedEvent>>(FText::FromString("Remove friend"), SharedPtr_RemoveFriendClick));
+					}
+					else {
+						TSharedPtr<FOnButtonClickedEvent> SharedPtr_RemoveFriendClick = MakeShared<FOnButtonClickedEvent>();
+						SharedPtr_RemoveFriendClick->AddDynamic(this, &UFriendTag::RemoveFriend);
+						Options.Add(TPair<FText, TSharedPtr<FOnButtonClickedEvent>>(FText::FromString("Remove friend"), SharedPtr_RemoveFriendClick));
+					}
+					FVector2D MouseViewportPos = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetWorld());
+					UIManager->InitFriendTagCxtMenu(Options, *DA_UI->UISubclassMap.Find("ContextMenu"), MouseViewportPos);
+				}
 			}
 		}
 		return FReply::Handled();

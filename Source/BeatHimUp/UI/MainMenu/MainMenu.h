@@ -49,6 +49,8 @@ protected:
 	void InitMainMenu();
 
 	FReply NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+
+	void UpdateMenuAccordingToLobbyUpdate(const FLobbyInfo& LobbyInfo);
 public:
 	UFUNCTION(Client, Unreliable)
 	void DisplayOnlyCloseAlert(const FString& message);
@@ -99,5 +101,12 @@ public:
 				SideInfo->RemoveLobbyInvitationPanel(idx);
 			}
 		}
+	}
+
+	TSubclassOf<UUserWidget> GetWidgetSubclass(const FName& WidgetKey) {
+		if (IsValid(DA_UI)) {
+			return *DA_UI->UISubclassMap.Find(WidgetKey);
+		}
+		return TSubclassOf<UUserWidget>();
 	}
 };

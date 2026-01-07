@@ -45,7 +45,10 @@ void USideInfo::ToggleFriendlistVisible()
 void USideInfo::ConfirmLogout()
 {
 	if (APlayerController* MainMenuController = this->GetOwningPlayer()) {
-		UGameplayStatics::OpenLevel(this, FName("Level_Login"));
+		if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+			MyGameInstance->LogoutProcess();
+			UGameplayStatics::OpenLevel(this, FName("Level_Login"));
+		}
 	}
 }
 
@@ -83,11 +86,11 @@ void USideInfo::SetCustomInputMode()
 void USideInfo::NextRequest()
 {
 	if (UMyGameInstance* GameInstance = this->GetGameInstance<UMyGameInstance>()) {
-		int CurrentFriendRequestIdx = WSwitcher_FriendRequest->GetActiveWidgetIndex();
-		++CurrentFriendRequestIdx;
-		if (CurrentFriendRequestIdx == GameInstance->GetFriendRequestList().Num())
-			CurrentFriendRequestIdx = 0;
-		if (WSwitcher_FriendRequest) {
+		if (IsValid(WSwitcher_FriendRequest)) {
+			int CurrentFriendRequestIdx = WSwitcher_FriendRequest->GetActiveWidgetIndex();
+			++CurrentFriendRequestIdx;
+			if (CurrentFriendRequestIdx == GameInstance->GetFriendRequestList().Num())
+				CurrentFriendRequestIdx = 0;
 			WSwitcher_FriendRequest->SetActiveWidgetIndex(CurrentFriendRequestIdx);
 		}
 	}
@@ -96,12 +99,38 @@ void USideInfo::NextRequest()
 void USideInfo::PrevRequest()
 {
 	if (UMyGameInstance* GameInstance = this->GetGameInstance<UMyGameInstance>()) {
-		int CurrentFriendRequestIdx = WSwitcher_FriendRequest->GetActiveWidgetIndex();
-		--CurrentFriendRequestIdx;
-		if (CurrentFriendRequestIdx == -1)
-			CurrentFriendRequestIdx = GameInstance->GetFriendRequestList().Num() - 1;
-		if (WSwitcher_FriendRequest) {
+		if (IsValid(WSwitcher_FriendRequest)) {
+			int CurrentFriendRequestIdx = WSwitcher_FriendRequest->GetActiveWidgetIndex();
+			--CurrentFriendRequestIdx;
+			if (CurrentFriendRequestIdx == -1)
+				CurrentFriendRequestIdx = GameInstance->GetFriendRequestList().Num() - 1;
 			WSwitcher_FriendRequest->SetActiveWidgetIndex(CurrentFriendRequestIdx);
+		}
+	}
+}
+
+void USideInfo::NextInvitation()
+{
+	if (UMyGameInstance* GameInstance = this->GetGameInstance<UMyGameInstance>()) {
+		if (IsValid(WSwitcher_LobbyInvitation)) {
+			int CurrentInvitationIdx = WSwitcher_LobbyInvitation->GetActiveWidgetIndex();
+			++CurrentInvitationIdx;
+			if (CurrentInvitationIdx == GameInstance->GetLobbyInvitationList().Num())
+				CurrentInvitationIdx = 0;
+			WSwitcher_LobbyInvitation->SetActiveWidgetIndex(CurrentInvitationIdx);
+		}
+	}
+}
+
+void USideInfo::PrevInivtation()
+{
+	if (UMyGameInstance* GameInstance = this->GetGameInstance<UMyGameInstance>()) {
+		if (IsValid(WSwitcher_LobbyInvitation)) {
+			int CurrentInvitationIdx = WSwitcher_LobbyInvitation->GetActiveWidgetIndex();
+			--CurrentInvitationIdx;
+			if (CurrentInvitationIdx == -1)
+				CurrentInvitationIdx = GameInstance->GetLobbyInvitationList().Num() - 1;
+			WSwitcher_LobbyInvitation->SetActiveWidgetIndex(CurrentInvitationIdx);
 		}
 	}
 }
@@ -122,12 +151,7 @@ void USideInfo::RefreshFriendlist(int CurrentOnlineNum, const TArray<FPlayerInfo
 		int UIAndRealFriendlistNumDiff = FMath::Abs(ScrollBox_Friendlist->GetChildrenCount() - Friendlist.Num());
 		if (Friendlist.Num() > ScrollBox_Friendlist->GetChildrenCount()) {
 			for (int i = 0; i < UIAndRealFriendlistNumDiff; ++i) {
-				CreateWidget<UFriendTag>(this->GetOwningPlayer(), *DA_UI->UISubclassMap.Find(FName("FriendTag")));
-			}
-			for (const FPlayerInfo& Player : Friendlist) {
 				if (UFriendTag* FriendTag = CreateWidget<UFriendTag>(this->GetOwningPlayer(), *DA_UI->UISubclassMap.Find(FName("FriendTag")))) {
-					FriendTag->SetUsernameText(FText::FromName(Player.Username));
-					Player.isOnline ? FriendTag->SetTextOnline() : FriendTag->SetTextOffline();
 					ScrollBox_Friendlist->AddChild(FriendTag);
 				}
 			}
@@ -176,7 +200,7 @@ void USideInfo::FetchLobbyInvitation()
 			for (int i = 0; i < LobbyInvitationList.Num(); ++i) {
 				if (ULobbyInvitationPanel* LobbyInvitationPanel = CreateWidget<ULobbyInvitationPanel>(this->GetOwningPlayer(), *DA_UI->UISubclassMap.Find(FName("LobbyInvitationPanel")))) {
 					LobbyInvitationPanel->SetSenderUsername(LobbyInvitationList[i].Sender_Username);
-					WSwitcher_FriendRequest->AddChild(LobbyInvitationPanel);
+					WSwitcher_LobbyInvitation->AddChild(LobbyInvitationPanel);
 				}
 			}
 			WSwitcher_LobbyInvitation->SetActiveWidgetIndex(0);

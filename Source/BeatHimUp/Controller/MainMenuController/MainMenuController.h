@@ -56,6 +56,14 @@ protected:
 
 	void OnLobbyInvitationReceived(const FString& Message);
 
+	void OnLobbyInvitationAcceptedReceived(const FString& Message);
+
+	void OnLobbyLeaveReceived(const FString& Message);
+
+	void OnMakeLeaderReceived(const FString& Message);
+
+	void OnBeKickFromLobbyReceived(const FString& Message);
+
 	void OnSentFriendRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
 
 	void OnAcceptFriendRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
@@ -64,9 +72,19 @@ protected:
 
 	void OnRemoveFriendComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
 
+	void OnCreateLobbyComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
 	void OnInviteToLobbyComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
 
+	void OnAcceptLobbyInvitationComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
 	void OnDeclineLobbyInvitationComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
+	void OnMakeLeaderComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
+	void OnLeaveLobbyComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
+	void OnKickMemberFromLobbyComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
 
 	void FriendlistResponseCallback(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
 
@@ -94,4 +112,17 @@ public:
 	void AcceptLobbyInvitation(const FString& sender);
 
 	void DeclineLobbyInvitation(const FString& sender);
+
+	void MakeLeader(const FString& receiver);
+
+	void LeaveLobby();
+
+	void KickMemberFromLobby(const FString& receiver);
+
+	TSubclassOf<UUserWidget> GetMenuWidgetSubclass(const FName& WidgetKey) {
+		if (IsValid(MainMenu)) {
+			return MainMenu->GetWidgetSubclass(WidgetKey);
+		}
+		return TSubclassOf<UUserWidget>();
+	}
 };
