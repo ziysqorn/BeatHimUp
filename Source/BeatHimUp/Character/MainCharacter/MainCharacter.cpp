@@ -68,6 +68,7 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 			if (IsValid(IA_LockTarget)) EIComponent->BindAction(IA_LockTarget, ETriggerEvent::Triggered, this, &AMainCharacter::Server_LockTargetTriggered);
 			if (IsValid(IA_SwitchItem)) EIComponent->BindAction(IA_SwitchItem, ETriggerEvent::Triggered, this, &AMainCharacter::SwitchItemTriggered);
 			if (IsValid(IA_UseItem)) EIComponent->BindAction(IA_UseItem, ETriggerEvent::Triggered, this, &AMainCharacter::UseItemTriggered);
+			if (IsValid(IA_PauseGame)) EIComponent->BindAction(IA_PauseGame, ETriggerEvent::Triggered, MainController, &AMainController::PauseGame);
 		}
 	}
 }

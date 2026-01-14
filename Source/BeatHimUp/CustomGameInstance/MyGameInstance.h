@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "../ProjectIncludes.h"
 #include "../MyStructs/MyStructs.h"
+#include "../DataAsset/UIDataAsset.h"
 #include "MyGameInstance.generated.h"
 
 /**
@@ -44,8 +45,12 @@ protected:
 
 	int CurrentOnlineFriendNum = 0;
 
+	UPROPERTY(EditDefaultsOnly, Category = "DA_UI")
+	TObjectPtr<UUIDataAsset> DA_UI;
+
 	void Init() override;
 	void Shutdown() override;
+
 public:
 	FOnLobbyUpdate OnLobbyUpdateDel;
 
@@ -156,4 +161,22 @@ public:
 	int RemoveFromLobby(FName UsernameToRemove, FName LeaderUsername);
 
 	void ClearClientInfo();
+
+	void SetupGraphicsPresets(int Quality);
+
+	void SetupFrameRateLimit(float Limit) {
+		if (GEngine) {
+			if (UGameUserSettings* GameUserSettings = GEngine->GetGameUserSettings()) {
+				GameUserSettings->SetFrameRateLimit(Limit);
+			}
+		}
+	}
+
+	void SetupVsyncEnabled(bool isEnabled) {
+		if (GEngine) {
+			if (UGameUserSettings* GameUserSettings = GEngine->GetGameUserSettings()) {
+				GameUserSettings->SetVSyncEnabled(isEnabled);
+			}
+		}
+	}
 };

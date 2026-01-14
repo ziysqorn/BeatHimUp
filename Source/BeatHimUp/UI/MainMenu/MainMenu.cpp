@@ -4,7 +4,6 @@
 #include "MainMenu.h"
 #include "../../Subsystems/UIManager/UIManagerSubsystem.h"
 #include "../../Controller/MainMenuController/MainMenuController.h"
-#include "../../ServiceController/UserAccountController/UserAccountController.h"
 #include "../../CustomGameInstance/MyGameInstance.h"
 #include "../../Subsystems/ServiceControllerSubsystem/ServiceControllerSubsystem.h"
 
@@ -14,6 +13,7 @@ void UMainMenu::NativeOnInitialized()
 
 	if (IsValid(Btn_ToLobby)) Btn_ToLobby->OnClicked.AddDynamic(this, &UMainMenu::ToggleLobbyAndHome);
 	if (IsValid(Btn_Home)) Btn_Home->OnClicked.AddDynamic(this, &UMainMenu::ToggleLobbyAndHome);
+	if (IsValid(Btn_Play)) Btn_Play->OnClicked.AddDynamic(this, &UMainMenu::StartGame);
 	if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
 		MyGameInstance->OnLobbyUpdateDel.AddUObject(this, &UMainMenu::UpdateMenuAccordingToLobbyUpdate);
 	}
@@ -108,5 +108,12 @@ void UMainMenu::UpdateMenuAccordingToLobbyUpdate(const FLobbyInfo& LobbyInfo)
 				Btn_Play->SetIsEnabled(false);
 			}
 		}
+	}
+}
+
+void UMainMenu::StartGame()
+{
+	if (AMainMenuController* MainMenuController = this->GetOwningPlayer<AMainMenuController>()) {
+		MainMenuController->StartGame();
 	}
 }

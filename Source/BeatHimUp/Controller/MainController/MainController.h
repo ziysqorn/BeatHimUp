@@ -20,13 +20,15 @@ public:
 
 	void SpectatePlayer();
 
-	UFUNCTION(Server, Unreliable)
+	UFUNCTION(Server, Reliable)
 	void Server_SpectateNextPlayer();
 
 	UFUNCTION(Server, Reliable)
 	void Server_RequestEndGame(EMatchStatus inMatchStatus);
 
 	void SetWidgetToLockTarget(AActor* Target);
+
+	void PauseGame();
 
 	UPlayerHUDComponent* GetPlayerHUDComp() {
 		return PlayerHUDComp;

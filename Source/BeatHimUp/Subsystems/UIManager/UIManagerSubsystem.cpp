@@ -81,3 +81,70 @@ void UUIManagerSubsystem::InitFriendTagCxtMenu(const TArray<TPair<FText, TShared
 	CtxMenu_FriendTag->SetMenuPosition(MenuPosition);
 }
 
+void UUIManagerSubsystem::ShowNonDestroyedWidget(UUserWidget* Widget, int32 ZOrder)
+{
+	if (IsValid(Widget)) {
+		if (UGameInstance* GI = GetGameInstance()) {
+			if (UGameViewportClient* GameViewportClient = GI->GetGameViewportClient()) {
+				GameViewportClient->AddViewportWidgetContent(Widget->TakeWidget(), ZOrder);
+			}
+		}
+	}
+}
+
+void UUIManagerSubsystem::RemoveNonDestroyedWidget(UUserWidget* Widget)
+{
+	if (IsValid(Widget)) {
+		if (UGameInstance* GI = GetGameInstance()) {
+			if (UGameViewportClient* GameViewportClient = GI->GetGameViewportClient()) {
+				GameViewportClient->RemoveViewportWidgetContent(Widget->TakeWidget());
+			}
+		}
+	}
+}
+
+void UUIManagerSubsystem::ShowLoadingScreen(TSubclassOf<UUserWidget> LoadingScreenSubclass, int32 ZOrder)
+{
+	if (UGameInstance* MyGameInstance = GetGameInstance()) {
+		if (!IsValid(LoadingScreen)) {
+			if (IsValid(LoadingScreenSubclass)) {
+				LoadingScreen = CreateWidget<ULoadingScreen>(MyGameInstance, LoadingScreenSubclass);
+			}
+		}
+		ShowNonDestroyedWidget(LoadingScreen, ZOrder);
+	}
+}
+
+void UUIManagerSubsystem::RemoveLoadingScreen()
+{
+	if (IsValid(LoadingScreen)) {
+		RemoveNonDestroyedWidget(LoadingScreen);
+	}
+}
+
+void UUIManagerSubsystem::PostLoadMapPreparation(UWorld* InLoadedWorld)
+{
+	RemoveLoadingScreen();
+	EmptyWidgetStk();
+}
+
+void UUIManagerSubsystem::ShowUserSettingsWidget(TSubclassOf<UUserWidget> WidgetSubclass, int32 ZOrder, bool bShouldHideCursorAfterRemoved)
+{
+	if (UGameInstance* MyGameInstance = GetGameInstance()) {
+		if (!IsValid(UserSettingWidget)) {
+			if (IsValid(WidgetSubclass)) {
+				UserSettingWidget = CreateWidget<UUserSettingsWidget>(MyGameInstance, WidgetSubclass);
+				UserSettingWidget->SetHideMouseCursorAfterRemoved(bShouldHideCursorAfterRemoved);
+			}
+		}
+	}
+	UserSettingWidget->AddToViewport(ZOrder);
+}
+
+void UUIManagerSubsystem::RemoveUserSettingsWidget()
+{
+	if (IsValid(UserSettingWidget)) {
+		UserSettingWidget->RemoveFromParent();
+	}
+}
+

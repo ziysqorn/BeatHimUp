@@ -6,6 +6,7 @@
 #include "../../UI/ReceivedFriendRequestPanel/ReceivedFriendRequestPanel.h"
 #include "../../UI/LobbyInvitationPanel/LobbyInvitationPanel.h"
 #include "../../CustomGameInstance/MyGameInstance.h"
+#include "../../Subsystems/UIManager/UIManagerSubsystem.h"
 #include "../../Controller/MainMenuController/MainMenuController.h"
 
 void USideInfo::NativeOnInitialized()
@@ -15,6 +16,7 @@ void USideInfo::NativeOnInitialized()
 	if (IsValid(Btn_HideFriendList)) Btn_HideFriendList->OnClicked.AddDynamic(this, &USideInfo::ToggleFriendlistVisible);
 	if (IsValid(Btn_ShowFriendList)) Btn_ShowFriendList->OnClicked.AddDynamic(this, &USideInfo::ToggleFriendlistVisible);
 	if (IsValid(Btn_Logout)) Btn_Logout->OnClicked.AddDynamic(this, &USideInfo::DisplayLogoutAlert);
+	if (IsValid(Btn_Settings)) Btn_Settings->OnClicked.AddDynamic(this, &USideInfo::OpenSettings);
 	if (IsValid(Btn_AddFriend)) Btn_AddFriend->OnClicked.AddDynamic(this, &USideInfo::SendFriendRequest);
 	if (IsValid(Btn_PreviousRequest)) Btn_PreviousRequest->OnClicked.AddDynamic(this, &USideInfo::PrevRequest);
 	if (IsValid(Btn_NextRequest)) Btn_NextRequest->OnClicked.AddDynamic(this, &USideInfo::NextRequest);
@@ -48,6 +50,19 @@ void USideInfo::ConfirmLogout()
 		if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
 			MyGameInstance->LogoutProcess();
 			UGameplayStatics::OpenLevel(this, FName("Level_Login"));
+		}
+	}
+}
+
+void USideInfo::OpenSettings()
+{
+	if (IsValid(DA_UI)) {
+		if (UGameInstance* MyGameInstance = GetGameInstance()) {
+			if (UUIManagerSubsystem* UIManager = MyGameInstance->GetSubsystem<UUIManagerSubsystem>()) {
+				if (TSubclassOf<UUserWidget>* UserSettingsWidgetSubclass = DA_UI->UISubclassMap.Find("UserSettingsWidget")) {
+					UIManager->ShowUserSettingsWidget(*UserSettingsWidgetSubclass, 5, false);
+				}
+			}
 		}
 	}
 }

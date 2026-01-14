@@ -7,6 +7,7 @@
 #include "../../UI/CustomHUD/CustomHUD.h"
 #include "../../UI/UsableItemFrame/UsableItemFrame.h"
 #include "../../UI/OnScreenMessage/OnScreenMessage.h"
+#include "../../DataAsset/UIDataAsset.h"
 #include "../../AttributeSet/AttributeSet_PlayableCharacter.h"
 #include "../../Interface/HaveAttributeSet.h"
 #include "PlayerHUDComponent.generated.h"
@@ -36,6 +37,9 @@ public:
 
 	UFUNCTION()
 	void DisplayMatchStatusMessage(EMatchStatus inMatchStatus);
+
+	void DisplayPauseUI();
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties|HUDSubclass")
 	TSubclassOf<UCustomHUD> MainHUDSubclass;
@@ -45,6 +49,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties|OnScreenMessageSubclass")
 	TSubclassOf<UOnScreenMessage> OnScreenMessageSubclass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|DA_UI")
+	TObjectPtr<UUIDataAsset> DA_UI;
 
 	UPROPERTY()
 	TObjectPtr<UCustomHUD> MainHUD = nullptr;

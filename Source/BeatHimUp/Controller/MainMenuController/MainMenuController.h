@@ -36,6 +36,10 @@ protected:
 
 	FTimerHandle GetFriendlistTimerHandle;
 
+	FTimerHandle MoveToNewLevelHandle;
+
+	float MoveToNewlevelDelay = 5.0f;
+
 	void BeginPlay() override;
 
 	void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -64,6 +68,8 @@ protected:
 
 	void OnBeKickFromLobbyReceived(const FString& Message);
 
+	void OnStartGameReceived(const FString& Message);
+
 	void OnSentFriendRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
 
 	void OnAcceptFriendRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
@@ -86,9 +92,13 @@ protected:
 
 	void OnKickMemberFromLobbyComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
 
+	void OnStartGameComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
 	void FriendlistResponseCallback(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
 
 	void FriendRequestResponseCallback(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
+	void MoveToNewLevel(FName Address);
 
 public:
 
@@ -118,6 +128,8 @@ public:
 	void LeaveLobby();
 
 	void KickMemberFromLobby(const FString& receiver);
+
+	void StartGame();
 
 	TSubclassOf<UUserWidget> GetMenuWidgetSubclass(const FName& WidgetKey) {
 		if (IsValid(MainMenu)) {

@@ -51,6 +51,9 @@ protected:
 	FReply NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 
 	void UpdateMenuAccordingToLobbyUpdate(const FLobbyInfo& LobbyInfo);
+
+	UFUNCTION()
+	void StartGame();
 public:
 	UFUNCTION(Client, Unreliable)
 	void DisplayOnlyCloseAlert(const FString& message);

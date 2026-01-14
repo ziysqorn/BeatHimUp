@@ -102,6 +102,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
 	UInputAction* IA_NextSpectatedPlayer = nullptr;
 
+	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
+	UInputAction* IA_PauseGame = nullptr;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | Detect Box Extent")
 	FVector DetectBoxExtent;
 

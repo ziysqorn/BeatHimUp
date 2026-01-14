@@ -42,6 +42,9 @@ protected:
 	TObjectPtr<UButton> Btn_AddFriend;
 
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	TObjectPtr<UButton> Btn_Settings;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	TObjectPtr<UButton> Btn_Logout;
 
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
@@ -77,6 +80,9 @@ protected:
 
 	UFUNCTION()
 	void ConfirmLogout();
+
+	UFUNCTION()
+	void OpenSettings();
 
 	UFUNCTION()
 	void SetCustomInputMode();

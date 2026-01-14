@@ -3,12 +3,16 @@
 
 #include "MyGameInstance.h"
 #include "../Subsystems/ServiceControllerSubsystem/ServiceControllerSubsystem.h"
+#include "../Subsystems/UIManager/UIManagerSubsystem.h"
 
 void UMyGameInstance::Init()
 {
 	Super::Init();
 
 	FCoreDelegates::OnHandleSystemError.AddUObject(this, &UMyGameInstance::LogoutProcess);
+	if (UUIManagerSubsystem* UISubs = GetSubsystem<UUIManagerSubsystem>()) {
+		FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(UISubs, &UUIManagerSubsystem::PostLoadMapPreparation);
+	}
 }
 
 void UMyGameInstance::Shutdown()
@@ -20,9 +24,9 @@ void UMyGameInstance::Shutdown()
 void UMyGameInstance::LogoutProcess()
 {
 	if (UServiceControllerSubsystem* ServiceController = this->GetSubsystem<UServiceControllerSubsystem>()) {
-		if (ServiceController->LobbyController) {
-			ServiceController->LobbyController->LeaveLobby(FHttpRequestCompleteDelegate());
-		}
+		//if (ServiceController->LobbyController) {
+		//	ServiceController->LobbyController->LeaveLobby(FHttpRequestCompleteDelegate());
+		//}
 		if (IsValid(ServiceController->UserAccountController)) {
 			FHttpRequestCompleteDelegate LogoutRequestCompleteDel;
 			LogoutRequestCompleteDel.BindUObject(this, &UMyGameInstance::LogoutRequestComplete);
@@ -190,4 +194,18 @@ void UMyGameInstance::ClearClientInfo()
 	LobbyInvitationList.Empty();
 	FriendlistIdxMap.Empty();
 	LobbyInvitationIdxMap.Empty();
+}
+
+void UMyGameInstance::SetupGraphicsPresets(int Quality)
+{
+	if (GEngine) {
+		if (UGameUserSettings* GameUserSettings = GEngine->GetGameUserSettings()) {
+			GameUserSettings->SetViewDistanceQuality(Quality);
+			GameUserSettings->SetAntiAliasingQuality(Quality);
+			GameUserSettings->SetShadowQuality(Quality);
+			GameUserSettings->SetPostProcessingQuality(Quality);
+			GameUserSettings->SetTextureQuality(Quality);
+			GameUserSettings->SetVisualEffectQuality(Quality);
+		}
+	}
 }

@@ -94,12 +94,17 @@ struct FLobbyInfo {
 	UPROPERTY()
 	int MaxMember;
 
-	FLobbyInfo() : LobbyName(NAME_None), Leader_Username(NAME_None), Members(TArray<FPlayerInfo>()), MaxMember(5) {}
-	FLobbyInfo(FName inLobbyName, FName inLeader, const TArray<FPlayerInfo>& inMembers, int inMaxMember) : 
+	UPROPERTY()
+	FString Status;
+
+	FLobbyInfo() : LobbyName(NAME_None), Leader_Username(NAME_None), Members(TArray<FPlayerInfo>()), MaxMember(5), Status(TEXT("")) {}
+	FLobbyInfo(FName inLobbyName, FName inLeader, const TArray<FPlayerInfo>& inMembers, int inMaxMember, FString inStatus) : 
 		LobbyName(inLobbyName),
 		Leader_Username(inLeader),
 		Members(inMembers),
-		MaxMember(inMaxMember) {}
+		MaxMember(inMaxMember),
+		Status(inStatus)
+	{}
 
 	FLobbyInfo& operator=(const FLobbyInfo& Other) {
 		if (this == &Other) {
@@ -110,6 +115,7 @@ struct FLobbyInfo {
 		this->Leader_Username = Other.Leader_Username;
 		this->Members = Other.Members;
 		this->MaxMember = Other.MaxMember;
+		this->Status = Other.Status;
 		return *this;
 	}
 };

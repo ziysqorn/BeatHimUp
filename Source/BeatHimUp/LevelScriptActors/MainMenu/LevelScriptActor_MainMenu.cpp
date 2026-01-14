@@ -50,7 +50,9 @@ void ALevelScriptActor_MainMenu::UpdatePlayerPreviewerList(const FLobbyInfo& Lob
 					}
 				}
 			}
-			CurrentPreviewerIdx = ToUseIdx + 1;
+			if (CurrentPreviewerIdx == ToUseIdx) {
+				CurrentPreviewerIdx = ToUseIdx + 1;
+			}
 		}
 	}
 }

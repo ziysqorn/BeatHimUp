@@ -4,6 +4,7 @@
 #include "PlayerHUDComponent.h"
 #include "../../CustomGameState/MainGameState.h"
 #include "../../Controller/MainController/MainController.h"
+#include "../../Subsystems/UIManager/UIManagerSubsystem.h"
 #include "../../Interface/CanUseItem.h"
 #include "../../Interface/HaveHealthAttribute.h"
 #include "../../Interface/HaveStaminaAttribute.h"
@@ -148,6 +149,19 @@ void UPlayerHUDComponent::DisplayMatchStatusMessage(EMatchStatus inMatchStatus)
 			break;
 		default:
 			break;
+		}
+	}
+}
+
+void UPlayerHUDComponent::DisplayPauseUI()
+{
+	if (IsValid(DA_UI)) {
+		if (UGameInstance* MyGameInstance = GetWorld()->GetGameInstance()) {
+			if (UUIManagerSubsystem* UIManager = MyGameInstance->GetSubsystem<UUIManagerSubsystem>()) {
+				if (TSubclassOf<UUserWidget>* UserSettingsWidgetSubclass = DA_UI->UISubclassMap.Find("UserSettingsWidget")) {
+					UIManager->ShowUserSettingsWidget(*UserSettingsWidgetSubclass, 5, true);
+				}
+			}
 		}
 	}
 }

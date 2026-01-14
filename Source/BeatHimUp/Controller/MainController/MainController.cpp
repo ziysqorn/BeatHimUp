@@ -82,6 +82,13 @@ void AMainController::SetWidgetToLockTarget(AActor* Target)
 	}
 }
 
+void AMainController::PauseGame()
+{
+	if (IsValid(PlayerHUDComp)) {
+		PlayerHUDComp->DisplayPauseUI();
+	}
+}
+
 void AMainController::Server_RequestEndGame_Implementation(EMatchStatus inMatchStatus)
 {
 	if (AMainGameMode* MainGM = GetWorld()->GetAuthGameMode<AMainGameMode>()) {

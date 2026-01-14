@@ -25,4 +25,5 @@ public:
 	void MakeLeader(const FString& receiver, const FHttpRequestCompleteDelegate& callback);
 	void LeaveLobby(const FHttpRequestCompleteDelegate& callback);
 	void KickMemberFromLobby(const FString& receiver, const FHttpRequestCompleteDelegate& callback);
+	void StartGame(const FHttpRequestCompleteDelegate& callback);
 };
