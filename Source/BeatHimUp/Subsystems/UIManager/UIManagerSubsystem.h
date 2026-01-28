@@ -32,10 +32,8 @@ protected:
 	TObjectPtr<UUserSettingsWidget> UserSettingWidget;
 
 public:
-	UFUNCTION(Client, Reliable)
 	void AddWidget(UUserWidget* inWidget);
 
-	UFUNCTION(Client, Reliable)
 	void PopLastWidget();
 
 	TWeakObjectPtr<UUserWidget>& GetTopWidget();
@@ -62,7 +60,7 @@ public:
 
 	void PostLoadMapPreparation(UWorld* InLoadedWorld);
 
-	void ShowUserSettingsWidget(TSubclassOf<UUserWidget> WidgetSubclass, int32 ZOrder, bool bShouldHideCursorAfterRemoved);
+	void ShowUserSettingsWidget(TSubclassOf<UUserWidget> WidgetSubclass, int32 ZOrder);
 
 	void RemoveUserSettingsWidget();
 };

@@ -29,6 +29,22 @@ public:
 		return Health.GetCurrentValue() / MaxHealth.GetCurrentValue();
 	}
 
+	float GetBaseMaxHealth() const override {
+		return MaxHealth.GetBaseValue();
+	}
+
+	float GetCurrentBaseHealth() const override {
+		return Health.GetBaseValue();
+	}
+
+	void SetBaseMaxHealth(float inMaxHealth) override {
+		MaxHealth.SetBaseValue(inMaxHealth);
+	}
+
+	void SetCurrentBaseHealth(float inHealth) override {
+		Health.SetBaseValue(inHealth);
+	}
+
 	ATTRIBUTE_ACCESSORS(UAS_AICharacter, Health)
 	ATTRIBUTE_ACCESSORS(UAS_AICharacter, MaxHealth)
 

@@ -19,14 +19,16 @@ class BEATHIMUP_API UHealthbarWidgetComponent : public UWidgetComponent
 
 protected:
 	UPROPERTY()
-	TObjectPtr<AActor> CustomOwner = nullptr;
+	TObjectPtr<APawn> CustomOwner = nullptr;
 
 	void InitWidget() override;
 
 public:
-	void SetCustomOwner(AActor* inOwner) {
+	void SetCustomOwner(APawn* inOwner) {
 		CustomOwner = inOwner;
 	}
 
 	void SetupHealthbarUI();
+
+	void SetHeadInfo(const FPlayerInfo& InInfo);
 };

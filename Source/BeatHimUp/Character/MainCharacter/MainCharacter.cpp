@@ -5,6 +5,7 @@
 #include "../../GameplayAbilities/GA_Move.h"
 #include "../../GameplayAbilities/GA_Dead.h"
 #include "../../CustomGameState/MainGameState.h"
+#include "../../PlayerState/MainPlayerState.h"
 
 
 AMainCharacter::AMainCharacter()
@@ -190,6 +191,27 @@ void AMainCharacter::NetMulticast_LockTarget_Implementation()
 						OnLockTargetDel.Broadcast(LockedOnTarget.Get());
 				}
 			}
+			/*TArray<FHitResult> Hits;
+			FCollisionObjectQueryParams ObjectFilter;
+			FCollisionQueryParams AdditionParams;
+			ObjectFilter.AddObjectTypesToQuery(ECollisionChannel::ECC_Pawn);
+			AdditionParams.AddIgnoredActor(this);
+			FVector CameraForwardDir = CineCameraComp->GetForwardVector();
+			FRotator BoxRotation = CameraForwardDir.Rotation();
+			FVector EndLocation = CineCameraComp->GetComponentLocation() + CameraForwardDir * 2000.0f;
+			if (GetWorld()->SweepMultiByObjectType(Hits, CineCameraComp->GetComponentLocation() + CameraForwardDir * 1200.0f, EndLocation, BoxRotation.Quaternion(), ObjectFilter, FCollisionShape::MakeBox(DetectBoxExtent), AdditionParams)) {
+				for (int i = 0; i < Hits.Num(); ++i) {
+					if (IsValid(Hits[i].GetActor()) && this->GetClass() != Hits[i].GetActor()->GetClass()) {
+						LockedOnTarget = Hits[i].GetActor();
+						CharMovementComponent->MaxWalkSpeed = 250.0f;
+						CharMovementComponent->bOrientRotationToMovement = false;
+						CharMovementComponent->bUseControllerDesiredRotation = true;
+						bUseControllerRotationYaw = true;
+						if (OnLockTargetDel.IsBound())
+							OnLockTargetDel.Broadcast(LockedOnTarget.Get());
+					}
+				}
+			}*/
 		}
 	}
 }
@@ -203,10 +225,12 @@ void AMainCharacter::RotateToLockTarget(float DeltaTime)
 			float TargetSocketOffsetY = 100.0f;
 			//float TargetSocketOffsetZ = 200.0f;
 			if (APlayerController* PC = this->GetController<APlayerController>()) {
+				TargetRotation.Pitch = FMath::Clamp(TargetRotation.Pitch, -30.0f, 30.0f);
 				FRotator NewRot = FMath::RInterpTo(GetControlRotation(), TargetRotation, DeltaTime, 10.0f);
 				PC->SetControlRotation(NewRot);
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, FString::Format(TEXT("{0}"), { NewRot.ToString() }));
 				if (IsValid(SpringArmComp)) {
-					SpringArmComp->SocketOffset.Y = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, TargetSocketOffsetY, DeltaTime, 10.0f);
+					//SpringArmComp->SocketOffset.Y = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, TargetSocketOffsetY, DeltaTime, 10.0f);
 					//SpringArmComp->SocketOffset.Z = FMath::FInterpTo(SpringArmComp->SocketOffset.Z, TargetSocketOffsetZ, DeltaTime, 10.0f);
 				}
 			}
@@ -214,7 +238,7 @@ void AMainCharacter::RotateToLockTarget(float DeltaTime)
 	}
 	else {
 		if (IsValid(SpringArmComp)) {
-			SpringArmComp->SocketOffset.Y = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, 0.0f, DeltaTime, 1.0f);
+			//SpringArmComp->SocketOffset.Y = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, 0.0f, DeltaTime, 1.0f);
 			//SpringArmComp->SocketOffset.Z = FMath::FInterpTo(SpringArmComp->SocketOffset.Z, 150.0f, DeltaTime, 1.0f);
 		}
 	}
@@ -325,6 +349,14 @@ void AMainCharacter::Hurt_Implementation(const float& remainHealth, const float&
 	}
 }
 
+void AMainCharacter::OnRep_PlayerState()
+{
+	if (AMainPlayerState* MainPlayerState = GetPlayerState<AMainPlayerState>()) {
+		if (IsValid(WidgetComp)) {
+			MainPlayerState->OnPlayerInfoRepDel.AddUObject(WidgetComp, &UHealthbarWidgetComponent::SetHeadInfo);
+		}
+	}
+}
 
 void AMainCharacter::ExecuteAfterDeathBehaviour(AController* inInstigator, AActor* DamageCauser)
 {

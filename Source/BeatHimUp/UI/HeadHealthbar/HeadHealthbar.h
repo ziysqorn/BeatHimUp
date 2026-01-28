@@ -15,10 +15,10 @@ class BEATHIMUP_API UHeadHealthbar : public UUserWidget
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "BossHealth", meta = (BindWidget))
+	UPROPERTY(EditDefaultsOnly, Category = "ProgressBar_Health", meta = (BindWidget))
 	TObjectPtr<UProgressBar> ProgressBar_Health = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "BossName", meta = (BindWidget))
+	UPROPERTY(EditDefaultsOnly, Category = "PawnNameText", meta = (BindWidget))
 	TObjectPtr<UTextBlock> Txt_Name = nullptr;
 
 	void NativeOnInitialized() override;
@@ -30,7 +30,7 @@ public:
 		if (IsValid(ProgressBar_Health)) ProgressBar_Health->PercentDelegate.BindUFunction(inObject, funcName);
 	}
 
-	void SetNameText(FText inText) {
-		if (IsValid(Txt_Name)) Txt_Name->SetText(inText);
+	void SetNameText(const FString& inName) {
+		if (IsValid(Txt_Name)) Txt_Name->SetText(FText::FromString(inName));
 	}
 };

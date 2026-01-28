@@ -7,6 +7,8 @@
 #include "../../ServiceController/UserAccountController/UserAccountController.h"
 #include "../../ServiceController/FriendlistController/FriendlistController.h"
 #include "../../ServiceController/LobbyController/LobbyController.h"
+#include "../../ServiceController/InGameController/InGameController.h"
+#include "../../ServiceController/GameServerController/GameServerController.h"
 #include "ServiceControllerSubsystem.generated.h"
 
 /**
@@ -37,6 +39,12 @@ public:
 
 	UPROPERTY()
 	TObjectPtr<ULobbyController> LobbyController;
+
+	UPROPERTY()
+	TObjectPtr<UInGameController> InGameController;
+
+	UPROPERTY()
+	TObjectPtr<UGameServerController> GameServerController;
 
 	FOnWSMessageReceive WSMessageReceiveDel;
 

@@ -2,6 +2,7 @@
 
 
 #include "UsableItem.h"
+#include "../../Interface/CanUseItem.h"
 
 UUsableItem::UUsableItem()
 {
@@ -9,6 +10,13 @@ UUsableItem::UUsableItem()
 
 void UUsableItem::OnRep_Quantity(int OldQuantity)
 {
+	if (ICanUseItem* CanUseItem = Cast<ICanUseItem>(this->GetOuter())) {
+		if (UItemComponent* ItemComp = CanUseItem->GetItemComponent()) {
+			if (ItemComp->OnItemQuantityChangedDel.IsBound()) {
+				ItemComp->OnItemQuantityChangedDel.Broadcast(this);
+			}
+		}
+	}
 }
 
 void UUsableItem::OnRep_MaxQuantity(int OldMaxQuantity)

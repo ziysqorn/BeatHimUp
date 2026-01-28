@@ -4,46 +4,56 @@
 
 #include "CoreMinimal.h"
 #include "../ProjectIncludes.h"
-#include "../CustomInfo/TeamState/TeamState.h"
 #include "MainPlayerState.generated.h"
 
 /**
  * 
  */
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerInfoRep, const FPlayerInfo&)
+
 UCLASS()
 class BEATHIMUP_API AMainPlayerState : public APlayerState
 {
 	GENERATED_BODY()
 	
 protected:
-	UPROPERTY(ReplicatedUsing=OnRep_Username)
-	FName Username;
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_PlayerInfo)
+	FPlayerInfo PlayerInfo;
 
-	UPROPERTY(ReplicatedUsing=OnRep_OnlineStatus)
-	bool OnlineStatus = false;
-
-	TArray<FName> Friends;
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_LobbyInfo)
+	FLobbyInfo LobbyInfo;
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION()
-	virtual void OnRep_Username() {
-	}
+	void OnRep_PlayerInfo();
 
 	UFUNCTION()
-	virtual void OnRep_OnlineStatus() {
-	}
+	void OnRep_LobbyInfo();
+
+	UFUNCTION(Server, Reliable)
+	void Server_SendPlayerInfoToPlayerState(const FPlayerInfo& Info);
+
+	UFUNCTION(Server, Reliable)
+	void Server_SendLobbyInfoToPlayerState(const FLobbyInfo& Info);
+
+	UFUNCTION(Server, Reliable)
+	void Server_SendLobbyID(const FString& LobbyID);
+
+	void BeginPlay() override;
 
 public:
 	AMainPlayerState();
 
-	const FName& GetUsername() {
-		return Username;
+	FOnPlayerInfoRep OnPlayerInfoRepDel;
+
+	UFUNCTION(Client, Reliable)
+	void Client_RequestPlayerInfo();
+
+	UFUNCTION(Client, Reliable)
+	void Client_RequestLobbyInfo();
+
+	const FPlayerInfo* GetPlayerInfo() {
+		return &PlayerInfo;
 	}
-
-	UFUNCTION(Server, Reliable)
-	void SetUsername(const FName& inName);
-
-	UFUNCTION(Server, Reliable)
-	void SetOnlineStatus(bool inStatus);
 };

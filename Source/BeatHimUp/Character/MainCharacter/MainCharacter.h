@@ -135,7 +135,7 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void Server_LeftWeaponCompleted();
 
-	UFUNCTION(Server, Unreliable)
+	UFUNCTION(Server, Reliable)
 	void Server_LockTargetTriggered();
 
 	UFUNCTION(NetMulticast, Reliable)
@@ -169,6 +169,8 @@ protected:
 	FOnDeath& OnDeath() override {
 		return OnDeathDel;
 	}
+
+	void OnRep_PlayerState() override;
 
 	void ExecuteAfterDeathBehaviour(AController * inInstigator, AActor* DamageCauser) override;
 private:

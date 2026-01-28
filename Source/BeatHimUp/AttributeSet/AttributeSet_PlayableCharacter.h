@@ -29,10 +29,34 @@ public:
 	float GetHealthPercentage() const override {
 		return Health.GetCurrentValue() / MaxHealth.GetCurrentValue();
 	}
+	
+	float GetBaseMaxHealth() const override {
+		return MaxHealth.GetBaseValue();
+	}
+
+	float GetCurrentBaseHealth() const override {
+		return Health.GetBaseValue();
+	}
+
+	void SetBaseMaxHealth(float inMaxHealth) override {
+		MaxHealth.SetBaseValue(inMaxHealth);
+	}
+
+	void SetCurrentBaseHealth(float inHealth) override {
+		Health.SetBaseValue(inHealth);
+	}
 
 	UFUNCTION()
 	float GetStaminaPercentage() const override {
 		return Stamina.GetCurrentValue() / MaxStamina.GetCurrentValue();
+	}
+
+	float GetBaseMaxStamina() const override {
+		return MaxStamina.GetBaseValue();
+	}
+
+	void SetBaseMaxStamina(float inMaxStamina) override {
+		MaxStamina.SetBaseValue(inMaxStamina);
 	}
 
 	ATTRIBUTE_ACCESSORS(UAttributeSet_PlayableCharacter, Health)

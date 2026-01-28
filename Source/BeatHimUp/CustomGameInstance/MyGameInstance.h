@@ -12,6 +12,7 @@
  * 
  */
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnLobbyUpdate, const FLobbyInfo&)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnLobbyIDChange, const FString&)
 
 UCLASS()
 class BEATHIMUP_API UMyGameInstance : public UGameInstance
@@ -45,16 +46,24 @@ protected:
 
 	int CurrentOnlineFriendNum = 0;
 
+	bool bMustShutdown = false;
+
 	UPROPERTY(EditDefaultsOnly, Category = "DA_UI")
 	TObjectPtr<UUIDataAsset> DA_UI;
 
 	void Init() override;
 	void Shutdown() override;
 
+	void ApplySavedGraphicSettings();
+
 public:
 	FOnLobbyUpdate OnLobbyUpdateDel;
 
+	FOnLobbyIDChange OnLobbyIDChangeDel;
+
 	void LogoutProcess();
+
+	void CrashHandle();
 
 	void LogoutRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
 
@@ -162,21 +171,13 @@ public:
 
 	void ClearClientInfo();
 
-	void SetupGraphicsPresets(int Quality);
+	void OnPlayerJoinLobby(const FString& Message);
 
-	void SetupFrameRateLimit(float Limit) {
-		if (GEngine) {
-			if (UGameUserSettings* GameUserSettings = GEngine->GetGameUserSettings()) {
-				GameUserSettings->SetFrameRateLimit(Limit);
-			}
-		}
-	}
+	void OnLobbyInvitationAcceptedReceived(const FString& Message);
 
-	void SetupVsyncEnabled(bool isEnabled) {
-		if (GEngine) {
-			if (UGameUserSettings* GameUserSettings = GEngine->GetGameUserSettings()) {
-				GameUserSettings->SetVSyncEnabled(isEnabled);
-			}
-		}
-	}
+	void OnLobbyLeaveReceived(const FString& Message);
+
+	void OnMakeLeaderReceived(const FString& Message);
+
+	void OnBeKickFromLobbyReceived(const FString& Message);
 };

@@ -131,7 +131,7 @@ void UPlayerHUDComponent::DisplayMatchStatusMessage(EMatchStatus inMatchStatus)
 			OnScreenMessage->SetMessageText(FText::FromString(TEXT("YOU WON !")));
 			OnScreenMessage->SetMessageColor(TEXT("#0ec208"));
 			OnScreenMessage->SetAfterFinishedFadeinDelay(2.0f);
-			OnScreenMessage->AfterFinishedFadeinDel.BindUObject(PlayerController, &AMainController::Server_RequestEndGame, inMatchStatus);
+			OnScreenMessage->AfterFinishedFadeinDel.BindUObject(PlayerController, &AMainController::EndGameProcess, inMatchStatus);
 			OnScreenMessage->AddToViewport(99);
 			OnScreenMessage->PlayMessageFadein();
 			break;
@@ -143,7 +143,7 @@ void UPlayerHUDComponent::DisplayMatchStatusMessage(EMatchStatus inMatchStatus)
 			OnScreenMessage->SetMessageText(FText::FromString(TEXT("YOU LOSE !")));
 			OnScreenMessage->SetMessageColor(TEXT("#e60e0e"));
 			OnScreenMessage->SetAfterFinishedFadeinDelay(2.0f);
-			OnScreenMessage->AfterFinishedFadeinDel.BindUObject(PlayerController, &AMainController::Server_RequestEndGame, inMatchStatus);
+			OnScreenMessage->AfterFinishedFadeinDel.BindUObject(PlayerController, &AMainController::EndGameProcess, inMatchStatus);
 			OnScreenMessage->AddToViewport(99);
 			OnScreenMessage->PlayMessageFadein();
 			break;
@@ -159,7 +159,7 @@ void UPlayerHUDComponent::DisplayPauseUI()
 		if (UGameInstance* MyGameInstance = GetWorld()->GetGameInstance()) {
 			if (UUIManagerSubsystem* UIManager = MyGameInstance->GetSubsystem<UUIManagerSubsystem>()) {
 				if (TSubclassOf<UUserWidget>* UserSettingsWidgetSubclass = DA_UI->UISubclassMap.Find("UserSettingsWidget")) {
-					UIManager->ShowUserSettingsWidget(*UserSettingsWidgetSubclass, 5, true);
+					UIManager->ShowUserSettingsWidget(*UserSettingsWidgetSubclass, 5);
 				}
 			}
 		}

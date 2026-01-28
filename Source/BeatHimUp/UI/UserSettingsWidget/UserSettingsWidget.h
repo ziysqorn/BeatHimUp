@@ -48,8 +48,6 @@ protected:
 	UPROPERTY()
 	TWeakObjectPtr<UWidget> ChosenSettingsTab;
 
-	bool bShouldHideCursorAfterRemoved = true;
-
 	TMap<FString, int> QualityMap;
 
 	void NativeOnInitialized() override;
@@ -85,8 +83,4 @@ protected:
 	void UpdateSettingsTabHighlight(UWidget* ChosenTab);
 
 	FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
-public:
-	void SetHideMouseCursorAfterRemoved(bool inBool) {
-		bShouldHideCursorAfterRemoved = inBool;
-	}
 };

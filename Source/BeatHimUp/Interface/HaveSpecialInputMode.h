@@ -4,11 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "../ProjectIncludes.h"
-#include "HaveStaminaAttribute.generated.h"
+
+#include "HaveSpecialInputMode.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UHaveStaminaAttribute : public UInterface
+class UHaveSpecialInputMode : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -16,15 +17,11 @@ class UHaveStaminaAttribute : public UInterface
 /**
  * 
  */
-class BEATHIMUP_API IHaveStaminaAttribute
+class BEATHIMUP_API IHaveSpecialInputMode
 {
 	GENERATED_BODY()
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	virtual float GetStaminaPercentage() const = 0;
-
-	virtual float GetBaseMaxStamina() const = 0;
-
-	virtual void SetBaseMaxStamina(float inMaxStamina) = 0;
+	virtual void HandleAfterUIRemove() = 0;
 };

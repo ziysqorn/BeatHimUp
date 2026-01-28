@@ -54,6 +54,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayTagAssetInterface.h"
 #include "UObject/Interface.h"
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/WidgetTree.h"

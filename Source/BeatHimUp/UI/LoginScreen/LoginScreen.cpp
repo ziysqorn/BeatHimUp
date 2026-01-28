@@ -180,7 +180,37 @@ void ULoginScreen::LoginRequestComplete(FHttpRequestPtr pRequest, FHttpResponseP
 					FPlayerInfo PlayerInfo(FName(JsonObj->GetStringField(TEXT("username"))), true);
 					MyGameInstance->SetSecretToken(JsonObj->GetStringField(TEXT("token")));
 					MyGameInstance->SetPlayerInfo(PlayerInfo);
-					UGameplayStatics::OpenLevel(this, FName("Level_MainMenu"));
+					TSharedPtr<FJsonObject> GameServerJsonObj = JsonObj->GetObjectField(TEXT("game_server"));
+					TSharedPtr<FJsonObject> LobbyJsonObj = JsonObj->GetObjectField(TEXT("lobby"));
+					if (UServiceControllerSubsystem* ServiceController = GetGameInstance()->GetSubsystem<UServiceControllerSubsystem>()) {
+						ServiceController->OpenWSConnection();
+						ServiceController->WSMessageReceiveDel.AddUObject(MyGameInstance, &UMyGameInstance::OnPlayerJoinLobby);
+						if (GameServerJsonObj.IsValid()) {
+							FString ServerAddress = GameServerJsonObj->GetStringField(TEXT("address"));
+							if (ServerAddress.IsEmpty()) {
+								UGameplayStatics::OpenLevel(this, FName("Level_MainMenu"));
+							}
+							else {
+								if (LobbyJsonObj.IsValid()) {
+									FName LobbyName = FName(LobbyJsonObj->GetStringField(TEXT("lobby_name")));
+									FName LeaderUsername = FName(LobbyJsonObj->GetStringField(TEXT("leader")));
+									TArray<TSharedPtr<FJsonValue>> MembersJson = LobbyJsonObj->GetArrayField(TEXT("members"));
+									FString Status = LobbyJsonObj->GetStringField(TEXT("status"));
+									TArray<FPlayerInfo> LobbyMembers;
+									for (int i = 0; i < MembersJson.Num(); ++i) {
+										if (MembersJson[i].IsValid()) {
+											FString Username = MembersJson[i]->AsString();
+											FPlayerInfo Member(FName(Username), true);
+											LobbyMembers.Add(Member);
+										}
+									}
+									FLobbyInfo LobbyInfo(LobbyName, LeaderUsername, LobbyMembers, 5, Status);
+									MyGameInstance->SetLobbyInfo(LobbyInfo);
+									UGameplayStatics::OpenLevel(this, FName(ServerAddress));
+								}
+							}
+						}
+					}
 				}
 			}
 			break;

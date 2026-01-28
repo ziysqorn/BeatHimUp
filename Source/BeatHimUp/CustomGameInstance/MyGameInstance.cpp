@@ -4,21 +4,49 @@
 #include "MyGameInstance.h"
 #include "../Subsystems/ServiceControllerSubsystem/ServiceControllerSubsystem.h"
 #include "../Subsystems/UIManager/UIManagerSubsystem.h"
+#include "../Controller/MainController/MainController.h"
 
 void UMyGameInstance::Init()
 {
 	Super::Init();
 
-	FCoreDelegates::OnHandleSystemError.AddUObject(this, &UMyGameInstance::LogoutProcess);
+	FCoreDelegates::OnHandleSystemError.AddUObject(this, &UMyGameInstance::CrashHandle);
+
+	if (!IsDedicatedServerInstance()) {
+		if (UServiceControllerSubsystem* ServiceControllerSubsystem = this->GetSubsystem<UServiceControllerSubsystem>()) {
+			ServiceControllerSubsystem->WSMessageReceiveDel.AddUObject(this, &UMyGameInstance::OnLobbyInvitationAcceptedReceived);
+			ServiceControllerSubsystem->WSMessageReceiveDel.AddUObject(this, &UMyGameInstance::OnLobbyLeaveReceived);
+			ServiceControllerSubsystem->WSMessageReceiveDel.AddUObject(this, &UMyGameInstance::OnMakeLeaderReceived);
+			ServiceControllerSubsystem->WSMessageReceiveDel.AddUObject(this, &UMyGameInstance::OnBeKickFromLobbyReceived);
+		}
+	}
+
 	if (UUIManagerSubsystem* UISubs = GetSubsystem<UUIManagerSubsystem>()) {
 		FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(UISubs, &UUIManagerSubsystem::PostLoadMapPreparation);
 	}
+
+	ApplySavedGraphicSettings();
 }
 
 void UMyGameInstance::Shutdown()
 {
-	Super::Shutdown();
+	bMustShutdown = true;
 	LogoutProcess();
+	Super::Shutdown();
+}
+
+void UMyGameInstance::ApplySavedGraphicSettings()
+{
+	if (GEngine) {
+		if (UGameUserSettings* GameUserSettings = GEngine->GetGameUserSettings()) {
+			GameUserSettings->GetOverallScalabilityLevel() > -1 ? 
+				GameUserSettings->SetOverallScalabilityLevel(GameUserSettings->GetOverallScalabilityLevel()) : GameUserSettings->SetOverallScalabilityLevel(0);
+			GameUserSettings->GetFrameRateLimit() > 0.0f ? 
+				GameUserSettings->SetFrameRateLimit(GameUserSettings->GetFrameRateLimit()) : GameUserSettings->SetFrameRateLimit(60.f);
+			GameUserSettings->SetVSyncEnabled(GameUserSettings->IsVSyncEnabled());
+			GameUserSettings->ApplySettings(false);
+		}
+	}
 }
 
 void UMyGameInstance::LogoutProcess()
@@ -31,8 +59,17 @@ void UMyGameInstance::LogoutProcess()
 			FHttpRequestCompleteDelegate LogoutRequestCompleteDel;
 			LogoutRequestCompleteDel.BindUObject(this, &UMyGameInstance::LogoutRequestComplete);
 			ServiceController->UserAccountController->LogoutUser(this->SecretToken, LogoutRequestCompleteDel);
+			if (bMustShutdown) {
+				ServiceController->CloseWSConnection();
+			}
 		}
 	}
+}
+
+void UMyGameInstance::CrashHandle()
+{
+	bMustShutdown = true;
+	LogoutProcess();
 }
 
 void UMyGameInstance::LogoutRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully) {
@@ -196,16 +233,160 @@ void UMyGameInstance::ClearClientInfo()
 	LobbyInvitationIdxMap.Empty();
 }
 
-void UMyGameInstance::SetupGraphicsPresets(int Quality)
+void UMyGameInstance::OnPlayerJoinLobby(const FString& Message)
 {
-	if (GEngine) {
-		if (UGameUserSettings* GameUserSettings = GEngine->GetGameUserSettings()) {
-			GameUserSettings->SetViewDistanceQuality(Quality);
-			GameUserSettings->SetAntiAliasingQuality(Quality);
-			GameUserSettings->SetShadowQuality(Quality);
-			GameUserSettings->SetPostProcessingQuality(Quality);
-			GameUserSettings->SetTextureQuality(Quality);
-			GameUserSettings->SetVisualEffectQuality(Quality);
+	TSharedPtr<FJsonObject> messageObj;
+	TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(Message);
+	if (FJsonSerializer::Deserialize(reader, messageObj)) {
+		if (messageObj.IsValid()) {
+			FString resource = messageObj->GetStringField(TEXT("resource"));
+			FString action = messageObj->GetStringField(TEXT("action"));
+			if (resource == TEXT("lobby") && action == TEXT("player_join")) {
+				TSharedPtr<FJsonObject> payloadObj = messageObj->GetObjectField(TEXT("payload"));
+				if (payloadObj.IsValid()) {
+					FString NewPlayerUsername = payloadObj->GetStringField(TEXT("username"));
+					FPlayerInfo NewMember(FName(NewPlayerUsername), true);
+					AddToLobby(NewMember);
+				}
+			}
+		}
+	}
+}
+
+void UMyGameInstance::OnLobbyLeaveReceived(const FString& Message)
+{
+	TSharedPtr<FJsonObject> messageObj;
+	TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(Message);
+	if (FJsonSerializer::Deserialize(reader, messageObj)) {
+		if (messageObj.IsValid()) {
+			FString resource = messageObj->GetStringField(TEXT("resource"));
+			FString action = messageObj->GetStringField(TEXT("action"));
+			if (resource == TEXT("lobby")) {
+				if (action == TEXT("leave") || action == TEXT("kick_member")) {
+					TSharedPtr<FJsonObject> payloadObj = messageObj->GetObjectField(TEXT("payload"));
+					if (payloadObj.IsValid()) {
+						TSharedPtr<FJsonObject> lobbyObj = payloadObj->GetObjectField(TEXT("lobby"));
+						if (lobbyObj.IsValid()) {
+							FName LeftUsername = FName(payloadObj->GetStringField(TEXT("left_user")));
+							if (!LeftUsername.IsEqual(this->GetLobbyInfo().Leader_Username)) {
+								FString CurrentLeaderUsername = lobbyObj->GetStringField(TEXT("leader"));
+								this->RemoveFromLobby(LeftUsername, FName(CurrentLeaderUsername));
+							}
+							else {
+								FName LobbyName = FName(lobbyObj->GetStringField(TEXT("lobby_name")));
+								FName LeaderUsername = FName(lobbyObj->GetStringField(TEXT("leader")));
+								TArray<TSharedPtr<FJsonValue>> MembersJson = lobbyObj->GetArrayField(TEXT("members"));
+								FString Status = lobbyObj->GetStringField(TEXT("status"));
+								TArray<FPlayerInfo> LobbyMembers;
+								for (int i = 0; i < MembersJson.Num(); ++i) {
+									if (MembersJson[i].IsValid()) {
+										FString Username = MembersJson[i]->AsString();
+										FPlayerInfo Member(FName(Username), true);
+										LobbyMembers.Add(Member);
+									}
+								}
+								FLobbyInfo NewLobbyInfo(LobbyName, LeaderUsername, LobbyMembers, 5, Status);
+								this->SetLobbyInfo(NewLobbyInfo);
+								FString LobbyID;
+								if (lobbyObj->TryGetStringField(TEXT("lobby_id"), LobbyID)) {
+									if (OnLobbyIDChangeDel.IsBound()) {
+										OnLobbyIDChangeDel.Broadcast(LobbyID);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void UMyGameInstance::OnLobbyInvitationAcceptedReceived(const FString& Message)
+{
+	TSharedPtr<FJsonObject> messageObj;
+	TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(Message);
+	if (FJsonSerializer::Deserialize(reader, messageObj)) {
+		if (messageObj.IsValid()) {
+			FString resource = messageObj->GetStringField(TEXT("resource"));
+			FString action = messageObj->GetStringField(TEXT("action"));
+			if (resource == TEXT("lobby_invitation") && action == TEXT("accept")) {
+				TSharedPtr<FJsonObject> payloadObj = messageObj->GetObjectField(TEXT("payload"));
+				if (payloadObj.IsValid()) {
+					FString sender = payloadObj->GetStringField(TEXT("sender"));
+					FString receiver = payloadObj->GetStringField(TEXT("receiver"));
+					FPlayerInfo NewMember(FName(receiver), true);
+					this->AddToLobby(NewMember);
+				}
+			}
+		}
+	}
+}
+
+void UMyGameInstance::OnMakeLeaderReceived(const FString& Message)
+{
+	TSharedPtr<FJsonObject> messageObj;
+	TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(Message);
+	if (FJsonSerializer::Deserialize(reader, messageObj)) {
+		if (messageObj.IsValid()) {
+			FString resource = messageObj->GetStringField(TEXT("resource"));
+			FString action = messageObj->GetStringField(TEXT("action"));
+			if (resource == TEXT("lobby") && action == TEXT("make_leader")) {
+				TSharedPtr<FJsonObject> payloadObj = messageObj->GetObjectField(TEXT("payload"));
+				if (payloadObj.IsValid()) {
+					TSharedPtr<FJsonObject> lobbyObj = payloadObj->GetObjectField(TEXT("lobby"));
+					if (lobbyObj.IsValid()) {
+						FName LobbyName = FName(lobbyObj->GetStringField(TEXT("lobby_name")));
+						FName LeaderUsername = FName(lobbyObj->GetStringField(TEXT("leader")));
+						TArray<TSharedPtr<FJsonValue>> MembersJson = lobbyObj->GetArrayField(TEXT("members"));
+						FString Status = lobbyObj->GetStringField(TEXT("status"));
+						TArray<FPlayerInfo> LobbyMembers;
+						for (int i = 0; i < MembersJson.Num(); ++i) {
+							if (MembersJson[i].IsValid()) {
+								FString Username = MembersJson[i]->AsString();
+								FPlayerInfo Member(FName(Username), true);
+								LobbyMembers.Add(Member);
+							}
+						}
+						FLobbyInfo NewLobbyInfo(LobbyName, LeaderUsername, LobbyMembers, 5, Status);
+						this->SetLobbyInfo(NewLobbyInfo);
+					}
+				}
+			}
+		}
+	}
+}
+
+void UMyGameInstance::OnBeKickFromLobbyReceived(const FString& Message)
+{
+	TSharedPtr<FJsonObject> messageObj;
+	TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(Message);
+	if (FJsonSerializer::Deserialize(reader, messageObj)) {
+		if (messageObj.IsValid()) {
+			FString resource = messageObj->GetStringField(TEXT("resource"));
+			FString action = messageObj->GetStringField(TEXT("action"));
+			if (resource == TEXT("lobby") && action == TEXT("is_kick")) {
+				TSharedPtr<FJsonObject> payloadObj = messageObj->GetObjectField(TEXT("payload"));
+				if (payloadObj.IsValid()) {
+					TSharedPtr<FJsonObject> lobbyObj = payloadObj->GetObjectField(TEXT("lobby"));
+					if (lobbyObj.IsValid()) {
+						FName LobbyName = FName(lobbyObj->GetStringField(TEXT("lobby_name")));
+						FName LeaderUsername = FName(lobbyObj->GetStringField(TEXT("leader")));
+						TArray<TSharedPtr<FJsonValue>> MembersJson = lobbyObj->GetArrayField(TEXT("members"));
+						FString Status = lobbyObj->GetStringField(TEXT("status"));
+						TArray<FPlayerInfo> LobbyMembers;
+						for (int i = 0; i < MembersJson.Num(); ++i) {
+							if (MembersJson[i].IsValid()) {
+								FString Username = MembersJson[i]->AsString();
+								FPlayerInfo Member(FName(Username), true);
+								LobbyMembers.Add(Member);
+							}
+						}
+						FLobbyInfo NewLobbyInfo(LobbyName, LeaderUsername, LobbyMembers, 5, Status);
+						this->SetLobbyInfo(NewLobbyInfo);
+					}
+				}
+			}
 		}
 	}
 }

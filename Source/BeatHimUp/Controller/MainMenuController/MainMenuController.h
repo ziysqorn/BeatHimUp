@@ -6,13 +6,14 @@
 #include "../../ProjectIncludes.h"
 #include "../../UI/LoginScreen/LoginScreen.h"
 #include "../../UI/MainMenu/MainMenu.h"
+#include "../../Interface/HaveSpecialInputMode.h"
 #include "MainMenuController.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class BEATHIMUP_API AMainMenuController : public APlayerController
+class BEATHIMUP_API AMainMenuController : public APlayerController, public IHaveSpecialInputMode
 {
 	GENERATED_BODY()
 	
@@ -59,14 +60,6 @@ protected:
 	void OnBeFriendRemovedReceived(const FString& Message);
 
 	void OnLobbyInvitationReceived(const FString& Message);
-
-	void OnLobbyInvitationAcceptedReceived(const FString& Message);
-
-	void OnLobbyLeaveReceived(const FString& Message);
-
-	void OnMakeLeaderReceived(const FString& Message);
-
-	void OnBeKickFromLobbyReceived(const FString& Message);
 
 	void OnStartGameReceived(const FString& Message);
 
@@ -137,4 +130,6 @@ public:
 		}
 		return TSubclassOf<UUserWidget>();
 	}
+
+	void HandleAfterUIRemove() override;
 };

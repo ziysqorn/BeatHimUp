@@ -45,6 +45,18 @@ public:
 		return MaxQuantity;
 	}
 
+	void SetQuantity(int inQuantity) {
+		if (inQuantity > 0) {
+			Quantity = inQuantity;
+		}
+	}
+
+	void SetMaxQuantity(int inQuantity) {
+		if (inQuantity > 0) {
+			MaxQuantity = inQuantity;
+		}
+	}
+
 	bool CanUseItem() const {
 		return Quantity > 0;
 	}

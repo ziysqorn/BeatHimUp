@@ -24,3 +24,17 @@ void ABaseCharacter::BeginPlay()
 	Super::BeginPlay();
 	
 }
+
+void ABaseCharacter::EndPlay(EEndPlayReason::Type Reason)
+{
+	if (HasAuthority()) {
+		TArray<AActor*> AttachedActors;
+		GetAttachedActors(AttachedActors);
+		for (int i = 0; i < AttachedActors.Num(); ++i) {
+			if (IsValid(AttachedActors[i])) {
+				AttachedActors[i]->Destroy();
+			}
+		}
+	}
+	Super::EndPlay(Reason);
+}

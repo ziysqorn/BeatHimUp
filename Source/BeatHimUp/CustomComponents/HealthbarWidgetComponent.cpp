@@ -20,3 +20,12 @@ void UHealthbarWidgetComponent::SetupHealthbarUI()
         }
     }
 }
+
+void UHealthbarWidgetComponent::SetHeadInfo(const FPlayerInfo& InInfo)
+{
+    if (UHeadHealthbar* HeadHealthbar = Cast<UHeadHealthbar>(this->GetUserWidgetObject()))
+    {
+        HeadHealthbar->SetNameText(InInfo.Username.ToString());
+        //GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Format(TEXT("Username On PlayerState: {0}"), { PlayerInfo->Username.ToString() }));
+    }
+}

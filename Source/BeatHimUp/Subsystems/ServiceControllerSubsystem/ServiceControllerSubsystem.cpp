@@ -9,6 +9,8 @@ UServiceControllerSubsystem::UServiceControllerSubsystem()
 	UserAccountController = NewObject<UUserAccountController>(this, FName("UserAccountController"));
 	FriendlistController = NewObject<UFriendlistController>(this, FName("FriendlistController"));
 	LobbyController = NewObject<ULobbyController>(this, FName("LobbyController"));
+	InGameController = NewObject<UInGameController>(this, FName("InGameController"));
+	GameServerController = NewObject<UGameServerController>(this, FName("GameServerController"));
 }
 
 void UServiceControllerSubsystem::WSConnectedHandle()

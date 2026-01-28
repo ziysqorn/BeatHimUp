@@ -24,4 +24,12 @@ class BEATHIMUP_API IHaveHealthAttribute
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	virtual float GetHealthPercentage() const = 0;
+
+	virtual float GetBaseMaxHealth() const = 0;
+
+	virtual float GetCurrentBaseHealth() const = 0;
+
+	virtual void SetBaseMaxHealth(float inMaxHealth) = 0;
+
+	virtual void SetCurrentBaseHealth(float inHealth) = 0;
 };

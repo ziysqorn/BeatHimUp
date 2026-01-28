@@ -4,7 +4,7 @@
 #include "UIManagerSubsystem.h"
 
 
-void UUIManagerSubsystem::AddWidget_Implementation(UUserWidget* inWidget)
+void UUIManagerSubsystem::AddWidget(UUserWidget* inWidget)
 {
 	if (IsValid(inWidget)) {
 		if (stk_Widgets.Num() > 0) {
@@ -18,7 +18,7 @@ void UUIManagerSubsystem::AddWidget_Implementation(UUserWidget* inWidget)
 	}
 }
 
-void UUIManagerSubsystem::PopLastWidget_Implementation() {
+void UUIManagerSubsystem::PopLastWidget() {
 	if (!stk_Widgets.IsEmpty()) {
 		stk_Widgets.Pop(EAllowShrinking::No);
 		if (!stk_Widgets.IsEmpty()) {
@@ -125,16 +125,14 @@ void UUIManagerSubsystem::RemoveLoadingScreen()
 void UUIManagerSubsystem::PostLoadMapPreparation(UWorld* InLoadedWorld)
 {
 	RemoveLoadingScreen();
-	EmptyWidgetStk();
 }
 
-void UUIManagerSubsystem::ShowUserSettingsWidget(TSubclassOf<UUserWidget> WidgetSubclass, int32 ZOrder, bool bShouldHideCursorAfterRemoved)
+void UUIManagerSubsystem::ShowUserSettingsWidget(TSubclassOf<UUserWidget> WidgetSubclass, int32 ZOrder)
 {
 	if (UGameInstance* MyGameInstance = GetGameInstance()) {
 		if (!IsValid(UserSettingWidget)) {
 			if (IsValid(WidgetSubclass)) {
 				UserSettingWidget = CreateWidget<UUserSettingsWidget>(MyGameInstance, WidgetSubclass);
-				UserSettingWidget->SetHideMouseCursorAfterRemoved(bShouldHideCursorAfterRemoved);
 			}
 		}
 	}

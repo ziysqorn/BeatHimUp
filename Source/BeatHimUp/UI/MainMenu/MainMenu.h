@@ -9,6 +9,11 @@
 #include "../SideInfo/SideInfo.h"
 #include "MainMenu.generated.h"
 
+UENUM(BlueprintType)
+enum class EMainMenuMainScreen : uint8 {
+	MAIN_MENU UMETA(DisplayName="Main Menu"),
+	LOBBY UMETA(DisplayName = "Lobby"),
+};
 /**
  * 
  */
@@ -104,6 +109,13 @@ public:
 				SideInfo->RemoveLobbyInvitationPanel(idx);
 			}
 		}
+	}
+
+	int GetCurrentMainScreen() {
+		if (IsValid(WSwitcher_MainScreen)) {
+			return WSwitcher_MainScreen->GetActiveWidgetIndex();
+		}
+		return -1;
 	}
 
 	TSubclassOf<UUserWidget> GetWidgetSubclass(const FName& WidgetKey) {

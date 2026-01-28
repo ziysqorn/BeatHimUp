@@ -21,25 +21,29 @@ void ASword::BeginPlay()
 void ASword::BoxCompBeginOverlapped(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (HasAuthority()) {
-		if (OtherActor && OtherActor != this && OtherActor != this->GetOwner() && OtherActor->GetOwner() != this->GetOwner()) {
-			FGameplayTag TargetAttackedEventTag = FGameplayTag::RequestGameplayTag(FName("GameplayEvent.TargetAttacked"));
-			FGameplayEventData Payload;
-			if (IInteractableWithWeapon* InteractableWithWeapon = Cast<IInteractableWithWeapon>(OtherActor)) {
-				if (HandledActors.Contains(OtherActor->GetOwner())) {
-					return;
+		AActor* OtherActorOwner = OtherActor->GetOwner();
+		AActor* ThisOwner = this->GetOwner();
+		if (IsValid(ThisOwner) && IsValid(OtherActorOwner)) {
+			if (OtherActor && OtherActor != this && OtherActor != ThisOwner && OtherActorOwner != ThisOwner) {
+				FGameplayTag TargetAttackedEventTag = FGameplayTag::RequestGameplayTag(FName("GameplayEvent.TargetAttacked"));
+				FGameplayEventData Payload;
+				if (IInteractableWithWeapon* InteractableWithWeapon = Cast<IInteractableWithWeapon>(OtherActor)) {
+					if (HandledActors.Contains(OtherActorOwner) || (ThisOwner->GetClass() == OtherActorOwner->GetClass())) {
+						return;
+					}
+					HandledActors.Add(OtherActorOwner);
+					InteractableWithWeapon->ResponseToAttackingWeapon(this);
 				}
-				HandledActors.Add(OtherActor->GetOwner());
-				InteractableWithWeapon->ResponseToAttackingWeapon(this);
-			}
-			else if (IDamageable* Damageable = Cast<IDamageable>(OtherActor)) {
-				if (HandledActors.Contains(OtherActor)) {
-					return;
+				else if (IDamageable* Damageable = Cast<IDamageable>(OtherActor)) {
+					if (HandledActors.Contains(OtherActor) || (ThisOwner->GetClass() == OtherActor->GetClass())) {
+						return;
+					}
+					HandledActors.Add(OtherActor);
+					Payload.EventTag = TargetAttackedEventTag;
+					Payload.Instigator = ThisOwner;
+					Payload.Target = OtherActor;
+					UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(ThisOwner, TargetAttackedEventTag, Payload);
 				}
-				HandledActors.Add(OtherActor);
-				Payload.EventTag = TargetAttackedEventTag;
-				Payload.Instigator = this->GetOwner();
-				Payload.Target = OtherActor;
-				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this->GetOwner(), TargetAttackedEventTag, Payload);
 			}
 		}
 	}

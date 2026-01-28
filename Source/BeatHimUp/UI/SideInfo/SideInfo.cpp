@@ -60,7 +60,7 @@ void USideInfo::OpenSettings()
 		if (UGameInstance* MyGameInstance = GetGameInstance()) {
 			if (UUIManagerSubsystem* UIManager = MyGameInstance->GetSubsystem<UUIManagerSubsystem>()) {
 				if (TSubclassOf<UUserWidget>* UserSettingsWidgetSubclass = DA_UI->UISubclassMap.Find("UserSettingsWidget")) {
-					UIManager->ShowUserSettingsWidget(*UserSettingsWidgetSubclass, 5, false);
+					UIManager->ShowUserSettingsWidget(*UserSettingsWidgetSubclass, 5);
 				}
 			}
 		}

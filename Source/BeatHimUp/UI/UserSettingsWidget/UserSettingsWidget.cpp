@@ -4,6 +4,7 @@
 #include "UserSettingsWidget.h"
 #include "../../CustomGameInstance/MyGameInstance.h"
 #include "../../Subsystems/UIManager/UIManagerSubsystem.h"
+#include "../../Interface/HaveSpecialInputMode.h"
 
 void UUserSettingsWidget::NativeOnInitialized()
 {
@@ -50,19 +51,15 @@ void UUserSettingsWidget::NativeConstruct()
 
 void UUserSettingsWidget::NativeDestruct()
 {
-	Super::NativeDestruct();
-
 	if (UUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UUIManagerSubsystem>()) {
 		UIManager->PopLastWidget();
 		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1);
-		if (APlayerController* PC = GetOwningPlayer()) {
-			FInputModeGameAndUI InputMode;
-			InputMode.SetHideCursorDuringCapture(false);
-			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-			PC->SetInputMode(InputMode);
-			bShouldHideCursorAfterRemoved ? PC->SetShowMouseCursor(false) : PC->SetShowMouseCursor(true);
+		if (IHaveSpecialInputMode* HaveSpecialInputMode = GetOwningPlayer<IHaveSpecialInputMode>()) {
+			HaveSpecialInputMode->HandleAfterUIRemove();
 		}
 	}
+
+	Super::NativeDestruct();
 }
 
 void UUserSettingsWidget::GraphicTitleHighlight()
@@ -123,17 +120,20 @@ void UUserSettingsWidget::SwitchToExitMenu()
 
 void UUserSettingsWidget::ApplySettings()
 {
-	if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
-		if (IsValid(ComboBox_Presets) && IsValid(ComboBox_MaxFrameLimit) && IsValid(ComboBox_VSync)) {
-			int SelectedPresets = *QualityMap.Find(ComboBox_Presets->GetSelectedOption());
-			MyGameInstance->SetupGraphicsPresets(SelectedPresets);
+	if (IsValid(ComboBox_Presets) && IsValid(ComboBox_MaxFrameLimit) && IsValid(ComboBox_VSync)) {
+		if (GEngine) {
+			if (UGameUserSettings* GameUserSettings = GEngine->GetGameUserSettings()) {
+				int SelectedPresets = *QualityMap.Find(ComboBox_Presets->GetSelectedOption());
+				GameUserSettings->SetOverallScalabilityLevel(SelectedPresets);
 
-			MyGameInstance->SetupFrameRateLimit(FCString::Atoi(*ComboBox_MaxFrameLimit->GetSelectedOption()));
-			if (ComboBox_VSync->GetSelectedIndex() == 0) {
-				MyGameInstance->SetupVsyncEnabled(false);
-			}
-			else {
-				MyGameInstance->SetupVsyncEnabled(true);
+				GameUserSettings->SetFrameRateLimit(FCString::Atoi(*ComboBox_MaxFrameLimit->GetSelectedOption()));
+				if (ComboBox_VSync->GetSelectedIndex() == 0) {
+					GameUserSettings->SetVSyncEnabled(false);
+				}
+				else {
+					GameUserSettings->SetVSyncEnabled(true);
+				}
+				GameUserSettings->ApplySettings(false);
 			}
 		}
 	}

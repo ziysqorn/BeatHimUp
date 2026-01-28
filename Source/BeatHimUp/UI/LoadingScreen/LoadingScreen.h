@@ -13,4 +13,8 @@ UCLASS()
 class BEATHIMUP_API ULoadingScreen : public UUserWidget
 {
 	GENERATED_BODY()
+
+protected:
+	void NativeConstruct() override;
+	void NativeDestruct() override;
 };

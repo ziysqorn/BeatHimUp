@@ -2,11 +2,11 @@
 
 
 #include "HealthPotion.h"
-#include "../../Interface/CanUseItem.h"
 
 UHealthPotion::UHealthPotion()
 {
 	Quantity = 3;
+	ItemName = FName("HealthPotion");
 }
 
 void UHealthPotion::Use_Implementation()
@@ -30,13 +30,6 @@ void UHealthPotion::Use_Implementation()
 
 void UHealthPotion::OnRep_Quantity(int OldQuantity) 
 {
-	if (ICanUseItem* CanUseItem = Cast<ICanUseItem>(this->GetOuter())) {
-		if (UItemComponent* ItemComp = CanUseItem->GetItemComponent()) {
-			if (ItemComp->OnItemQuantityChangedDel.IsBound()) {
-				ItemComp->OnItemQuantityChangedDel.Broadcast(this);
-			}
-		}
-	}
 }
 
 void UHealthPotion::OnRep_MaxQuantity(int OldMaxQuantity) 

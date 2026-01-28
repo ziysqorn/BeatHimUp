@@ -43,6 +43,15 @@ public:
 		return nullptr;
 	}
 
+	UItem* GetItemByName(FName inName) {
+		for (int i = 0; i < UsableItemList.Num(); ++i) {
+			if (IsValid(UsableItemList[i]) && UsableItemList[i]->GetItemName().IsEqual(inName)) {
+				return UsableItemList[i];
+			}
+		}
+		return nullptr;
+	}
+
 	const TArray<UUsableItem*>& GetUsableItemList() {
 		return UsableItemList;
 	}

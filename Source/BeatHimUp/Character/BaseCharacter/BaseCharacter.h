@@ -32,6 +32,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	void EndPlay(EEndPlayReason::Type Reason) override;
+
 public:
 	FOnLockTarget OnLockTargetDel;
 

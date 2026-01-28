@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class BEATHIMUP_API ABaseEnemyAIController : public AAIController
+class BEATHIMUP_API ABaseEnemyAIController : public AAIController, public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 
@@ -18,6 +18,8 @@ public:
 	ABaseEnemyAIController();
 
 	void OnTargetDeath(AActor* DeadTarget);
+
+	void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 
 protected:
 	void OnPossess(APawn* inPawn) override;

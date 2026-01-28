@@ -94,3 +94,12 @@ void ABaseEnemyAIController::OnTargetDeath(AActor* DeadTarget)
 		}
 	}
 }
+
+void ABaseEnemyAIController::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(this->GetPawn())) {
+		if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent()) {
+			TagContainer = ASC->GetOwnedGameplayTags();
+		}
+	}
+}
