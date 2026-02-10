@@ -76,7 +76,6 @@ void UItemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 void UItemComponent::OnRep_UsableItemList(const TArray<UUsableItem*>& OldUsableItemList)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("Item list replicated !"));
 	if (OnRepUsableItemListDel.IsBound()) {
 		OnRepUsableItemListDel.Broadcast(UsableItemList);
 	}

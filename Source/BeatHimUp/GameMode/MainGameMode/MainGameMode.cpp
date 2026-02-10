@@ -17,6 +17,8 @@ void AMainGameMode::InitGame(const FString& MapName, const FString& Options, FSt
 void AMainGameMode::BeginPlay()
 {
 	Super::BeginPlay();
+
+	GetWorldTimerManager().SetTimer(CheckHavePlayerTimerHandle, FTimerDelegate::CreateUObject(this, &AMainGameMode::CheckHavePlayer), 30.0f, true);
 }
 
 void AMainGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -39,15 +41,21 @@ void AMainGameMode::Logout(AController* Exiting)
 	UE_LOG(LogTemp, Display, TEXT("A Player is exiting..."));
 
 	if (GetNumPlayers() == 1) {
-		if (UServiceControllerSubsystem* ServiceControllerSubsystem = GetGameInstance()->GetSubsystem<UServiceControllerSubsystem>()) {
-			if (ServiceControllerSubsystem->GameServerController) {
-				UE_LOG(LogTemp, Display, TEXT("Current player count is reducing to 0, start requesting for server drop"));
-				ServiceControllerSubsystem->GameServerController->DropGameServer(Server_ID, FHttpRequestCompleteDelegate::CreateUObject(this, &AMainGameMode::OnDropServerComplete));
-			}
-		}
+		FGenericPlatformMisc::RequestExit(false);
 	}
 
 	Super::Logout(Exiting);
+}
+
+void AMainGameMode::EndPlay(EEndPlayReason::Type EndPlayReason)
+{
+	if (UServiceControllerSubsystem* ServiceControllerSubsystem = GetGameInstance()->GetSubsystem<UServiceControllerSubsystem>()) {
+		if (ServiceControllerSubsystem->GameServerController) {
+			UE_LOG(LogTemp, Display, TEXT("Start requesting for server drop"));
+			ServiceControllerSubsystem->GameServerController->DropGameServer(Server_ID, FHttpRequestCompleteDelegate());
+		}
+	}
+	Super::EndPlay(EndPlayReason);
 }
 
 void AMainGameMode::OnDropServerComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully)
@@ -64,6 +72,13 @@ void AMainGameMode::OnDropServerComplete(FHttpRequestPtr pRequest, FHttpResponse
 				}
 			}
 		}
+	}
+}
+
+void AMainGameMode::CheckHavePlayer()
+{
+	if (GetNumPlayers() == 0) {
+		FGenericPlatformMisc::RequestExit(false);
 	}
 }
 

@@ -83,15 +83,13 @@ void UAT_AIMoveTo::Activate()
 
 void UAT_AIMoveTo::OnDestroy(bool bInOwnerFinished)
 {
-	if (AAIController* AIController = Cast<AAIController>(GetOwnerActor()))
-	{
-		if (UPathFollowingComponent* PathComp = AIController->GetPathFollowingComponent())
+	if (APawn* AICharacter = Cast<APawn>(GetOwnerActor())) {
+		if (AAIController* AIController = Cast<AAIController>(AICharacter->GetController()))
 		{
-			PathComp->OnRequestFinished.Remove(MoveFinishedDelHandle);
-
-			if (bInOwnerFinished)
+			AIController->StopMovement();
+			if (UPathFollowingComponent* PathComp = AIController->GetPathFollowingComponent())
 			{
-				AIController->StopMovement();
+				PathComp->OnRequestFinished.Remove(MoveFinishedDelHandle);
 			}
 		}
 	}

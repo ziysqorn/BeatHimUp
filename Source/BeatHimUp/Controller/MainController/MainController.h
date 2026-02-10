@@ -19,10 +19,7 @@ class BEATHIMUP_API AMainController : public APlayerController, public IHaveSpec
 public:
 	AMainController();
 
-	void SpectatePlayer();
-
-	UFUNCTION(Server, Reliable)
-	void Server_SpectateNextPlayer();
+	void SwitchToSpectate();
 
 	UFUNCTION(Server, Reliable)
 	void Server_RequestEndGame(EMatchStatus inMatchStatus);
@@ -41,6 +38,8 @@ public:
 	}
 
 	void HandleAfterUIRemove() override;
+
+	void SaveCharacterStats(TSharedPtr<FJsonObject> JsonObj);
 protected:
 	UPROPERTY()
 	TObjectPtr<AActor> TargetLockPointWidgetActor = nullptr;
@@ -59,12 +58,29 @@ protected:
 	void BeginPlay() override;
 	void OnPossess(APawn* aPawn) override;
 	void AcknowledgePossession(APawn* aPawn) override;
-	void EndPlay(EEndPlayReason::Type EndPlayerReason) override;
 
 	UFUNCTION(Server, Reliable)
 	void Server_FetchCharacterStats(const FString& JsonStr);
 
-	void SaveCharacterStats();
+	void UnbindControlledPawnHUD();
+
+	UFUNCTION(Client, Reliable)
+	void Client_UpdateNewSpectatedPlayerHUD(AActor* SpectatedActor);
+
+	UFUNCTION(Client, Reliable)
+	void Client_UnbindPreviousSpectatedPlayerHUD(AActor* PreviousSpectactedPawn);
+
+	UFUNCTION(Client, Reliable)
+	void Client_UpdateHUDItemQuantity(UUsableItem* Item, AActor* CurrentViewTargetPawn);
+
+	UFUNCTION(Server, Reliable)
+	void Server_RequestViewTargetPawnToUpdateItemFrameQuantity(UUsableItem* Item);
 
 	void OnGetCharacterStatsComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
+	void SetSpectatorPawn(ASpectatorPawn* NewSpectatorPawn) override;
+
+	APlayerState* GetNextViewablePlayer(int32 dir) override;
+
+	void SetViewTarget(class AActor* NewViewTarget, FViewTargetTransitionParams TransitionParams = FViewTargetTransitionParams()) override;
 };

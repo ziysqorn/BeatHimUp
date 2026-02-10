@@ -12,6 +12,7 @@
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnBossKilled, AActor* /*Dead Actor*/, AController* /*Instigator*/, AActor* /*Damage Causer*/)
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnPlayerKilled, AActor* /*Dead Actor*/, AController* /*Instigator*/, AActor* /*Damage Causer*/)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnRepMatchStatus, EMatchStatus);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnRepBossRef, AActor*);
 
 UCLASS()
 class BEATHIMUP_API AMainGameState : public AGameStateBase
@@ -43,6 +44,8 @@ public:
 	FOnPlayerKilled OnPlayerKilledDel;
 
 	FOnBossKilled OnBossKilledDel;
+
+	FOnRepBossRef OnRepBossRefDel;
 
 	void SetBossRef(AActor* inBossRef) {
 		BossRef = inBossRef;

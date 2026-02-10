@@ -38,12 +38,21 @@ protected:
 	void NativeConstruct() override;
 
 public:
+	void ClearHealthProgressBinding() {
+		if (IsValid(ProgressBar_Health)) {
+			ProgressBar_Health->PercentDelegate.Unbind();
+		}
+	}
 	void BindHealthProgress(UObject* inObject, const FName& funcName) {
-		if (IsValid(ProgressBar_Health)) ProgressBar_Health->PercentDelegate.BindUFunction(inObject, funcName);
+		if (IsValid(ProgressBar_Health)) {
+			ProgressBar_Health->PercentDelegate.BindUFunction(inObject, funcName);
+		}
 	}
 
 	void BindStaminaProgress(UObject* inObject, const FName& funcName) {
-		if (IsValid(ProgressBar_Stamina)) ProgressBar_Stamina->PercentDelegate.BindUFunction(inObject, funcName);
+		if (IsValid(ProgressBar_Stamina)) {
+			ProgressBar_Stamina->PercentDelegate.BindUFunction(inObject, funcName);
+		}
 	}
 
 	void BindBossHealthProgress(UObject* inObject, const FName& funcName) {
@@ -53,6 +62,16 @@ public:
 	void AddItemFrameToContainer(UWidget* inWidget);
 
 	void RemoveItemFrameFromContainer(UWidget* inWidget);
+
+	void RemoveLastItemFrameFromContainer() {
+		if (IsValid(HorBox_ItemFrameContainer)) {
+			HorBox_ItemFrameContainer->RemoveChildAt(HorBox_ItemFrameContainer->GetChildrenCount() - 1);
+		}
+	}
+
+	const UPanelWidget* GetItemFrameContainer() {
+		return HorBox_ItemFrameContainer;
+	}
 
 	UWidget* GetItemFrame(int Idx);
 

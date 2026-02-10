@@ -6,6 +6,7 @@
 #include "../../GameplayAbilities/GA_Dead.h"
 #include "../../CustomGameState/MainGameState.h"
 #include "../../PlayerState/MainPlayerState.h"
+#include "../../Controller/MainController/MainController.h"
 
 
 AMainCharacter::AMainCharacter()
@@ -18,7 +19,7 @@ AMainCharacter::AMainCharacter()
 	ItemComp = CreateDefaultSubobject<UItemComponent>(FName("ItemComponent"));
 	CharacterAttributeSet = CreateDefaultSubobject<UAttributeSet_PlayableCharacter>("GameplayAttributeSet");
 	if (SpringArmComp) {
-		SpringArmComp->SetupAttachment(this->RootComponent);
+		SpringArmComp->SetupAttachment(this->GetMesh());
 		if (CineCameraComp) CineCameraComp->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 	if (WidgetComp) {
@@ -26,6 +27,13 @@ AMainCharacter::AMainCharacter()
 		WidgetComp->AttachToComponent(this->RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 	SetupStimulusSource();
+}
+
+void AMainCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	if (UAbilitySystemComponent* ASC = this->GetAbilitySystemComponent()) {
+		TagContainer = ASC->GetOwnedGameplayTags();
+	}
 }
 
 void AMainCharacter::BeginPlay()
@@ -42,15 +50,32 @@ void AMainCharacter::BeginPlay()
 			WidgetComp->SetupHealthbarUI();
 		}
 	}
+
+	if (GetLocalRole() == ENetRole::ROLE_Authority || GetLocalRole() == ENetRole::ROLE_AutonomousProxy) {
+		OnLockTargetDel.AddUObject(this, &AMainCharacter::SetMovementAfterLockTarget);
+	}
 }
 
 void AMainCharacter::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
-
-	RotateToLockTarget(deltaTime);
+	
+	if (!HasAuthority()) {
+		RotateToLockTarget(deltaTime);
+	}
 
 	BillboardingWidgetCompByClient();
+}
+
+void AMainCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
+{
+	if (IsLocallyControlled()) {
+		if (EndPlayReason == EEndPlayReason::EndPlayInEditor || EndPlayReason == EEndPlayReason::Quit) {
+			SaveCharacterStats();
+		}
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -78,7 +103,7 @@ void AMainCharacter::SetupMappingContext()
 {
 	if (APlayerController* PlayerController = Cast<APlayerController>(GetController())) {
 		if (UEnhancedInputLocalPlayerSubsystem* EISubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer())) {
-			EISubsystem->AddMappingContext(PlayerMappingContext, 0);
+			EISubsystem->AddMappingContext(PlayerMappingContext, 1);
 		}
 	}
 }
@@ -156,62 +181,59 @@ void AMainCharacter::DodgeTriggered()
 
 void AMainCharacter::Server_LockTargetTriggered_Implementation()
 {
-	NetMulticast_LockTarget();
-}
-
-void AMainCharacter::NetMulticast_LockTarget_Implementation()
-{
-	if (UCharacterMovementComponent* CharMovementComponent = GetCharacterMovement()) {
-		if (LockedOnTarget.IsValid()) {
-			LockedOnTarget = nullptr;
-			CharMovementComponent->MaxWalkSpeed = 400.0f;
-			CharMovementComponent->bOrientRotationToMovement = true;
-			CharMovementComponent->bUseControllerDesiredRotation = false;
-			bUseControllerRotationYaw = false;
-			if (OnLockTargetDel.IsBound())
-				OnLockTargetDel.Broadcast(nullptr);
+	if (LockedOnTarget.IsValid()) {
+		if (AActor* OldTargetActor = LockedOnTarget.Get()) {
+			OldTargetActor->OnDestroyed.RemoveAll(this);
+			if (IHaveSpecialDeath* HaveSpecialDeath = Cast<IHaveSpecialDeath>(OldTargetActor)) {
+				HaveSpecialDeath->OnDeath().RemoveAll(this);
+			}
 		}
-		else {
-			FHitResult Hit;
-			FCollisionObjectQueryParams ObjectFilter;
-			FCollisionQueryParams AdditionParams;
-			ObjectFilter.AddObjectTypesToQuery(ECollisionChannel::ECC_Pawn);
-			AdditionParams.AddIgnoredActor(this);
-			FVector CameraForwardDir = CineCameraComp->GetForwardVector();
-			FRotator BoxRotation = CameraForwardDir.Rotation();
-			FVector EndLocation = CineCameraComp->GetComponentLocation() + CameraForwardDir * 2000.0f;
-			if (GetWorld()->SweepSingleByObjectType(Hit, CineCameraComp->GetComponentLocation() + CameraForwardDir * 1200.0f, EndLocation, BoxRotation.Quaternion(), ObjectFilter, FCollisionShape::MakeBox(DetectBoxExtent), AdditionParams)) {
-				if (IsValid(Hit.GetActor())) {
-					LockedOnTarget = Hit.GetActor();
-					CharMovementComponent->MaxWalkSpeed = 250.0f;
-					CharMovementComponent->bOrientRotationToMovement = false;
-					CharMovementComponent->bUseControllerDesiredRotation = true;
-					bUseControllerRotationYaw = true;
-					if (OnLockTargetDel.IsBound())
-						OnLockTargetDel.Broadcast(LockedOnTarget.Get());
+		LockedOnTarget = nullptr;
+		if (OnLockTargetDel.IsBound()) {
+			OnLockTargetDel.Broadcast(LockedOnTarget.Get());
+		}
+	}
+	else {
+		/*FHitResult Hit;
+		FCollisionObjectQueryParams ObjectFilter;
+		FCollisionQueryParams AdditionParams;
+		ObjectFilter.AddObjectTypesToQuery(ECollisionChannel::ECC_Pawn);
+		AdditionParams.AddIgnoredActor(this);
+		FVector CameraForwardDir = CineCameraComp->GetForwardVector();
+		FRotator BoxRotation = CameraForwardDir.Rotation();
+		FVector EndLocation = CineCameraComp->GetComponentLocation() + CameraForwardDir * 2000.0f;
+		if (GetWorld()->SweepSingleByObjectType(Hit, CineCameraComp->GetComponentLocation() + CameraForwardDir * 1200.0f, EndLocation, BoxRotation.Quaternion(), ObjectFilter, FCollisionShape::MakeBox(DetectBoxExtent), AdditionParams)) {
+			if (IsValid(Hit.GetActor())) {
+				LockedOnTarget = Hit.GetActor();
+				if (OnLockTargetDel.IsBound()) {
+					OnLockTargetDel.Broadcast(LockedOnTarget.Get());
 				}
 			}
-			/*TArray<FHitResult> Hits;
-			FCollisionObjectQueryParams ObjectFilter;
-			FCollisionQueryParams AdditionParams;
-			ObjectFilter.AddObjectTypesToQuery(ECollisionChannel::ECC_Pawn);
-			AdditionParams.AddIgnoredActor(this);
-			FVector CameraForwardDir = CineCameraComp->GetForwardVector();
-			FRotator BoxRotation = CameraForwardDir.Rotation();
-			FVector EndLocation = CineCameraComp->GetComponentLocation() + CameraForwardDir * 2000.0f;
-			if (GetWorld()->SweepMultiByObjectType(Hits, CineCameraComp->GetComponentLocation() + CameraForwardDir * 1200.0f, EndLocation, BoxRotation.Quaternion(), ObjectFilter, FCollisionShape::MakeBox(DetectBoxExtent), AdditionParams)) {
-				for (int i = 0; i < Hits.Num(); ++i) {
-					if (IsValid(Hits[i].GetActor()) && this->GetClass() != Hits[i].GetActor()->GetClass()) {
-						LockedOnTarget = Hits[i].GetActor();
-						CharMovementComponent->MaxWalkSpeed = 250.0f;
-						CharMovementComponent->bOrientRotationToMovement = false;
-						CharMovementComponent->bUseControllerDesiredRotation = true;
-						bUseControllerRotationYaw = true;
-						if (OnLockTargetDel.IsBound())
-							OnLockTargetDel.Broadcast(LockedOnTarget.Get());
+		}*/
+		TArray<FHitResult> Hits;
+		FCollisionObjectQueryParams ObjectFilter;
+		FCollisionQueryParams AdditionParams;
+		ObjectFilter.AddObjectTypesToQuery(ECollisionChannel::ECC_Pawn);
+		AdditionParams.AddIgnoredActor(this);
+		FVector CameraForwardDir = CineCameraComp->GetForwardVector();
+		FRotator BoxRotation = CameraForwardDir.Rotation();
+		FVector EndLocation = CineCameraComp->GetComponentLocation() + CameraForwardDir * 2000.0f;
+		if (GetWorld()->SweepMultiByObjectType(Hits, CineCameraComp->GetComponentLocation() + CameraForwardDir * 1200.0f, EndLocation, BoxRotation.Quaternion(), ObjectFilter, FCollisionShape::MakeBox(DetectBoxExtent), AdditionParams)) {
+			for (int i = 0; i < Hits.Num(); ++i) {
+				if (IsValid(Hits[i].GetActor()) && this->GetClass() != Hits[i].GetActor()->GetClass()) {
+					LockedOnTarget = Hits[i].GetActor();
+					if (AActor* TargetActor = LockedOnTarget.Get()) {
+						TargetActor->OnDestroyed.AddDynamic(this, &AMainCharacter::OnLockedTargetDestroyed);
+						if (IHaveSpecialDeath* HaveSpecialDeath = Cast<IHaveSpecialDeath>(TargetActor)) {
+							HaveSpecialDeath->OnDeath().AddUObject(this, &AMainCharacter::OnLockedTargetDestroyed);
+						}
 					}
+					if (OnLockTargetDel.IsBound()) {
+						OnLockTargetDel.Broadcast(LockedOnTarget.Get());
+					}
+					return;
 				}
-			}*/
+			}
 		}
 	}
 }
@@ -224,22 +246,20 @@ void AMainCharacter::RotateToLockTarget(float DeltaTime)
 			FRotator TargetRotation = (TargetLocation - CineCameraComp->GetComponentLocation()).Rotation();
 			float TargetSocketOffsetY = 100.0f;
 			//float TargetSocketOffsetZ = 200.0f;
-			if (APlayerController* PC = this->GetController<APlayerController>()) {
-				TargetRotation.Pitch = FMath::Clamp(TargetRotation.Pitch, -30.0f, 30.0f);
-				FRotator NewRot = FMath::RInterpTo(GetControlRotation(), TargetRotation, DeltaTime, 10.0f);
-				PC->SetControlRotation(NewRot);
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, FString::Format(TEXT("{0}"), { NewRot.ToString() }));
-				if (IsValid(SpringArmComp)) {
-					//SpringArmComp->SocketOffset.Y = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, TargetSocketOffsetY, DeltaTime, 10.0f);
-					//SpringArmComp->SocketOffset.Z = FMath::FInterpTo(SpringArmComp->SocketOffset.Z, TargetSocketOffsetZ, DeltaTime, 10.0f);
+			if (GetLocalRole() == ENetRole::ROLE_SimulatedProxy) {
+				FRotator TargetActorRotation = (TargetLocation - GetActorLocation()).Rotation();
+				TargetActorRotation.Pitch = 0.f;
+				TargetActorRotation.Roll = 0.f;
+				FRotator NewRot = FMath::RInterpTo(GetActorRotation(), TargetActorRotation, DeltaTime, 10.0f);
+				SetActorRotation(NewRot);
+			}
+			else {
+				if (APlayerController* PC = this->GetController<APlayerController>()) {
+					TargetRotation.Pitch = FMath::Clamp(TargetRotation.Pitch, -30.0f, 30.0f);
+					FRotator NewRot = FMath::RInterpTo(GetControlRotation(), TargetRotation, DeltaTime, 10.0f);
+					PC->SetControlRotation(NewRot);
 				}
 			}
-		}
-	}
-	else {
-		if (IsValid(SpringArmComp)) {
-			//SpringArmComp->SocketOffset.Y = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, 0.0f, DeltaTime, 1.0f);
-			//SpringArmComp->SocketOffset.Z = FMath::FInterpTo(SpringArmComp->SocketOffset.Z, 150.0f, DeltaTime, 1.0f);
 		}
 	}
 }
@@ -354,7 +374,19 @@ void AMainCharacter::OnRep_PlayerState()
 	if (AMainPlayerState* MainPlayerState = GetPlayerState<AMainPlayerState>()) {
 		if (IsValid(WidgetComp)) {
 			MainPlayerState->OnPlayerInfoRepDel.AddUObject(WidgetComp, &UHealthbarWidgetComponent::SetHeadInfo);
+			if (MainPlayerState->GetPlayerInfo()) {
+				WidgetComp->SetHeadInfo(*MainPlayerState->GetPlayerInfo());
+			}
 		}
+	}
+}
+
+void AMainCharacter::OnRep_LockedOnTarget(TWeakObjectPtr<AActor> OldTarget)
+{
+	Super::OnRep_LockedOnTarget(OldTarget);
+
+	if (OnLockTargetDel.IsBound()) {
+		OnLockTargetDel.Broadcast(LockedOnTarget.Get());
 	}
 }
 
@@ -364,17 +396,46 @@ void AMainCharacter::ExecuteAfterDeathBehaviour(AController* inInstigator, AActo
 		OnDeathDel.Broadcast(this);
 	}
 	if (AMainController* MainController = this->GetController<AMainController>()) {
-		if (AMainGameState* MainGameState = GetWorld()->GetGameState<AMainGameState>()) {
-			MainGameState->OnPlayerKilled(this, inInstigator, DamageCauser);
-		}
-		MainController->SpectatePlayer();
-		if (UEnhancedInputLocalPlayerSubsystem* EISubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(MainController->GetLocalPlayer())) {
-			EISubsystem->RemoveMappingContext(PlayerMappingContext);
-			EISubsystem->AddMappingContext(MC_SpectatorMode, 1);
-			if (UEnhancedInputComponent* EIComponent = Cast<UEnhancedInputComponent>(InputComponent)) {
-				if (IsValid(IA_NextSpectatedPlayer))
-					EIComponent->BindAction(IA_NextSpectatedPlayer, ETriggerEvent::Triggered, MainController, &AMainController::Server_SpectateNextPlayer);
+		if (IsLocallyControlled()) {
+			SaveCharacterStats();
+			if (UEnhancedInputLocalPlayerSubsystem* EISubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(MainController->GetLocalPlayer())) {
+				EISubsystem->RemoveMappingContext(PlayerMappingContext);
 			}
+		}
+		if (HasAuthority()) {
+			if (AActor* OldTargetActor = LockedOnTarget.Get()) {
+				OldTargetActor->OnDestroyed.RemoveAll(this);
+				if (IHaveSpecialDeath* HaveSpecialDeath = Cast<IHaveSpecialDeath>(OldTargetActor)) {
+					HaveSpecialDeath->OnDeath().RemoveAll(this);
+				}
+			}
+			LockedOnTarget = nullptr;
+			if (OnLockTargetDel.IsBound()) {
+				OnLockTargetDel.Broadcast(LockedOnTarget.Get());
+			}
+
+			if (AMainGameState* MainGameState = GetWorld()->GetGameState<AMainGameState>()) {
+				MainGameState->OnPlayerKilled(this, inInstigator, DamageCauser);
+			}
+		}
+		MainController->SwitchToSpectate();
+	}
+}
+
+void AMainCharacter::SetMovementAfterLockTarget(AActor* Target)
+{
+	if (UCharacterMovementComponent* CharMovementComponent = GetCharacterMovement()) {
+		if (IsValid(Target)) {
+			CharMovementComponent->MaxWalkSpeed = 250.0f;
+			CharMovementComponent->bOrientRotationToMovement = false;
+			CharMovementComponent->bUseControllerDesiredRotation = true;
+			bUseControllerRotationYaw = true;
+		}
+		else {
+			CharMovementComponent->MaxWalkSpeed = 400.0f;
+			CharMovementComponent->bOrientRotationToMovement = true;
+			CharMovementComponent->bUseControllerDesiredRotation = false;
+			bUseControllerRotationYaw = false;
 		}
 	}
 }
@@ -385,6 +446,44 @@ void AMainCharacter::SetupStimulusSource()
 	if (IsValid(StimulusSourceComp)) {
 		StimulusSourceComp->RegisterForSense(TSubclassOf<UAISense_Sight>());
 		StimulusSourceComp->RegisterWithPerceptionSystem();
+	}
+}
+
+void AMainCharacter::SaveCharacterStats()
+{
+	float MaxHP = 0.f, HP = 0.f, MaxStamina = 0.f;
+	int HealthPotionQuantity = 0;
+	FString StateStr = TEXT("");
+	TSharedPtr<FJsonObject> JsonObj = MakeShareable(new FJsonObject());
+	if (IHaveHealthAttribute* HaveHealthAttr = Cast<IHaveHealthAttribute>(GetAttributeSet())) {
+		MaxHP = HaveHealthAttr->GetBaseMaxHealth();
+		HP = HaveHealthAttr->GetCurrentBaseHealth();
+	}
+
+	if (IHaveStaminaAttribute* HaveStaminaAttr = Cast<IHaveStaminaAttribute>(GetAttributeSet())) {
+		MaxStamina = HaveStaminaAttr->GetBaseMaxStamina();
+	}
+
+	if (IsValid(ItemComp)) {
+		if (UUsableItem* HealthPotion = Cast<UUsableItem>(ItemComp->GetItemByName(FName("HealthPotion")))) {
+			HealthPotionQuantity = HealthPotion->GetQuantity();
+		}
+	}
+
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent()) {
+		if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Dead")))) {
+			StateStr = TEXT("State.Dead");
+		}
+	}
+
+	JsonObj->SetNumberField(TEXT("max_hp"), MaxHP);
+	JsonObj->SetNumberField(TEXT("hp"), HP);
+	JsonObj->SetNumberField(TEXT("max_stamina"), MaxStamina);
+	JsonObj->SetNumberField(TEXT("health_potion_quant"), HealthPotionQuantity);
+	JsonObj->SetStringField(TEXT("state"), StateStr);
+
+	if (AMainController* MC = this->GetController<AMainController>()) {
+		MC->SaveCharacterStats(JsonObj);
 	}
 }
 

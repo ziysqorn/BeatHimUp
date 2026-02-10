@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Info.h"
 #include "GameFramework/GameUserSettings.h"
+#include "GameFramework/SpectatorPawn.h"
 #include "Components/ActorComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"

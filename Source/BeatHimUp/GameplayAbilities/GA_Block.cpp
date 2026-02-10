@@ -30,8 +30,6 @@ void UGA_Block::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 }
 
 void UGA_Block::AttackParried(FGameplayEventData eventData) {
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Parried"));
-
 	PlayBlockedMontage();
 	//EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }

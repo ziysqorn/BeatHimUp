@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class BEATHIMUP_API AAICharacter : public ABaseCharacter, public IAbilitySystemInterface
+class BEATHIMUP_API AAICharacter : public ABaseCharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 	
@@ -24,6 +24,8 @@ public:
 	UBehaviorTree* GetBehaviorTree() const {
 		return AIBehaviorTree;
 	}
+
+	void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components|AbilitySystemComponent")
 	UAbilitySystemComponent* AbilitySystemComp = nullptr;

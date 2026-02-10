@@ -21,6 +21,8 @@ class BEATHIMUP_API AMainGameMode : public AGameModeBase
 protected:
 	FString Server_ID = TEXT("");
 
+	FTimerHandle CheckHavePlayerTimerHandle;
+
 	void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 
 	void BeginPlay() override;
@@ -31,7 +33,11 @@ protected:
 
 	void Logout(AController* Exiting) override;
 
+	void EndPlay(EEndPlayReason::Type EndPlayReason) override;
+
 	void OnDropServerComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
+	void CheckHavePlayer();
 
 public:
 	FOnMatchEnd OnMatchEndDel;

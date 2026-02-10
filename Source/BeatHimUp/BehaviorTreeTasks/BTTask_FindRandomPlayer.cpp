@@ -24,12 +24,7 @@ EBTNodeResult::Type UBTTask_FindRandomPlayer::ExecuteTask(UBehaviorTreeComponent
                                     CanBeAggressive->SetHasBecomeAggressive(true);
                                 }
                             }
-                            if (IHaveSpecialDeath* HaveSpecialDeath = PlayerController->GetPawn<IHaveSpecialDeath>()) {
-                                HaveSpecialDeath->OnDeath().AddUObject(OwnerAIController, &ABaseEnemyAIController::OnTargetDeath);
-                            }
-                            if (UBlackboardComponent* BBComp = OwnerComp.GetBlackboardComponent()) {
-                                BBComp->SetValueAsObject(FName("Target"), PlayerController->GetPawn());
-                            }
+                            OwnerAIController->SetEnemyTarget(PlayerController->GetPawn());
                             return EBTNodeResult::Succeeded;
                         }
                     }

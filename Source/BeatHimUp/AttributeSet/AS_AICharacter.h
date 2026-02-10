@@ -39,10 +39,12 @@ public:
 
 	void SetBaseMaxHealth(float inMaxHealth) override {
 		MaxHealth.SetBaseValue(inMaxHealth);
+		MaxHealth.SetCurrentValue(inMaxHealth);
 	}
 
 	void SetCurrentBaseHealth(float inHealth) override {
 		Health.SetBaseValue(inHealth);
+		Health.SetCurrentValue(inHealth);
 	}
 
 	ATTRIBUTE_ACCESSORS(UAS_AICharacter, Health)

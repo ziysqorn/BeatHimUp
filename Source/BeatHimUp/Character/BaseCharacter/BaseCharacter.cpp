@@ -25,6 +25,18 @@ void ABaseCharacter::BeginPlay()
 	
 }
 
+void ABaseCharacter::OnLockedTargetDestroyed(AActor* DestroyedTarget)
+{
+	LockedOnTarget = nullptr;
+}
+
+void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ABaseCharacter, LockedOnTarget);
+}
+
 void ABaseCharacter::EndPlay(EEndPlayReason::Type Reason)
 {
 	if (HasAuthority()) {

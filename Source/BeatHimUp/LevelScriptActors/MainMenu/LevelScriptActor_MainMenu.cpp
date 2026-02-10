@@ -73,12 +73,16 @@ void ALevelScriptActor_MainMenu::ResetPlayerPreviewerRotationAt(int idx)
 
 void ALevelScriptActor_MainMenu::SetupView()
 {
-	for (int i = 0; i < PlayerPreviewerList.Num(); ++i) {
-		if (PlayerPreviewerList[i]) {
-			/*if (USkeletalMeshComponent* ModelComp = PlayerPreviewerList[i]->GetModel()) {
-				ModelComp->SetVisibility(false);
-			}*/
-			PlayerPreviewerList[i]->SetActorHiddenInGame(true);
+	if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+		if (MyGameInstance->GetLobbyInfo().LobbyName.IsNone()) {
+			for (int i = 0; i < PlayerPreviewerList.Num(); ++i) {
+				if (PlayerPreviewerList[i]) {
+					PlayerPreviewerList[i]->SetActorHiddenInGame(true);
+				}
+			}
+		}
+		else {
+			UpdatePlayerPreviewerList(MyGameInstance->GetLobbyInfo());
 		}
 	}
 	if (CineCamera) {

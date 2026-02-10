@@ -52,7 +52,6 @@ void APlayerPreviewer::RotateModel_Implementation()
 			float degreeToRotate = CurMouseLocX >= MouseLocX ? 360.0f * lengthRatio * -1 : 360.0f * lengthRatio;
 			FRotator TargetRotation = CurRotation + FRotator(0.0f, degreeToRotate, 0.0f);
 			ModelComponent->SetRelativeRotation(TargetRotation);
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Emerald, TEXT("Haha"));
 		}
 
 	}

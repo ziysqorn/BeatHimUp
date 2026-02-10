@@ -4,6 +4,7 @@
 #include "BaseEnemyAIController.h"
 #include "../../Character/BaseCharacter/AICharacter.h"
 #include "../../Character/MainCharacter/MainCharacter.h"
+#include "../../Interface/HaveSpecialDeath.h"
 
 ABaseEnemyAIController::ABaseEnemyAIController()
 {
@@ -58,16 +59,8 @@ void ABaseEnemyAIController::OnTargetDetected(AActor* actor, FAIStimulus Stimulu
 								FVector VectortoCurrentTarget = Target->GetActorLocation() - this->GetPawn()->GetActorLocation();
 								float DistanceToDetectedActor = VectorToDetectedActor.Length();
 								float DistanceToCurrentTarget = VectortoCurrentTarget.Length();
-								/*GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Format(TEXT("To detected actor: {0}"), { DistanceToDetectedActor }));
-								GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Format(TEXT("To current target: {0}"), { DistanceToCurrentTarget }));*/
 								if (DistanceToDetectedActor < DistanceToCurrentTarget) {
-									if (IHaveSpecialDeath* TargetHaveSpecialDeath = Cast<IHaveSpecialDeath>(Target)) {
-										TargetHaveSpecialDeath->OnDeath().RemoveAll(this);
-									}
-									if (IHaveSpecialDeath* HaveSpecialDeath = Cast<IHaveSpecialDeath>(MainCharacter)) {
-										HaveSpecialDeath->OnDeath().AddUObject(this, &ABaseEnemyAIController::OnTargetDeath);
-										GetBlackboardComponent()->SetValueAsObject(FName("Target"), MainCharacter);
-									}
+									SetEnemyTarget(MainCharacter);
 								}
 							}
 						}
@@ -95,11 +88,18 @@ void ABaseEnemyAIController::OnTargetDeath(AActor* DeadTarget)
 	}
 }
 
-void ABaseEnemyAIController::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+void ABaseEnemyAIController::SetEnemyTarget(AActor* Target)
 {
-	if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(this->GetPawn())) {
-		if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent()) {
-			TagContainer = ASC->GetOwnedGameplayTags();
+	if (GetBlackboardComponent()) {
+		if (AActor* OldTarget = Cast<AActor>(GetBlackboardComponent()->GetValueAsObject(FName("Target"))))
+		{
+			if (IHaveSpecialDeath* OldHaveSpecialDeath = Cast<IHaveSpecialDeath>(OldTarget)) {
+				OldHaveSpecialDeath->OnDeath().RemoveAll(this);
+			}
+		}
+		if (IHaveSpecialDeath* NewHaveSpecialDeath = Cast<IHaveSpecialDeath>(Target)) {
+			NewHaveSpecialDeath->OnDeath().AddUObject(this, &ABaseEnemyAIController::OnTargetDeath);
+			GetBlackboardComponent()->SetValueAsObject(FName("Target"), Target);
 		}
 	}
 }

@@ -20,7 +20,7 @@
  */
 
 UCLASS()
-class BEATHIMUP_API AMainCharacter : public ABaseCharacter, public IAbilitySystemInterface, public ICameraSystemInterface, public IDamageable, public ICanCauseDamage, public ICanUseItem, public IHaveAttributeSet, public IHaveSpecialDeath
+class BEATHIMUP_API AMainCharacter : public ABaseCharacter, public IAbilitySystemInterface, public ICameraSystemInterface, public IDamageable, public ICanCauseDamage, public ICanUseItem, public IHaveAttributeSet, public IHaveSpecialDeath, public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 public:
@@ -42,6 +42,8 @@ public:
 	UItemComponent* GetItemComponent() override {
 		return ItemComp;
 	}
+
+	void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 protected:
 	//Components
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Camera|SpringArmComponent")
@@ -72,9 +74,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input")
 	UInputMappingContext* PlayerMappingContext = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input")
-	UInputMappingContext* MC_SpectatorMode = nullptr;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties|Input|Input Action");
 	UInputAction* IA_Move = nullptr;
 
@@ -100,9 +99,6 @@ protected:
 	UInputAction* IA_UseItem = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
-	UInputAction* IA_NextSpectatedPlayer = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, Category = "EditorProperties|Input|Input Action");
 	UInputAction* IA_PauseGame = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties | Detect Box Extent")
@@ -114,6 +110,8 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void Tick(float deltaTime) override;
+
+	void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
 	void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -138,9 +136,6 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void Server_LockTargetTriggered();
 
-	UFUNCTION(NetMulticast, Reliable)
-	void NetMulticast_LockTarget();
-
 	void RotateToLockTarget(float DeltaTime);
 
 	void SwitchItemTriggered();
@@ -151,7 +146,10 @@ protected:
 
 	void SetupGameplay();
 
-	UFUNCTION(NetMulticast, Reliable)
+	//UFUNCTION(NetMulticast, Reliable)
+	//void Hurt(const float& remainHealth, const float& totalHealth, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	UFUNCTION(Server, Reliable)
 	void Hurt(const float& remainHealth, const float& totalHealth, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	TSubclassOf<UGameplayEffect> GetDamageGESubclass() override {
@@ -172,7 +170,13 @@ protected:
 
 	void OnRep_PlayerState() override;
 
-	void ExecuteAfterDeathBehaviour(AController * inInstigator, AActor* DamageCauser) override;
+	void OnRep_LockedOnTarget(TWeakObjectPtr<AActor> OldTarget) override;
+
+	void ExecuteAfterDeathBehaviour(AController* inInstigator, AActor* DamageCauser) override;
+
+	void SetMovementAfterLockTarget(AActor* Target);
+
+	void SaveCharacterStats();
 private:
 	UPROPERTY()
 	TObjectPtr<UAIPerceptionStimuliSourceComponent> StimulusSourceComp = nullptr;

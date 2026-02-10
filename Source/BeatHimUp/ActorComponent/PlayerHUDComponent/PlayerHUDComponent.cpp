@@ -31,12 +31,29 @@ void UPlayerHUDComponent::BeginPlay()
 void UPlayerHUDComponent::SetupItemFrameList(const TArray<UUsableItem*>& inItemList)
 {
 	if (APlayerController* PlayerController = Cast<APlayerController>(this->GetOwner())) {
-		for (int i = 0; i < inItemList.Num(); ++i) {
-			if (IsValid(inItemList[i])) {
-				if (UUsableItemFrame* UsableItemFrame = CreateWidget<UUsableItemFrame>(PlayerController, UsableItemFrameSubclass)) {
-					UsableItemFrame->SetItemImage(inItemList[i]->GetItemImage());
-					UsableItemFrame->SetQuantityText(FText::FromString(FString::FromInt(inItemList[i]->GetQuantity())));
-					MainHUD->AddItemFrameToContainer(UsableItemFrame);
+		if (IsValid(MainHUD)) {
+			if (const UPanelWidget* ItemFrameContainer = MainHUD->GetItemFrameContainer()) {
+				int ListSizeDiff = FMath::Abs(inItemList.Num() - ItemFrameContainer->GetChildrenCount());
+				if (inItemList.Num() > ItemFrameContainer->GetChildrenCount()) {
+					for (int i = 0; i < ListSizeDiff; ++i) {
+						if (UUsableItemFrame* UsableItemFrame = CreateWidget<UUsableItemFrame>(PlayerController, UsableItemFrameSubclass)) {
+							MainHUD->AddItemFrameToContainer(UsableItemFrame);
+						}
+					}
+				}
+				else if (inItemList.Num() < ItemFrameContainer->GetChildrenCount()) {
+					for (int i = 0; i < ListSizeDiff; ++i) {
+						MainHUD->RemoveLastItemFrameFromContainer();
+					}
+				}
+
+				for (int i = 0; i < inItemList.Num(); ++i) {
+					if (IsValid(inItemList[i])) {
+						if (UUsableItemFrame* UsableItemFrame = Cast<UUsableItemFrame>(MainHUD->GetItemFrame(i))) {
+							UsableItemFrame->SetItemImage(inItemList[i]->GetItemImage());
+							UsableItemFrame->SetQuantityText(FText::FromString(FString::FromInt(inItemList[i]->GetQuantity())));
+						}
+					}
 				}
 			}
 		}
@@ -45,15 +62,48 @@ void UPlayerHUDComponent::SetupItemFrameList(const TArray<UUsableItem*>& inItemL
 
 void UPlayerHUDComponent::UpdateItemFrameQuantity(UUsableItem* Item)
 {
-	if (APlayerController* PlayerController = Cast<APlayerController>(this->GetOwner())) {
-		if (ICanUseItem* CanUseItem = Cast<ICanUseItem>(PlayerController->GetPawn())) {
+	if (IsValid(Item)) {
+		if (APlayerController* PlayerController = Cast<APlayerController>(this->GetOwner())) {
+			if (ICanUseItem* CanUseItem = Cast<ICanUseItem>(PlayerController->GetPawn())) {
+				if (UItemComponent* ItemComp = CanUseItem->GetItemComponent()) {
+					const TArray<UUsableItem*>& ItemList = ItemComp->GetUsableItemList();
+					for (int i = 0; i < ItemList.Num(); ++i) {
+						if (IsValid(ItemList[i])) {
+							if (ItemList[i]->GetItemName().IsEqual(Item->GetItemName())) {
+								if (IsValid(MainHUD)) {
+									if (UUsableItemFrame* UsableItemFrame = Cast<UUsableItemFrame>(MainHUD->GetItemFrame(i))) {
+										/*FString PrintMessage = TEXT("");
+											if (APlayerController* PC = GetWorld()->GetFirstPlayerController()) {
+												if (APlayerState* OwningPS = PC->GetPlayerState<APlayerState>()) {
+													PrintMessage.Append(FString::Format(TEXT("OwningClient: {0}"), { OwningPS->GetPlayerName() }));
+												}
+											}
+											PrintMessage.Append(FString::Format(TEXT(" --> Item: {0} - Quantity: {1}"), { Item->GetItemName().ToString(),  FString::FromInt(Item->GetQuantity())}));
+											GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta, PrintMessage);*/
+										UsableItemFrame->SetQuantityText(FText::FromString(FString::FromInt(Item->GetQuantity())));
+										return;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void UPlayerHUDComponent::Client_UpdateItemFrameQuantityByViewTarget_Implementation(UUsableItem* Item, AActor* CurrentViewTargetPawn)
+{
+	if (IsValid(Item)) {
+		if (ICanUseItem* CanUseItem = Cast<ICanUseItem>(CurrentViewTargetPawn)) {
 			if (UItemComponent* ItemComp = CanUseItem->GetItemComponent()) {
 				const TArray<UUsableItem*>& ItemList = ItemComp->GetUsableItemList();
 				for (int i = 0; i < ItemList.Num(); ++i) {
-					if (ItemList[i] == Item) {
-						if (IsValid(MainHUD)) {
-							if (UUsableItemFrame* UsableItemFrame = Cast<UUsableItemFrame>(MainHUD->GetItemFrame(i))) {
-								if (IsValid(Item)) {
+					if (IsValid(ItemList[i])) {
+						if (ItemList[i]->GetItemName().IsEqual(Item->GetItemName())) {
+							if (IsValid(MainHUD)) {
+								if (UUsableItemFrame* UsableItemFrame = Cast<UUsableItemFrame>(MainHUD->GetItemFrame(i))) {
 									UsableItemFrame->SetQuantityText(FText::FromString(FString::FromInt(Item->GetQuantity())));
 									return;
 								}
@@ -68,13 +118,24 @@ void UPlayerHUDComponent::UpdateItemFrameQuantity(UUsableItem* Item)
 
 void UPlayerHUDComponent::BindItemDelegates()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, TEXT("Controller bound !"));
+	//GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, TEXT("Controller bound !"));
 	if (APlayerController* PlayerController = Cast<APlayerController>(this->GetOwner())) {
 		if (ICanUseItem* CanUseItem = Cast<ICanUseItem>(PlayerController->GetPawn())) {
 			if (UItemComponent* ItemComp = CanUseItem->GetItemComponent()) {
 				ItemComp->OnRepUsableItemListDel.AddUObject(this, &UPlayerHUDComponent::SetupItemFrameList);
 				ItemComp->OnItemQuantityChangedDel.AddUObject(this, &UPlayerHUDComponent::UpdateItemFrameQuantity);
-				ItemComp->Server_InitUsableItemList();
+			}
+		}
+	}
+}
+
+void UPlayerHUDComponent::UpdateBossInfoUI(AActor* BossRef)
+{
+	if (IsValid(MainHUD)) {
+		MainHUD->SetBossName(FText::FromString(TEXT("Warrok")));
+		if (IHaveAttributeSet* HaveAS = Cast<IHaveAttributeSet>(BossRef)) {
+			if (IHaveHealthAttribute* HaveHealthAttr = Cast<IHaveHealthAttribute>(HaveAS->GetAttributeSet())) {
+				MainHUD->BindBossHealthProgress(HaveAS->GetAttributeSet(), FName("GetHealthPercentage"));
 			}
 		}
 	}
@@ -116,6 +177,20 @@ void UPlayerHUDComponent::Client_SetupBossHUDHealthbar_Implementation(AActor* Ac
 				}
 			}
 		}
+	}
+}
+
+void UPlayerHUDComponent::ShowHUD()
+{
+	if (IsValid(MainHUD)) {
+		MainHUD->AddToViewport(0);
+	}
+}
+
+void UPlayerHUDComponent::HideHUD()
+{
+	if (IsValid(MainHUD)) {
+		MainHUD->RemoveFromParent();
 	}
 }
 
@@ -182,19 +257,29 @@ void UPlayerHUDComponent::Client_AddHUD_Implementation()
 					}
 				}
 				BindItemDelegates();
-				if (AMainGameState* MainGS = GetWorld()->GetGameState<AMainGameState>()) {
-					if (AActor* Boss = MainGS->GetBossRef()) {
-						MainHUD->SetBossName(FText::FromString(TEXT("Warrok")));
-						if (IHaveAttributeSet* HaveAS = Cast<IHaveAttributeSet>(Boss)) {
-							if (IHaveHealthAttribute* HaveHealthAttr = Cast<IHaveHealthAttribute>(HaveAS->GetAttributeSet())) {
-								MainHUD->BindBossHealthProgress(HaveAS->GetAttributeSet(), FName("GetHealthPercentage"));
-							}
-						}
+				if (ICanUseItem* CanUseItem = Cast<ICanUseItem>(PlayerController->GetPawn())) {
+					if (UItemComponent* ItemComp = CanUseItem->GetItemComponent()) {
+						ItemComp->Server_InitUsableItemList();
 					}
+				}
+				if (AMainGameState* MainGS = GetWorld()->GetGameState<AMainGameState>()) {
+					UpdateBossInfoUI(MainGS->GetBossRef());
+					MainGS->OnRepBossRefDel.AddUObject(this, &UPlayerHUDComponent::UpdateBossInfoUI);
 				}
 				if (!MainHUD->IsInViewport()) {
 					MainHUD->AddToViewport(0);
 				}
+			}
+		}
+	}
+}
+
+void UPlayerHUDComponent::ShowLoadingScreen()
+{
+	if (GetWorld() && GetWorld()->GetGameInstance()) {
+		if (UUIManagerSubsystem* UISubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUIManagerSubsystem>()) {
+			if (TSubclassOf<UUserWidget>* LoadingScreenSubclass = DA_UI->UISubclassMap.Find(FName("LoadingScreen"))) {
+				UISubsystem->ShowLoadingScreen(*LoadingScreenSubclass, 10);
 			}
 		}
 	}

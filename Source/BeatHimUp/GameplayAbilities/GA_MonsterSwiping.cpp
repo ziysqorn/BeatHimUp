@@ -64,7 +64,6 @@ void UGA_MonsterSwiping::AttackEnd()
 
 void UGA_MonsterSwiping::AttackParried(FGameplayEventData eventData)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("This attack has been parried"));
 	if (CurrentActorInfo) {
 		if (UAbilitySystemComponent* ASC = CurrentActorInfo->AbilitySystemComponent.Get()) {
 			FGameplayTagContainer Container;

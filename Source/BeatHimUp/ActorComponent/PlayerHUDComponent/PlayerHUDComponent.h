@@ -35,10 +35,35 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Client_AddHUD();
 
+	void ShowHUD();
+
+	void HideHUD();
+
 	UFUNCTION()
 	void DisplayMatchStatusMessage(EMatchStatus inMatchStatus);
 
 	void DisplayPauseUI();
+
+	void ShowLoadingScreen();
+
+	void BindHealthProgress(UObject* inObject, const FName& inFunc) {
+		if (IsValid(MainHUD)) {
+			MainHUD->BindHealthProgress(inObject, inFunc);
+		}
+	}
+
+	void BindStaminaProgress(UObject* inObject, const FName& inFunc) {
+		if (IsValid(MainHUD)) {
+			MainHUD->BindStaminaProgress(inObject, inFunc);
+		}
+	}
+
+	void SetupItemFrameList(const TArray<UUsableItem*>& inItemList);
+
+	void UpdateItemFrameQuantity(UUsableItem* Item);
+
+	UFUNCTION(Client, Reliable)
+	void Client_UpdateItemFrameQuantityByViewTarget(UUsableItem* Item, AActor* CurrentViewTargetPawn);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EditorProperties|HUDSubclass")
@@ -62,9 +87,7 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	void SetupItemFrameList(const TArray<UUsableItem*>& inItemList);
-
-	void UpdateItemFrameQuantity(UUsableItem* Item);
-
 	void BindItemDelegates();
+
+	void UpdateBossInfoUI(AActor* BossRef);
 };

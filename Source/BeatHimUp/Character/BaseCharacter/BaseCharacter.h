@@ -17,8 +17,8 @@ class BEATHIMUP_API ABaseCharacter : public ACharacter
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(BlueprintReadOnly)
-	TWeakObjectPtr<AActor> LockedOnTarget;
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_LockedOnTarget, BlueprintReadOnly)
+	TWeakObjectPtr<AActor> LockedOnTarget = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components | WeaponComponent")
 	UWeaponComponent* WeaponComponent = nullptr;
@@ -33,6 +33,18 @@ protected:
 	virtual void BeginPlay() override;
 
 	void EndPlay(EEndPlayReason::Type Reason) override;
+
+	UFUNCTION()
+	virtual void OnRep_LockedOnTarget(TWeakObjectPtr<AActor> OldTarget) {
+		if (OnLockTargetDel.IsBound()) {
+			OnLockTargetDel.Broadcast(LockedOnTarget.Get());
+		}
+	}
+
+	UFUNCTION()
+	virtual void OnLockedTargetDestroyed(AActor* DestroyedTarget);
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
 	FOnLockTarget OnLockTargetDel;

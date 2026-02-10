@@ -25,14 +25,14 @@ void UHealthPotion::Use_Implementation()
 		}
 	}
 	--Quantity;
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Format(TEXT("HEALTH POTION USED ! - CurrentQuantity: {0}"), {Quantity}));
 }
 
 void UHealthPotion::OnRep_Quantity(int OldQuantity) 
 {
+	Super::OnRep_Quantity(OldQuantity);
 }
 
 void UHealthPotion::OnRep_MaxQuantity(int OldMaxQuantity) 
 {
-
+	Super::OnRep_MaxQuantity(OldMaxQuantity);
 }

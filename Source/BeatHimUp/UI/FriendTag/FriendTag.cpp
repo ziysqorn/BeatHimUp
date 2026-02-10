@@ -39,7 +39,6 @@ FReply UFriendTag::NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, c
 void UFriendTag::InviteToLobby()
 {
 	if (IsValid(Txt_Username)) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, FString::Format(TEXT("Invite user {0} to lobby"), { Txt_Username->GetText().ToString() }));
 		FString InvitedUsername = Txt_Username->GetText().ToString();
 		if (AMainMenuController* MainMenuController = this->GetOwningPlayer<AMainMenuController>()) {
 			MainMenuController->InviteToLobby(InvitedUsername);

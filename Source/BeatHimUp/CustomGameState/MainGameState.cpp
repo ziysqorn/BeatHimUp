@@ -25,6 +25,9 @@ void AMainGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 void AMainGameState::OnRep_BossRef(AActor* OldBossRef)
 {
+	if (OnRepBossRefDel.IsBound()) {
+		OnRepBossRefDel.Broadcast(BossRef);
+	}
 }
 
 void AMainGameState::OnRep_MatchStatus(EMatchStatus OldMatchStatus)

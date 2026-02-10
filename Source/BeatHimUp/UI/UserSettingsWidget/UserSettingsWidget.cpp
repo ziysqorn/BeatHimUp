@@ -39,7 +39,6 @@ void UUserSettingsWidget::NativeConstruct()
 	}
 	if (UUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UUIManagerSubsystem>()) {
 		UIManager->AddWidget(this);
-		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0);
 		if (APlayerController* PC = GetOwningPlayer()) {
 			FInputModeUIOnly InputMode;
 			PC->SetInputMode(InputMode);
@@ -53,7 +52,6 @@ void UUserSettingsWidget::NativeDestruct()
 {
 	if (UUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UUIManagerSubsystem>()) {
 		UIManager->PopLastWidget();
-		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1);
 		if (IHaveSpecialInputMode* HaveSpecialInputMode = GetOwningPlayer<IHaveSpecialInputMode>()) {
 			HaveSpecialInputMode->HandleAfterUIRemove();
 		}

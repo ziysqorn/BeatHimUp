@@ -206,6 +206,11 @@ void ULoginScreen::LoginRequestComplete(FHttpRequestPtr pRequest, FHttpResponseP
 									}
 									FLobbyInfo LobbyInfo(LobbyName, LeaderUsername, LobbyMembers, 5, Status);
 									MyGameInstance->SetLobbyInfo(LobbyInfo);
+									if (UUIManagerSubsystem* UISubsystem = MyGameInstance->GetSubsystem<UUIManagerSubsystem>()) {
+										if (TSubclassOf<UUserWidget>* LoadingScreenSubclass = DA_UI->UISubclassMap.Find(FName("LoadingScreen"))) {
+											UISubsystem->ShowLoadingScreen(*LoadingScreenSubclass, 10);
+										}
+									}
 									UGameplayStatics::OpenLevel(this, FName(ServerAddress));
 								}
 							}

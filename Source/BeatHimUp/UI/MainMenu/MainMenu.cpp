@@ -85,6 +85,9 @@ void UMainMenu::InitMainMenu()
 			}
 		}
 	}
+	if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+		UpdateMenuAccordingToLobbyUpdate(MyGameInstance->GetLobbyInfo());
+	}
 }
 
 FReply UMainMenu::NativeOnPreviewMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)

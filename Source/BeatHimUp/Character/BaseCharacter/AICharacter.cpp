@@ -9,6 +9,13 @@ AAICharacter::AAICharacter()
 	AbilitySystemComp = CreateDefaultSubobject<UAbilitySystemComponent>(FName("AbilitySystemComponent"));
 }
 
+void AAICharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	if (UAbilitySystemComponent* ASC = this->GetAbilitySystemComponent()) {
+		TagContainer = ASC->GetOwnedGameplayTags();
+	}
+}
+
 void AAICharacter::BeginPlay()
 {
 	Super::BeginPlay();
