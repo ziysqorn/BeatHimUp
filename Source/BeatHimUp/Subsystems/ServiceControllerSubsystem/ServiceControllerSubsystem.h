@@ -48,8 +48,13 @@ public:
 
 	FOnWSMessageReceive WSMessageReceiveDel;
 
-	FString GetBaseHTTPURL() {
-		return FString("http://").Append(BASE_URL);
+	FString& GetBaseAPIURL() {
+		//return FString("http://").Append(BASE_URL);
+		return BASE_URL;
+	}
+
+	void SetBaseAPIURL(const FString& inURL) {
+		BASE_URL = inURL;
 	}
 
 	void OpenWSConnection();

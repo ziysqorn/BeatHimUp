@@ -17,7 +17,9 @@ void AMainMenuController::BeginPlay()
 		ServiceController->WSMessageReceiveDel.AddUObject(this, &AMainMenuController::OnFriendRequestAccepted);
 		ServiceController->WSMessageReceiveDel.AddUObject(this, &AMainMenuController::OnBeFriendRemovedReceived);
 		ServiceController->WSMessageReceiveDel.AddUObject(this, &AMainMenuController::OnLobbyInvitationReceived);
-		ServiceController->WSMessageReceiveDel.AddUObject(this, &AMainMenuController::OnStartGameReceived);
+		ServiceController->WSMessageReceiveDel.AddUObject(this, &AMainMenuController::OnDoneCreatingGameServerReceived);
+		ServiceController->WSMessageReceiveDel.AddUObject(this, &AMainMenuController::OnCreateGameServerFailedReceived);
+		ServiceController->WSMessageReceiveDel.AddUObject(this, &AMainMenuController::OnStartCreatingGameServerReceived);
 		if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
 			if (MyGameInstance->GetLobbyInfo().LobbyName.IsNone()) {
 				if (ServiceController->LobbyController) {
@@ -195,7 +197,7 @@ void AMainMenuController::OnLobbyInvitationReceived(const FString& Message)
 	}
 }
 
-void AMainMenuController::OnStartGameReceived(const FString& Message)
+void AMainMenuController::OnDoneCreatingGameServerReceived(const FString& Message)
 {
 	TSharedPtr<FJsonObject> messageObj;
 	TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(Message);
@@ -210,12 +212,51 @@ void AMainMenuController::OnStartGameReceived(const FString& Message)
 						TSharedPtr<FJsonObject> serverObj = payloadObj->GetObjectField(TEXT("game_server"));
 						if (serverObj.IsValid()) {
 							if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
-								if (UUIManagerSubsystem* UISubsystem = MyGameInstance->GetSubsystem<UUIManagerSubsystem>()) {
-									UISubsystem->ShowLoadingScreen(MainMenu->GetWidgetSubclass(FName("LoadingScreen")), 10);
-								}
 								const FString IP = serverObj->GetStringField(TEXT("address"));
 								GetWorldTimerManager().SetTimer(MoveToNewLevelHandle, FTimerDelegate::CreateUObject(this, &AMainMenuController::MoveToNewLevel, FName(IP)), MoveToNewlevelDelay, false);
 							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void AMainMenuController::OnCreateGameServerFailedReceived(const FString& Message)
+{
+	TSharedPtr<FJsonObject> messageObj;
+	TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(Message);
+	if (FJsonSerializer::Deserialize(reader, messageObj)) {
+		if (messageObj.IsValid()) {
+			FString resource = messageObj->GetStringField(TEXT("resource"));
+			FString action = messageObj->GetStringField(TEXT("action"));
+			if (resource == TEXT("game_server") && action == TEXT("create_failed")) {
+				if (IsValid(MainMenu)) {
+					if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+						if (UUIManagerSubsystem* UISubsystem = MyGameInstance->GetSubsystem<UUIManagerSubsystem>()) {
+							UISubsystem->RemoveLoadingScreen();
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void AMainMenuController::OnStartCreatingGameServerReceived(const FString& Message)
+{
+	TSharedPtr<FJsonObject> messageObj;
+	TSharedRef<TJsonReader<>> reader = TJsonReaderFactory<>::Create(Message);
+	if (FJsonSerializer::Deserialize(reader, messageObj)) {
+		if (messageObj.IsValid()) {
+			FString resource = messageObj->GetStringField(TEXT("resource"));
+			FString action = messageObj->GetStringField(TEXT("action"));
+			if (resource == TEXT("game_server") && action == TEXT("start_create")) {
+				if (IsValid(MainMenu)) {
+					if (UMyGameInstance* MyGameInstance = GetGameInstance<UMyGameInstance>()) {
+						if (UUIManagerSubsystem* UISubsystem = MyGameInstance->GetSubsystem<UUIManagerSubsystem>()) {
+							UISubsystem->ShowLoadingScreen(MainMenu->GetWidgetSubclass(FName("LoadingScreen")), 10);
 						}
 					}
 				}
@@ -563,9 +604,6 @@ void AMainMenuController::OnStartGameComplete(FHttpRequestPtr pRequest, FHttpRes
 						TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(pResponse->GetContentAsString());
 						if (FJsonSerializer::Deserialize(Reader, jsonObj)) {
 							if (jsonObj.IsValid()) {
-								if (UUIManagerSubsystem* UISubsystem = MyGameInstance->GetSubsystem<UUIManagerSubsystem>()) {
-									UISubsystem->ShowLoadingScreen(MainMenu->GetWidgetSubclass(FName("LoadingScreen")), 10);
-								}
 								const FString IP = jsonObj->GetStringField(TEXT("address"));
 								GetWorldTimerManager().SetTimer(MoveToNewLevelHandle, FTimerDelegate::CreateUObject(this, &AMainMenuController::MoveToNewLevel, FName(IP)), MoveToNewlevelDelay, false);
 							}
@@ -573,6 +611,9 @@ void AMainMenuController::OnStartGameComplete(FHttpRequestPtr pRequest, FHttpRes
 						break;
 					}
 					default:
+						if (UUIManagerSubsystem* UISubsystem = MyGameInstance->GetSubsystem<UUIManagerSubsystem>()) {
+							UISubsystem->RemoveLoadingScreen();
+						}
 						MainMenu->DisplayOnlyCloseAlert(pResponse->GetContentAsString());
 						break;
 					}

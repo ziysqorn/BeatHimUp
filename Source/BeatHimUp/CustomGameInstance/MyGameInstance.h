@@ -56,6 +56,10 @@ protected:
 
 	void ApplySavedGraphicSettings();
 
+	void OnGetDotgIPComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
+
+	void GetDotgIP(const FHttpRequestCompleteDelegate& callback);
+
 public:
 	FOnLobbyUpdate OnLobbyUpdateDel;
 

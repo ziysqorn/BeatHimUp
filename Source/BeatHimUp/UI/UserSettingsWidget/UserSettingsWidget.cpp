@@ -123,6 +123,12 @@ void UUserSettingsWidget::ApplySettings()
 			if (UGameUserSettings* GameUserSettings = GEngine->GetGameUserSettings()) {
 				int SelectedPresets = *QualityMap.Find(ComboBox_Presets->GetSelectedOption());
 				GameUserSettings->SetOverallScalabilityLevel(SelectedPresets);
+				auto* ConsoleVar = IConsoleManager::Get().FindConsoleVariable(TEXT("r.AntiAliasingMethod"));
+				if (ConsoleVar)
+				{
+					ConsoleVar->Set(2);
+				}
+				GameUserSettings->SetAntiAliasingQuality(2);
 
 				GameUserSettings->SetFrameRateLimit(FCString::Atoi(*ComboBox_MaxFrameLimit->GetSelectedOption()));
 				if (ComboBox_VSync->GetSelectedIndex() == 0) {

@@ -12,7 +12,7 @@ UGameServerController::UGameServerController()
 void UGameServerController::DropGameServer(const FString& Server_ID, const FHttpRequestCompleteDelegate& callback)
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
-		FString BASE_URL = ServiceController->GetBaseHTTPURL();
+		FString BASE_URL = ServiceController->GetBaseAPIURL();
 		FString realURL = BASE_URL.Append("/game_server/drop");
 		FHttpModule& HttpModule = FHttpModule::Get();
 		TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();

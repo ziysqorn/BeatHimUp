@@ -207,7 +207,7 @@ void UPlayerHUDComponent::DisplayMatchStatusMessage(EMatchStatus inMatchStatus)
 			OnScreenMessage->SetMessageColor(TEXT("#0ec208"));
 			OnScreenMessage->SetAfterFinishedFadeinDelay(2.0f);
 			OnScreenMessage->AfterFinishedFadeinDel.BindUObject(PlayerController, &AMainController::EndGameProcess, inMatchStatus);
-			OnScreenMessage->AddToViewport(99);
+			OnScreenMessage->AddToViewport(5);
 			OnScreenMessage->PlayMessageFadein();
 			break;
 		case EMatchStatus::MATCH_LOST:
@@ -219,7 +219,7 @@ void UPlayerHUDComponent::DisplayMatchStatusMessage(EMatchStatus inMatchStatus)
 			OnScreenMessage->SetMessageColor(TEXT("#e60e0e"));
 			OnScreenMessage->SetAfterFinishedFadeinDelay(2.0f);
 			OnScreenMessage->AfterFinishedFadeinDel.BindUObject(PlayerController, &AMainController::EndGameProcess, inMatchStatus);
-			OnScreenMessage->AddToViewport(99);
+			OnScreenMessage->AddToViewport(5);
 			OnScreenMessage->PlayMessageFadein();
 			break;
 		default:

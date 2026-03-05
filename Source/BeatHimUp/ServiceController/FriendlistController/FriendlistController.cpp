@@ -14,7 +14,7 @@ void UFriendlistController::SendFriendRequest(const FString& receiver, const FHt
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
 		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(ServiceController->GetGameInstance())) {
-			FString BASE_URL = ServiceController->GetBaseHTTPURL();
+			FString BASE_URL = ServiceController->GetBaseAPIURL();
 			FString realURL = BASE_URL.Append("/friend_request/send");
 			FHttpModule& HttpModule = FHttpModule::Get();
 			TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();
@@ -34,7 +34,7 @@ void UFriendlistController::GetFriendRequest(const FHttpRequestCompleteDelegate&
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
 		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(ServiceController->GetGameInstance())) {
-			FString BASE_URL = ServiceController->GetBaseHTTPURL();
+			FString BASE_URL = ServiceController->GetBaseAPIURL();
 			FString realURL = BASE_URL.Append("/friend_request/get");
 			FHttpModule& HttpModule = FHttpModule::Get();
 			TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();
@@ -52,7 +52,7 @@ void UFriendlistController::AcceptFriendRequest(const FString& sender, const FHt
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
 		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(ServiceController->GetGameInstance())) {
-			FString BASE_URL = ServiceController->GetBaseHTTPURL();
+			FString BASE_URL = ServiceController->GetBaseAPIURL();
 			FString realURL = BASE_URL.Append("/friend_request/accept");
 			FHttpModule& HttpModule = FHttpModule::Get();
 			TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();
@@ -72,7 +72,7 @@ void UFriendlistController::DeclineFriendRequest(const FString& sender, const FH
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
 		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(ServiceController->GetGameInstance())) {
-			FString BASE_URL = ServiceController->GetBaseHTTPURL();
+			FString BASE_URL = ServiceController->GetBaseAPIURL();
 			FString realURL = BASE_URL.Append("/friend_request/decline");
 			FHttpModule& HttpModule = FHttpModule::Get();
 			TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();
@@ -92,7 +92,7 @@ void UFriendlistController::RemoveFriend(const FString& removedFriend, const FHt
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
 		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(ServiceController->GetGameInstance())) {
-			FString BASE_URL = ServiceController->GetBaseHTTPURL();
+			FString BASE_URL = ServiceController->GetBaseAPIURL();
 			FString realURL = BASE_URL.Append("/friend/remove");
 			FHttpModule& HttpModule = FHttpModule::Get();
 			TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();
@@ -112,7 +112,7 @@ void UFriendlistController::GetFriendlist(const FHttpRequestCompleteDelegate& ca
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
 		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(ServiceController->GetGameInstance())) {
-			FString BASE_URL = ServiceController->GetBaseHTTPURL();
+			FString BASE_URL = ServiceController->GetBaseAPIURL();
 			FString realURL = BASE_URL.Append("/friendlist/get");
 			FHttpModule& HttpModule = FHttpModule::Get();
 			TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();

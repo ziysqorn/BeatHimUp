@@ -8,7 +8,7 @@
 
 UAS_AICharacter::UAS_AICharacter()
 {
-	MaxHealth = 100.0f;
+	MaxHealth = 5000.0f;
 	MaxDamage = 50.0f;
 	Health = MaxHealth;
 	Damage = MaxDamage;

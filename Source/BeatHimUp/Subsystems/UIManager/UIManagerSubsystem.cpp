@@ -61,7 +61,8 @@ void UUIManagerSubsystem::InitFriendTagCxtMenu(const TArray<TPair<FText, TShared
 	}
 	else {
 		if (CxtMenuSubclass) {
-			if (CtxMenu_FriendTag = CreateWidget<UContextMenu>(GetGameInstance()->GetFirstLocalPlayerController(), CxtMenuSubclass)) {
+			CtxMenu_FriendTag = CreateWidget<UContextMenu>(GetGameInstance()->GetFirstLocalPlayerController(), CxtMenuSubclass);
+			if (IsValid(CtxMenu_FriendTag)) {
 				for (auto& Opt : Options) {
 					if (UButton* newButton = CtxMenu_FriendTag->WidgetTree->ConstructWidget<UButton>(UButton::StaticClass())) {
 						newButton->SetCursor(EMouseCursor::Hand);

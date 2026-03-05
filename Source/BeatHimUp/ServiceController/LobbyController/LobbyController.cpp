@@ -13,7 +13,7 @@ void ULobbyController::CreateLobby(const FHttpRequestCompleteDelegate& callback)
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
 		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(ServiceController->GetGameInstance())) {
-			FString BASE_URL = ServiceController->GetBaseHTTPURL();
+			FString BASE_URL = ServiceController->GetBaseAPIURL();
 			FString realURL = BASE_URL.Append("/lobby/create");
 			FHttpModule& HttpModule = FHttpModule::Get();
 			TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();
@@ -31,7 +31,7 @@ void ULobbyController::InviteToLobby(const FString& receiver, const FHttpRequest
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
 		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(ServiceController->GetGameInstance())) {
-			FString BASE_URL = ServiceController->GetBaseHTTPURL();
+			FString BASE_URL = ServiceController->GetBaseAPIURL();
 			FString realURL = BASE_URL.Append("/lobby/invite");
 			FHttpModule& HttpModule = FHttpModule::Get();
 			TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();
@@ -51,7 +51,7 @@ void ULobbyController::AcceptLobbyInvitation(const FString& sender, const FHttpR
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
 		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(ServiceController->GetGameInstance())) {
-			FString BASE_URL = ServiceController->GetBaseHTTPURL();
+			FString BASE_URL = ServiceController->GetBaseAPIURL();
 			FString realURL = BASE_URL.Append("/lobby/accept");
 			FHttpModule& HttpModule = FHttpModule::Get();
 			TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();
@@ -71,7 +71,7 @@ void ULobbyController::LeaveLobby(const FHttpRequestCompleteDelegate& callback)
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
 		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(ServiceController->GetGameInstance())) {
-			FString BASE_URL = ServiceController->GetBaseHTTPURL();
+			FString BASE_URL = ServiceController->GetBaseAPIURL();
 			FString realURL = BASE_URL.Append("/lobby/leave");
 			FHttpModule& HttpModule = FHttpModule::Get();
 			TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();
@@ -89,7 +89,7 @@ void ULobbyController::DeclineLobbyInvitation(const FString& sender, const FHttp
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
 		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(ServiceController->GetGameInstance())) {
-			FString BASE_URL = ServiceController->GetBaseHTTPURL();
+			FString BASE_URL = ServiceController->GetBaseAPIURL();
 			FString realURL = BASE_URL.Append("/lobby/decline");
 			FHttpModule& HttpModule = FHttpModule::Get();
 			TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();
@@ -109,7 +109,7 @@ void ULobbyController::MakeLeader(const FString& receiver, const FHttpRequestCom
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
 		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(ServiceController->GetGameInstance())) {
-			FString BASE_URL = ServiceController->GetBaseHTTPURL();
+			FString BASE_URL = ServiceController->GetBaseAPIURL();
 			FString realURL = BASE_URL.Append("/lobby/make_leader");
 			FHttpModule& HttpModule = FHttpModule::Get();
 			TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();
@@ -129,7 +129,7 @@ void ULobbyController::KickMemberFromLobby(const FString& receiver, const FHttpR
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
 		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(ServiceController->GetGameInstance())) {
-			FString BASE_URL = ServiceController->GetBaseHTTPURL();
+			FString BASE_URL = ServiceController->GetBaseAPIURL();
 			FString realURL = BASE_URL.Append("/lobby/kick");
 			FHttpModule& HttpModule = FHttpModule::Get();
 			TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();
@@ -149,7 +149,7 @@ void ULobbyController::StartGame(const FHttpRequestCompleteDelegate& callback)
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
 		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(ServiceController->GetGameInstance())) {
-			FString BASE_URL = ServiceController->GetBaseHTTPURL();
+			FString BASE_URL = ServiceController->GetBaseAPIURL();
 			FString realURL = BASE_URL.Append("/game_server/create");
 			FHttpModule& HttpModule = FHttpModule::Get();
 			TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();

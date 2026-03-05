@@ -26,6 +26,8 @@ void UMyGameInstance::Init()
 	}
 
 	ApplySavedGraphicSettings();
+
+	GetDotgIP(FHttpRequestCompleteDelegate::CreateUObject(this, &UMyGameInstance::OnGetDotgIPComplete));
 }
 
 void UMyGameInstance::Shutdown()
@@ -44,9 +46,44 @@ void UMyGameInstance::ApplySavedGraphicSettings()
 			GameUserSettings->GetFrameRateLimit() > 0.0f ? 
 				GameUserSettings->SetFrameRateLimit(GameUserSettings->GetFrameRateLimit()) : GameUserSettings->SetFrameRateLimit(60.f);
 			GameUserSettings->SetVSyncEnabled(GameUserSettings->IsVSyncEnabled());
+			auto* ConsoleVar = IConsoleManager::Get().FindConsoleVariable(TEXT("r.AntiAliasingMethod"));
+			if (ConsoleVar)
+			{
+				ConsoleVar->Set(2);
+			}
+			GameUserSettings->SetAntiAliasingQuality(2);
 			GameUserSettings->ApplySettings(false);
 		}
 	}
+}
+
+void UMyGameInstance::OnGetDotgIPComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully)
+{
+	check(IsInGameThread());
+
+	if (connectedSuccessfully) {
+		if (pResponse.IsValid()) {
+			if (UServiceControllerSubsystem* ServiceControllerSubsystem = this->GetSubsystem<UServiceControllerSubsystem>()) {
+				switch (pResponse->GetResponseCode()) {
+				case EHttpResponseCodes::Ok:
+					FString API_IP = pResponse->GetContentAsString();
+					ServiceControllerSubsystem->SetBaseAPIURL(API_IP.Append(TEXT(":3000")));
+					break;
+				}
+			}
+		}
+	}
+}
+
+void UMyGameInstance::GetDotgIP(const FHttpRequestCompleteDelegate& callback)
+{
+	FString URL = TEXT("https://dotg.tranduyquan2003.workers.dev/api/get-dotg-ip");
+	FHttpModule& HttpModule = FHttpModule::Get();
+	TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();
+	httpRequest->SetVerb("GET");
+	httpRequest->SetURL(URL);
+	httpRequest->OnProcessRequestComplete() = callback;
+	httpRequest->ProcessRequest();
 }
 
 void UMyGameInstance::LogoutProcess()
@@ -265,35 +302,14 @@ void UMyGameInstance::OnLobbyLeaveReceived(const FString& Message)
 				if (action == TEXT("leave") || action == TEXT("kick_member")) {
 					TSharedPtr<FJsonObject> payloadObj = messageObj->GetObjectField(TEXT("payload"));
 					if (payloadObj.IsValid()) {
-						TSharedPtr<FJsonObject> lobbyObj = payloadObj->GetObjectField(TEXT("lobby"));
-						if (lobbyObj.IsValid()) {
-							FName LeftUsername = FName(payloadObj->GetStringField(TEXT("left_user")));
-							if (!LeftUsername.IsEqual(this->GetLobbyInfo().Leader_Username)) {
-								FString CurrentLeaderUsername = lobbyObj->GetStringField(TEXT("leader"));
-								this->RemoveFromLobby(LeftUsername, FName(CurrentLeaderUsername));
-							}
-							else {
-								FName LobbyName = FName(lobbyObj->GetStringField(TEXT("lobby_name")));
-								FName LeaderUsername = FName(lobbyObj->GetStringField(TEXT("leader")));
-								TArray<TSharedPtr<FJsonValue>> MembersJson = lobbyObj->GetArrayField(TEXT("members"));
-								FString Status = lobbyObj->GetStringField(TEXT("status"));
-								TArray<FPlayerInfo> LobbyMembers;
-								for (int i = 0; i < MembersJson.Num(); ++i) {
-									if (MembersJson[i].IsValid()) {
-										FString Username = MembersJson[i]->AsString();
-										FPlayerInfo Member(FName(Username), true);
-										LobbyMembers.Add(Member);
-									}
-								}
-								FLobbyInfo NewLobbyInfo(LobbyName, LeaderUsername, LobbyMembers, 5, Status);
-								this->SetLobbyInfo(NewLobbyInfo);
-								FString LobbyID;
-								if (lobbyObj->TryGetStringField(TEXT("lobby_id"), LobbyID)) {
-									if (OnLobbyIDChangeDel.IsBound()) {
-										OnLobbyIDChangeDel.Broadcast(LobbyID);
-									}
-								}
-							}
+						FName LeftUsername = FName(payloadObj->GetStringField(TEXT("left_user")));
+						if (!LeftUsername.IsEqual(this->GetLobbyInfo().Leader_Username)) {
+							FName CurrentLeaderUsername = LobbyInfo.Leader_Username;
+							this->RemoveFromLobby(LeftUsername, CurrentLeaderUsername);
+						}
+						else {
+							FString NewLeaderUsername = payloadObj->GetStringField(TEXT("new_leader"));
+							this->RemoveFromLobby(LeftUsername, FName(NewLeaderUsername));
 						}
 					}
 				}

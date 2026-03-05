@@ -7,7 +7,7 @@
 void UUserAccountController::CreateUser(const FString& contentString, const FHttpRequestCompleteDelegate& callback)
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
-		FString BASE_URL = ServiceController->GetBaseHTTPURL();
+		FString BASE_URL = ServiceController->GetBaseAPIURL();
 		FString realURL = BASE_URL.Append("/user/create");
 		FHttpModule& HttpModule = FHttpModule::Get();
 		TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();
@@ -23,7 +23,7 @@ void UUserAccountController::CreateUser(const FString& contentString, const FHtt
 void UUserAccountController::LoginUser(const FString& contentString, const FHttpRequestCompleteDelegate& callback)
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
-		FString BASE_URL = ServiceController->GetBaseHTTPURL();
+		FString BASE_URL = ServiceController->GetBaseAPIURL();
 		FString realURL = BASE_URL.Append("/user/login");
 		FHttpModule& HttpModule = FHttpModule::Get();
 		TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();
@@ -39,7 +39,7 @@ void UUserAccountController::LoginUser(const FString& contentString, const FHttp
 void UUserAccountController::LogoutUser(const FString& token, const FHttpRequestCompleteDelegate& callback)
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
-		FString BASE_URL = ServiceController->GetBaseHTTPURL();
+		FString BASE_URL = ServiceController->GetBaseAPIURL();
 		FString realURL = BASE_URL.Append("/user/logout");
 		FHttpModule& HttpModule = FHttpModule::Get();
 		TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();

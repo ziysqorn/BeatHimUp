@@ -13,7 +13,7 @@ void UInGameController::GetCharacterStats(const FHttpRequestCompleteDelegate& ca
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
 		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(ServiceController->GetGameInstance())) {
-			FString BASE_URL = ServiceController->GetBaseHTTPURL();
+			FString BASE_URL = ServiceController->GetBaseAPIURL();
 			FString realURL = BASE_URL.Append("/in_game/character_stats/get");
 			FHttpModule& HttpModule = FHttpModule::Get();
 			TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();
@@ -31,7 +31,7 @@ void UInGameController::SaveCharacterStats(const FString& contentString, const F
 {
 	if (UServiceControllerSubsystem* ServiceController = Cast<UServiceControllerSubsystem>(this->GetOuter())) {
 		if (UMyGameInstance* GameInstance = Cast<UMyGameInstance>(ServiceController->GetGameInstance())) {
-			FString BASE_URL = ServiceController->GetBaseHTTPURL();
+			FString BASE_URL = ServiceController->GetBaseAPIURL();
 			FString realURL = BASE_URL.Append("/in_game/character_stats/save");
 			FHttpModule& HttpModule = FHttpModule::Get();
 			TSharedRef<IHttpRequest> httpRequest = HttpModule.CreateRequest();

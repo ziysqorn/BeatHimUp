@@ -61,7 +61,11 @@ protected:
 
 	void OnLobbyInvitationReceived(const FString& Message);
 
-	void OnStartGameReceived(const FString& Message);
+	void OnDoneCreatingGameServerReceived(const FString& Message);
+
+	void OnCreateGameServerFailedReceived(const FString& Message);
+
+	void OnStartCreatingGameServerReceived(const FString& Message);
 
 	void OnSentFriendRequestComplete(FHttpRequestPtr pRequest, FHttpResponsePtr pResponse, bool connectedSuccessfully);
 
